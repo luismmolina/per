@@ -31,13 +31,20 @@ export async function POST(req: NextRequest) {
     fs.writeFileSync(tmpPath, buffer)
 
     const groq = new Groq({ apiKey })
-    const transcription = await groq.audio.transcriptions.create({
-      file: fs.createReadStream(tmpPath) as any,
+    const common: any = {
+      file: fs.createReadStream(tmpPath),
       model: 'whisper-large-v3-turbo',
-      response_format: 'verbose_json' as any,
-      // Force English transcription
-      language: 'en' as any,
-    } as any)
+      response_format: 'verbose_json',
+    }
+
+    let transcription: any
+    try {
+      // Prefer translation-to-English if available in SDK
+      transcription = await (groq as any).audio.translations.create(common)
+    } catch {
+      // Fallback to plain transcription
+      transcription = await groq.audio.transcriptions.create(common)
+    }
 
     // Clean up temp file
     try { fs.unlinkSync(tmpPath) } catch {}
