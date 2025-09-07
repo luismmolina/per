@@ -176,7 +176,7 @@ body {
 
 /* Enhanced button styles */
 .btn-primary {
-  @apply bg-accent-blue hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring;
+  @apply bg-gradient-to-r from-accent-blue to-accent-purple text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring;
 }
 
 .btn-secondary {
@@ -184,7 +184,7 @@ body {
 }
 
 .btn-success {
-  @apply bg-accent-green hover:bg-emerald-600 active:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring;
+  @apply bg-gradient-to-r from-accent-green to-accent-emerald text-black font-semibold rounded-xl transition-all duration-200 active:scale-95 focus-ring;
 }
 
 /* Enhanced input styles */
@@ -256,7 +256,7 @@ body {
 
 /* Better typography */
 .text-gradient {
-  background: linear-gradient(135deg, #22d3ee 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #ff4d8d 0%, #22d3ee 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
