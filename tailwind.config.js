@@ -11,13 +11,13 @@ module.exports = {
         // AMOLED-optimized colors
         amoled: {
           black: "#000000",
-          dark: "#0a0a0a",
-          gray: "#1a1a1a",
-          lightGray: "#2a2a2a",
-          border: "#333333",
+          dark: "#0b0f14", // subtle blue‑black for depth
+          gray: "#111827",  // slate‑900 style surface
+          lightGray: "#1f2937", // slate‑800 hover surface
+          border: "#2a3441", // muted cool border
           text: "#ffffff",
-          textSecondary: "#a0a0a0",
-          textMuted: "#666666",
+          textSecondary: "#cbd5e1", // slate‑300
+          textMuted: "#94a3b8", // slate‑400
         },
         primary: {
           50: "#f0f9ff",
@@ -38,14 +38,14 @@ module.exports = {
           800: "#1f2937",
           900: "#111827",
         },
-        // Enhanced accent colors for better contrast
+        // Refined neon accents (accessible on black)
         accent: {
-          blue: "#3b82f6",
-          green: "#10b981",
-          purple: "#8b5cf6",
-          amber: "#f59e0b",
-          red: "#ef4444",
-          emerald: "#059669",
+          blue: "#22d3ee",     // cyan‑400
+          green: "#34d399",    // emerald‑400
+          purple: "#a78bfa",   // violet‑400
+          amber: "#fbbf24",    // amber‑400
+          red: "#fb7185",      // rose‑400
+          emerald: "#14b8a6",  // teal‑500
         },
       },
       // Enhanced animations
@@ -88,9 +88,9 @@ module.exports = {
       boxShadow: {
         amoled: "0 0 0 1px rgba(255, 255, 255, 0.1)",
         "amoled-lg": "0 0 0 1px rgba(255, 255, 255, 0.15)",
-        "glow-blue": "0 0 20px rgba(59, 130, 246, 0.3)",
-        "glow-green": "0 0 20px rgba(16, 185, 129, 0.3)",
-        "glow-purple": "0 0 20px rgba(139, 92, 246, 0.3)",
+        "glow-blue": "0 0 20px rgba(34, 211, 238, 0.3)",
+        "glow-green": "0 0 20px rgba(52, 211, 153, 0.3)",
+        "glow-purple": "0 0 20px rgba(167, 139, 250, 0.3)",
       },
     },
   },
