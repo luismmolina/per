@@ -239,6 +239,7 @@ CONTEXT: ${exploration}
 Provide a comprehensive, actionable answer. Use code execution for calculations when needed. Include specific numbers and insights.`;
 
     const fullContextContents = [{ role: 'user', parts: [{ text: fullContextPrompt }] }];
+    const model = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
     const fullContextTokenCount = await genAI.models.countTokens({
       model,
       contents: fullContextContents,
