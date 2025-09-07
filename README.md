@@ -126,6 +126,7 @@ Click the lens icon to get AI-powered insights on:
 - **Icons**: Lucide React
 - **State Management**: React useState (local state)
 - **AI**: Google Gemini 2.5 Pro with enhanced prompts
+- **Voice**: Groq Whisper large-v3-turbo for speech-to-text
 
 ## API Configuration
 
@@ -137,6 +138,12 @@ The app uses Google's Gemini AI API. **If you're experiencing connection issues:
 4. **Configure environment**: Copy `.env.example` to `.env.local` and fill in the required keys
 
 For production use, keep your keys only in environment variables, never in source code.
+
+### Voice Transcription (Groq Whisper)
+
+- Set `GROQ_API_KEY` in your environment.
+- Endpoint: `POST /api/transcribe` with `multipart/form-data` containing field `audio` (audio/webm, m4a, wav, etc.).
+- The UI includes a microphone button to record a voice note and auto-save the transcription as a note.
 
 ## Data Storage
 

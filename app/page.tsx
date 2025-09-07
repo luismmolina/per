@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, memo, useCallback, useMemo } from 'react'
-import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
+import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash, Mic, Square } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -698,6 +698,75 @@ export default function Home() {
     // Scroll to bottom after adding note with delay
     setTimeout(() => scrollToBottom(), 200)
   }, [inputText, scrollToBottom])
+
+  // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
+  const [isRecording, setIsRecording] = useState(false)
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const recordedChunksRef = useRef<Blob[]>([])
+
+  const transcribeBlob = useCallback(async (blob: Blob) => {
+    try {
+      setIsTranscribing(true)
+      const form = new FormData()
+      form.append('audio', new File([blob], 'voice_note.webm', { type: blob.type || 'audio/webm' }))
+      const res = await fetch('/api/transcribe', { method: 'POST', body: form })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err?.error || `Transcription failed (${res.status})`)
+      }
+      const data = await res.json()
+      const text = (data?.text || '').trim()
+      if (!text) throw new Error('Empty transcription')
+
+      const newNote: Message = {
+        id: Date.now().toString(),
+        content: text,
+        type: 'note',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, newNote])
+      setTimeout(() => scrollToBottom(), 200)
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      showError(`Voice note error: ${msg}`)
+    } finally {
+      setIsTranscribing(false)
+    }
+  }, [setMessages, scrollToBottom, showError])
+
+  const toggleRecording = useCallback(async () => {
+    try {
+      if (!isRecording) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined
+        const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
+        recordedChunksRef.current = []
+        mr.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data)
+        }
+        mr.onstop = async () => {
+          try {
+            const blob = new Blob(recordedChunksRef.current, { type: mr.mimeType || 'audio/webm' })
+            stream.getTracks().forEach(t => t.stop())
+            await transcribeBlob(blob)
+          } catch (e) {
+            const msg = e instanceof Error ? e.message : String(e)
+            showError(`Recording error: ${msg}`)
+          }
+        }
+        mediaRecorderRef.current = mr
+        mr.start()
+        setIsRecording(true)
+      } else {
+        mediaRecorderRef.current?.stop()
+        setIsRecording(false)
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      showError(`Mic permission or recording failed: ${msg}`)
+    }
+  }, [isRecording, transcribeBlob, showError])
 
   const deleteNote = (id: string) => {
     if (!confirm('Delete this note?')) return
@@ -1614,7 +1683,22 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
               className="input-enhanced w-full resize-none"
               />
           </div>
-          <div className="flex space-x-3">
+          <div className="flex items-center space-x-3">
+            <button
+              onClick={toggleRecording}
+              disabled={isTranscribing}
+              className="btn-secondary w-14 h-14 flex items-center justify-center rounded-xl"
+              aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
+              title={isRecording ? 'Stop recording' : 'Start voice note'}
+            >
+              {isTranscribing ? (
+                <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
+              ) : isRecording ? (
+                <Square className="w-5 h-5 text-accent-red" />
+              ) : (
+                <Mic className="w-5 h-5 text-accent-purple" />
+              )}
+            </button>
             <button
               onClick={addNote}
               disabled={isAddNoteDisabled}
