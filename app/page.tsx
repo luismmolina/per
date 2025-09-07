@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect, memo, useCallback, useMemo } from 'react'
-import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash, Mic, Square } from 'lucide-react'
+import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -18,6 +18,41 @@ interface Message {
   }>
   thoughts?: string[]
 }
+
+// Minimal inline icons to avoid version mismatches
+type IconProps = { className?: string }
+const MicIcon: React.FC<IconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <path d="M12 1a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V4a3 3 0 0 1 3-3z" />
+    <path d="M19 10v1a7 7 0 0 1-14 0v-1" />
+    <line x1="12" y1="19" x2="12" y2="23" />
+    <line x1="8" y1="23" x2="16" y2="23" />
+  </svg>
+)
+
+const StopIcon: React.FC<IconProps> = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+  >
+    <rect x="6" y="6" width="12" height="12" rx="2" />
+  </svg>
+)
 
 // Add interface for dishes data
 interface Dish {
@@ -1694,9 +1729,9 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
               {isTranscribing ? (
                 <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
               ) : isRecording ? (
-                <Square className="w-5 h-5 text-accent-red" />
+                <StopIcon className="w-5 h-5 text-accent-red" />
               ) : (
-                <Mic className="w-5 h-5 text-accent-purple" />
+                <MicIcon className="w-5 h-5 text-accent-purple" />
               )}
             </button>
             <button
