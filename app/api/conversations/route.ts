@@ -1,63 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
-import { promises as fs } from 'fs'
-import path from 'path'
-
-const CONVERSATIONS_KEY = 'contextual-conversations'
-const LOCAL_FILE_PATH = path.join(process.cwd(), 'data', 'conversations.json')
-
-// Check if Redis is available
-function isRedisAvailable() {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  return !!(url && token)
-}
-
-// Initialize Redis client
-function getRedisClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  
-  if (!url || !token) {
-    throw new Error('Redis configuration missing')
-  }
-  
-  return new Redis({
-    url,
-    token,
-  })
-}
-
-// File-based storage functions for local development
-async function ensureDataDirectory() {
-  const dataDir = path.dirname(LOCAL_FILE_PATH)
-  try {
-    await fs.access(dataDir)
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true })
-  }
-}
-
-async function loadFromFile() {
-  try {
-    await ensureDataDirectory()
-    const data = await fs.readFile(LOCAL_FILE_PATH, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    // File doesn't exist or is empty, return empty array
-    return { messages: [] }
-  }
-}
-
-async function saveToFile(data: any) {
-  try {
-    await ensureDataDirectory()
-    await fs.writeFile(LOCAL_FILE_PATH, JSON.stringify(data, null, 2))
-  } catch (error) {
-    console.error('Failed to save to file:', error)
-    throw error
-  }
-}
+import { loadConversations, saveConversations, clearConversations } from '../../../lib/storage'
 
 // Fetch dishes data from external COGS API
 async function fetchDishesData() {
@@ -152,20 +94,7 @@ function transformDishesToNotes(dishesData: any) {
 // GET - Load conversations (including COGS data)
 export async function GET(req: NextRequest) {
   try {
-    let conversations: any
-
-    if (isRedisAvailable()) {
-      console.log('Using Redis for loading conversations')
-      const redis = getRedisClient()
-      conversations = await redis.get(CONVERSATIONS_KEY)
-
-      if (!conversations) {
-        conversations = { messages: [] }
-      }
-    } else {
-      console.log('Using file storage for loading conversations')
-      conversations = await loadFromFile()
-    }
+    let conversations: any = await loadConversations()
 
     // By default, return RAW conversations without mixing in COGS notes.
     // Optionally allow includeCogs=true to return the derived notes view.
@@ -237,14 +166,7 @@ export async function POST(req: NextRequest) {
       totalMessages: messages.length
     }
     
-    if (isRedisAvailable()) {
-      console.log('Using Redis for saving conversations')
-      const redis = getRedisClient()
-      await redis.set(CONVERSATIONS_KEY, conversationData)
-    } else {
-      console.log('Using file storage for saving conversations')
-      await saveToFile(conversationData)
-    }
+    await saveConversations(conversationData)
     
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -256,14 +178,7 @@ export async function POST(req: NextRequest) {
 // DELETE - Clear conversations
 export async function DELETE() {
   try {
-    if (isRedisAvailable()) {
-      console.log('Using Redis for clearing conversations')
-      const redis = getRedisClient()
-      await redis.del(CONVERSATIONS_KEY)
-    } else {
-      console.log('Using file storage for clearing conversations')
-      await saveToFile({ messages: [] })
-    }
+    await clearConversations()
     
     return NextResponse.json({ success: true })
   } catch (error) {

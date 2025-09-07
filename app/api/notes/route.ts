@@ -1,53 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Redis } from '@upstash/redis'
-import { promises as fs } from 'fs'
-import path from 'path'
-
-const CONVERSATIONS_KEY = 'contextual-conversations'
-const LOCAL_FILE_PATH = path.join(process.cwd(), 'data', 'conversations.json')
-
-// Check if Redis is available
-function isRedisAvailable() {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  return !!(url && token)
-}
-
-// Initialize Redis client
-function getRedisClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN
-  
-  if (!url || !token) {
-    throw new Error('Redis configuration missing')
-  }
-  
-  return new Redis({
-    url,
-    token,
-  })
-}
-
-// File-based storage functions for local development
-async function ensureDataDirectory() {
-  const dataDir = path.dirname(LOCAL_FILE_PATH)
-  try {
-    await fs.access(dataDir)
-  } catch {
-    await fs.mkdir(dataDir, { recursive: true })
-  }
-}
-
-async function loadFromFile() {
-  try {
-    await ensureDataDirectory()
-    const data = await fs.readFile(LOCAL_FILE_PATH, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    // File doesn't exist or is empty, return empty array
-    return { messages: [] }
-  }
-}
+import { loadConversations } from '../../../lib/storage'
 
 // Fetch dishes data from external COGS API
 async function fetchDishesData() {
@@ -176,33 +128,17 @@ export async function GET() {
     // Get user notes from conversations
     let userNotes = []
     try {
-      if (isRedisAvailable()) {
-        console.log('📝 Using Redis for loading user notes')
-        const redis = getRedisClient()
-        const conversations = await redis.get(CONVERSATIONS_KEY)
-        
-        // Type guard to ensure conversations has the expected structure
-        if (conversations && typeof conversations === 'object' && 'messages' in conversations && Array.isArray(conversations.messages)) {
-          userNotes = conversations.messages.filter((msg: any) => msg.type === 'note').map((msg: any) => ({
+      const conversations = await loadConversations()
+      if (conversations && typeof conversations === 'object' && 'messages' in conversations && Array.isArray(conversations.messages)) {
+        userNotes = conversations.messages
+          .filter((msg: any) => msg.type === 'note')
+          .map((msg: any) => ({
             id: msg.id,
             content: msg.content,
             type: 'user-note' as const,
             timestamp: new Date(msg.timestamp),
             source: 'User Input'
           }))
-        }
-      } else {
-        console.log('📝 Using file storage for loading user notes')
-        const conversations = await loadFromFile()
-        if (conversations && typeof conversations === 'object' && 'messages' in conversations && Array.isArray(conversations.messages)) {
-          userNotes = conversations.messages.filter((msg: any) => msg.type === 'note').map((msg: any) => ({
-            id: msg.id,
-            content: msg.content,
-            type: 'user-note' as const,
-            timestamp: new Date(msg.timestamp),
-            source: 'User Input'
-          }))
-        }
       }
     } catch (error) {
       console.warn('Failed to load user notes:', error)

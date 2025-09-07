@@ -24,7 +24,7 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
    npm install
    ```
 
-   Copy `.env.example` to `.env.local` and add your Gemini API key and Redis credentials (optional).
+   Copy `.env.example` to `.env.local` and add your Gemini API key and Postgres `DATABASE_URL`.
 
 2. **Run the development server:**
 
@@ -139,22 +139,28 @@ For production use, keep your keys only in environment variables, never in sourc
 
 ## Data Storage
 
-- **Primary Storage**: Redis cloud database (Upstash Redis)
-- **Fallback Storage**: File-based storage on your local machine
+- **Primary Storage**: Neon Postgres (via `@neondatabase/serverless`)
+- **Data Shape**: Stored as a single JSON document keyed by `contextual-conversations`
 - **Auto-Save**: Every message is automatically saved via API calls
-- **Cloud Persistence**: Your conversations are stored securely in the cloud
-- **Local Backup**: File-based storage available when Redis is not configured
-- **Reliability**: Much more reliable than browser localStorage
+- **Cloud Persistence**: Your conversations are stored securely in Postgres
 
 ### Environment Setup
 
-To use cloud storage, add these environment variables to your `.env.local`:
+Add these environment variables to your `.env.local` (values shown are examples):
 ```
-UPSTASH_REDIS_REST_URL=your_redis_url
-UPSTASH_REDIS_REST_TOKEN=your_redis_token
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
+# Optional alternates if you use them elsewhere
+DATABASE_URL_UNPOOLED=...
+PGHOST=...
+PGUSER=...
+PGDATABASE=...
+PGPASSWORD=...
 ```
 
-If Redis is not configured, the app will automatically fall back to local file storage.
+Install the Postgres client:
+```
+npm install @neondatabase/serverless
+```
 
 ## Development
 

@@ -32,39 +32,22 @@ async function testRestoreNotes() {
     return false;
   }
 
-  // Test 2: Check if we can connect to database
-  console.log("🔗 Test 2: Checking database connectivity...");
+  // Test 2: Check if we can connect to Postgres
+  console.log("🔗 Test 2: Checking Postgres connectivity...");
   try {
-    const { Redis } = require("@upstash/redis");
-
-    const isRedisAvailable = () => {
-      const url = process.env.UPSTASH_REDIS_REST_URL;
-      const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-      return !!(url && token);
-    };
-
-    if (isRedisAvailable()) {
-      console.log("✅ Redis configuration found");
-
-      const getRedisClient = () => {
-        const url = process.env.UPSTASH_REDIS_REST_URL;
-        const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-        if (!url || !token) {
-          throw new Error("Redis configuration missing");
-        }
-
-        return new Redis({
-          url,
-          token,
-        });
-      };
-
-      const redis = getRedisClient();
-      await redis.ping();
-      console.log("✅ Redis connection successful");
+    if (process.env.DATABASE_URL) {
+      const mod = await import("@neondatabase/serverless");
+      mod.neonConfig.fetchConnectionCache = true;
+      const sql = mod.neon(process.env.DATABASE_URL);
+      const rows = await sql`select 1 as ok`;
+      if (rows[0]?.ok === 1) {
+        console.log("✅ Postgres connection successful");
+      } else {
+        console.log("❌ Postgres connectivity test returned unexpected result:", rows);
+        return false;
+      }
     } else {
-      console.log("ℹ️ Redis not available, will use file storage");
+      console.log("ℹ️ DATABASE_URL not set, will use file storage");
     }
   } catch (error) {
     console.error("❌ Database connectivity test failed:", error);

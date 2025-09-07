@@ -61,30 +61,15 @@ function parseNotesFile(filePath) {
   return notes;
 }
 
-// Function to save notes to the database (both Redis and file)
+// Function to save notes to the database (Postgres primary, file fallback)
 async function saveNotesToDatabase(notes) {
-  const { Redis } = require("@upstash/redis");
-
-  // Check if Redis is available
-  const isRedisAvailable = () => {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-    return !!(url && token);
-  };
-
-  // Initialize Redis client
-  const getRedisClient = () => {
-    const url = process.env.UPSTASH_REDIS_REST_URL;
-    const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-    if (!url || !token) {
-      throw new Error("Redis configuration missing");
-    }
-
-    return new Redis({
-      url,
-      token,
-    });
+  // Dynamic import to support CommonJS script
+  const getSql = async () => {
+    const mod = await import("@neondatabase/serverless");
+    mod.neonConfig.fetchConnectionCache = true;
+    const url = process.env.DATABASE_URL;
+    if (!url) throw new Error("DATABASE_URL not set");
+    return mod.neon(url);
   };
 
   // File-based storage functions
@@ -129,15 +114,12 @@ async function saveNotesToDatabase(notes) {
   try {
     // Load existing conversations
     let conversations;
-
-    if (isRedisAvailable()) {
-      console.log("📝 Using Redis for restoring notes...");
-      const redis = getRedisClient();
-      conversations = await redis.get("contextual-conversations");
-
-      if (!conversations) {
-        conversations = { messages: [] };
-      }
+    if (process.env.DATABASE_URL) {
+      console.log("📝 Using Postgres for restoring notes...");
+      const sql = await getSql();
+      await sql`create table if not exists conversations (id text primary key, data jsonb not null, updated_at timestamptz default now())`;
+      const rows = await sql`select data from conversations where id = 'contextual-conversations' limit 1`;
+      conversations = rows[0]?.data || { messages: [] };
     } else {
       console.log("📝 Using file storage for restoring notes...");
       conversations = await loadFromFile();
@@ -149,10 +131,16 @@ async function saveNotesToDatabase(notes) {
     conversations.totalMessages = conversations.messages.length;
 
     // Save back to database
-    if (isRedisAvailable()) {
-      const redis = getRedisClient();
-      await redis.set("contextual-conversations", conversations);
-      console.log("✅ Successfully restored notes to Redis");
+    if (process.env.DATABASE_URL) {
+      const sql = await getSql();
+      // @ts-ignore - json helper available at runtime
+      const jsonData = sql.json ? sql.json(conversations) : JSON.stringify(conversations);
+      await sql`
+        insert into conversations (id, data, updated_at)
+        values ('contextual-conversations', ${jsonData}::jsonb, now())
+        on conflict (id) do update set data = excluded.data, updated_at = now()
+      `;
+      console.log("✅ Successfully restored notes to Postgres");
     } else {
       await saveToFile(conversations);
       console.log("✅ Successfully restored notes to file storage");
