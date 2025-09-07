@@ -16,7 +16,7 @@ async function ensureSchema() {
 export async function loadConversations(): Promise<any> {
   await ensureSchema()
   const sql = getSql()
-  const rows = await sql<[{ data: any }]>`
+  const rows = await sql<{ data: any }>`
     select data from conversations where id = ${CONVERSATIONS_KEY} limit 1
   `
   return rows[0]?.data ?? { messages: [] }
@@ -41,4 +41,3 @@ export async function clearConversations(): Promise<void> {
   // Reset to an empty payload rather than deleting the row
   await saveConversations({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
 }
-

@@ -22,7 +22,6 @@ export function getSql() {
 // Simple connectivity check for debugging
 export async function pingDatabase() {
   const sql = getSql()
-  const rows = await sql`select 1 as ok`
+  const rows = await sql<{ ok: number }>`select 1 as ok`
   return rows[0]?.ok === 1
 }
-
