@@ -55,13 +55,14 @@ Remember: In business, precision matters. A 1% calculation error can be the diff
   const finalContents = [{ role: 'user', parts: [{ text: finalPrompt }] }];
   
   // Count tokens for final step
+  const model = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
   const finalTokenCount = await genAI.models.countTokens({
-    model: 'gemini-2.5-pro',
+    model,
     contents: finalContents,
   });
   
   const finalResult = await genAI.models.generateContentStream({
-    model: 'gemini-2.5-pro',
+    model,
     contents: finalContents,
     config: {
       thinkingConfig: {
@@ -239,7 +240,7 @@ Provide a comprehensive, actionable answer. Use code execution for calculations 
 
     const fullContextContents = [{ role: 'user', parts: [{ text: fullContextPrompt }] }];
     const fullContextTokenCount = await genAI.models.countTokens({
-      model: 'gemini-2.5-pro',
+      model,
       contents: fullContextContents,
     });
     

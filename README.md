@@ -25,6 +25,7 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
    ```
 
    Copy `.env.example` to `.env.local` and add your Gemini API key and Postgres `DATABASE_URL`.
+   Optional: set `GEMINI_MODEL` (defaults to `models/gemini-2.5-flash`).
 
 2. **Run the development server:**
 

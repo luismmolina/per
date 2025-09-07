@@ -417,7 +417,8 @@ Respond exactly in the STRICT OUTPUT FORMAT.`
       { role: 'user', parts: [{ text: systemInstruction }] },
     ]
 
-    const tokenCount = await genAI.models.countTokens({ model: 'gemini-2.5-pro', contents })
+    const model = (globalThis as any).process?.env?.GEMINI_MODEL || 'models/gemini-2.5-flash'
+    const tokenCount = await genAI.models.countTokens({ model, contents })
     const inputTokens = (tokenCount as any).totalTokens || 0
     const dbg = (globalThis as any).process?.env?.DEBUG
     if (dbg) {
@@ -430,7 +431,7 @@ Respond exactly in the STRICT OUTPUT FORMAT.`
     })
 
     const streamPromise = genAI.models.generateContentStream({
-      model: 'gemini-2.5-pro',
+      model,
       contents,
       config: {
         thinkingConfig: {

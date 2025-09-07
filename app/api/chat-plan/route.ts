@@ -21,13 +21,14 @@ Respond with ONLY the plan, no explanations. Use bullet points for clarity.`;
   const planContents = [{ role: 'user', parts: [{ text: planPrompt }] }];
   
   // Count tokens for plan step
+  const model = process.env.GEMINI_MODEL || 'models/gemini-2.5-flash';
   const planTokenCount = await genAI.models.countTokens({
-    model: 'gemini-2.5-flash',
+    model,
     contents: planContents,
   });
   
   const planResult = await genAI.models.generateContent({
-    model: 'gemini-2.5-flash',
+    model,
     contents: planContents,
   });
   
