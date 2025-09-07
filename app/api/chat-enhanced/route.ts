@@ -10,72 +10,7 @@ import {
   HarmBlockThreshold,
 } from '@google/genai'
 
-// Function to fetch dishes data from the external API
-async function fetchDishesData() {
-  try {
-    console.log('Fetching dishes data for context...')
-
-    const response = await fetch('https://cogs-two.vercel.app/api/dishes/prices', {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; GeminiPlayground/1.0)',
-      },
-    })
-
-    if (!response.ok) {
-      console.warn('Failed to fetch dishes data:', response.status, response.statusText)
-      return null
-    }
-
-    const data = await response.json()
-
-    if ((data as any)?.error) {
-      console.warn('Dishes API returned error:', (data as any).error)
-      return null
-    }
-
-    console.log('Successfully fetched dishes data for context:', {
-      totalDishes: (data as any).totalDishes,
-      lastUpdated: (data as any).lastUpdated,
-    })
-
-    return data
-  } catch (error) {
-    console.warn('Error fetching dishes data:', error)
-    return null
-  }
-}
-
-// Function to build dishes context string
-function buildDishesContext(dishesData: any): string {
-  if (!dishesData || !dishesData.dishes) {
-    return '\n\nNo current production cost data available.'
-  }
-
-  let context = `\n\n**Important Context: Production Cost Data**\nThis data contains a detailed breakdown of the production cost for each dish on the menu, as of ${dishesData.lastUpdated}.`;
-
-  if (dishesData.buffetStats) {
-    context += `\n\n**Buffet Statistics:**\n- Basic Buffet: ${dishesData.buffetStats.buffetBasicoDishCount} dishes, average cost ${dishesData.buffetStats.averageCostBuffetBasico} ${dishesData.dishes[0]?.cost?.unit || 'MXN'} per dish\n- Premium Buffet: ${dishesData.buffetStats.buffetPremiumDishCount} dishes, average cost ${dishesData.buffetStats.averageCostBuffetPremium} ${dishesData.dishes[0]?.cost?.unit || 'MXN'} per dish`;
-  }
-
-  context += `\n\n**Individual Dish Costs:**`;
-
-  dishesData.dishes.forEach((dish: any) => {
-    const buffetInfo: string[] = []
-    if (dish.buffetBasico) buffetInfo.push('Basic')
-    if (dish.buffetPremium) buffetInfo.push('Premium')
-    const buffetText = buffetInfo.length > 0 ? ` (${buffetInfo.join(', ')})` : ''
-
-    context += `\n- ${dish.name}: ${dish.cost.amount} ${dish.cost.unit} to produce${buffetText} (updated: ${dish.lastUpdated})`
-    if (dish.calculationNotes) {
-      context += `\n  - Cost Breakdown: ${dish.calculationNotes}`
-    }
-  })
-
-  context += `\n\nTotal dishes in production: ${dishesData.totalDishes}`
-
-  return context
-}
+// Removed legacy dishes/COGS context: this endpoint focuses on personal notes only.
 
 // Convert Gemini iterator to SSE ReadableStream
 function iteratorToStream(iterator: AsyncGenerator<any, any, undefined>): ReadableStream<any> {
@@ -156,25 +91,7 @@ export async function POST(req: NextRequest) {
     const genAI = new GoogleGenAI({ apiKey })
     let result: any
 
-    // Classify: is this a month-level finance question? Avoid dish context pollution if so.
-    const lowerMsg = String(message || '').toLowerCase()
-    const monthTokens = [
-      'january','february','march','april','may','june','july','august','september','october','november','december',
-      'enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','setiembre','octubre','noviembre','diciembre',
-      'month','mes'
-    ]
-    const financeTokens = [
-      'profit','loss','p&l','ganancia','utilidad','pérdida','perdida','resultado','margen','margin','revenue','ventas','cogs','cost of goods',
-      'gastos','wages','nomina','payroll','rent','renta','utilities','luz','agua','internet','accountant','contable','contador','advertising','publicidad','gas lp','gaslp','gas'
-    ]
-    const isMonthlyFinance = monthTokens.some(t => lowerMsg.includes(t)) && financeTokens.some(t => lowerMsg.includes(t))
-
-    // Only include dishes context for non-monthly-finance queries
-    let dishesContext = ''
-    if (!isMonthlyFinance) {
-      const dishesData = await fetchDishesData()
-      dishesContext = buildDishesContext(dishesData)
-    }
+    // Personal assistant: focus on user notes only (no external domain filters)
 
     const currentDateLine = currentDate ? String(currentDate) : new Date().toString();
 
@@ -191,7 +108,7 @@ export async function POST(req: NextRequest) {
       })
       .join('\n')
 
-    const fullContext = `${context}${dishesContext}`
+    const fullContext = context
 
     let systemInstruction = `TODAY DATE IS: ${currentDateLine}
 
