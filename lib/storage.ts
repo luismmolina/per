@@ -16,10 +16,11 @@ async function ensureSchema() {
 export async function loadConversations(): Promise<any> {
   await ensureSchema()
   const sql = getSql()
-  const rows = await sql<{ data: any }>`
+  const rows = await sql`
     select data from conversations where id = ${CONVERSATIONS_KEY} limit 1
   `
-  return rows[0]?.data ?? { messages: [] }
+  const first: any = Array.isArray(rows) ? (rows as any[])[0] : (rows as any)
+  return first?.data ?? { messages: [] }
 }
 
 export async function saveConversations(data: any): Promise<void> {
