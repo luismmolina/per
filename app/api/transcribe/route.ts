@@ -21,6 +21,9 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+    if (!buffer || buffer.length === 0) {
+      return NextResponse.json({ error: 'Uploaded audio is empty' }, { status: 400 })
+    }
 
     // Choose a temp filename and extension
     const origName = (file as any).name || 'audio'
@@ -29,6 +32,10 @@ export async function POST(req: NextRequest) {
     const tmpPath = path.join(tmpDir, `voice-${Date.now()}-${Math.random().toString(36).slice(2)}.${extGuess}`)
 
     fs.writeFileSync(tmpPath, buffer)
+    const stats = fs.statSync(tmpPath)
+    if (!stats.size) {
+      return NextResponse.json({ error: 'Saved audio file is empty' }, { status: 400 })
+    }
 
     const groq = new Groq({ apiKey })
     const common: any = {

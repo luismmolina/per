@@ -784,16 +784,23 @@ export default function Home() {
           try {
             const blob = new Blob(recordedChunksRef.current, { type: mr.mimeType || 'audio/webm' })
             stream.getTracks().forEach(t => t.stop())
-            await transcribeBlob(blob)
+            if (!blob || blob.size === 0) {
+              showError('No audio captured. Please speak for at least 1–2 seconds and try again.')
+            } else {
+              await transcribeBlob(blob)
+            }
           } catch (e) {
             const msg = e instanceof Error ? e.message : String(e)
             showError(`Recording error: ${msg}`)
           }
         }
         mediaRecorderRef.current = mr
-        mr.start()
+        // Use a timeslice to ensure chunks are emitted while recording
+        mr.start(400)
         setIsRecording(true)
       } else {
+        // Flush any pending data before stopping
+        try { mediaRecorderRef.current?.requestData() } catch {}
         mediaRecorderRef.current?.stop()
         setIsRecording(false)
       }
