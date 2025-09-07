@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
       file: fs.createReadStream(tmpPath) as any,
       model: 'whisper-large-v3-turbo',
       response_format: 'verbose_json' as any,
+      // Force English transcription
+      language: 'en' as any,
     } as any)
 
     // Clean up temp file
@@ -49,4 +51,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
-
