@@ -22,6 +22,11 @@ export function getSql() {
 // Simple connectivity check for debugging
 export async function pingDatabase() {
   const sql = getSql()
-  const rows = await sql<{ ok: number }>`select 1 as ok`
-  return rows[0]?.ok === 1
+  const rows = await sql`select 1 as ok`
+  if (Array.isArray(rows)) {
+    const first: any = (rows as any[])[0]
+    return Number(first?.ok) === 1
+  }
+  // If the driver returns a different structure, lack of throw implies connectivity
+  return true
 }
