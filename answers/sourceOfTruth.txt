@@ -1,0 +1,1272 @@
+[Jun 28, 2025, 02:51 PM] the name of our place his Costa Coral
+
+[Jun 28, 2025, 02:54 PM] we are localted in bucareli 518, colonia vasco de quiroga
+
+[Jun 28, 2025, 02:55 PM] We sell taco buffet. Tacos of shirmp, fish octopus and so on
+
+[Jun 28, 2025, 03:01 PM] We are testing a promo of reservation for 4 people and if all order buffet, they get one for $1. This work great because the payment for the whole table usually is above 1000 mxn
+
+[Jun 28, 2025, 03:03 PM] 1. Current Menu Prices
+Buffet Básico: 219 MXN (latest)
+Buffet Completo: 269 MXN
+Taco Trio: 149 MXN
+Water with refill: 49 MXN
+Soda: 36 MXN
+“Antojo para llevar” cone items
+Filete empanizado 99 MXN | Filete coco 129 MXN
+Camarón empanizado 129 MXN | Camarón coco 139 MXN
+Banner headline: “desde 99 MXN”
+2. Historical / Test Prices
+Buffet Básico before Apr-2025:
+199 MXN (Mon–Fri) | 219 MXN (Sat–Sun)
+February-2025 price point cited: Buffet Básico 199 MXN
+Upsell idea: +3 shrimp 29 MXN | +4 shrimp 39 MXN
+Shrimp dish originally 7 shrimp → proposal to drop to 6
+3. Product Food Costs
+Item	Cost per portion
+Buffet Completo	120 MXN
+Buffet Básico	98 MXN (produce-only estimate 88-89 MXN also mentioned)
+Taco Trio	45 MXN (earlier 48-49 MXN)
+Avg. food cost per taco	15 MXN
+4. Consumption / Serving Rules
+Avg. tacos eaten per Buffet: 7
+Avg. tacos in Taco Trio: 3
+Buffet rule: max 3 tacos plated at once
+Kitchen prep time for agua fresca: < 20 min/day
+5. Sales & Capacity Metrics
+Metric	Value
+Daily revenue ceiling (space/kitchen)	12 000 MXN
+Avg. Saturday sales	5 000 MXN
+Avg. Sunday sales	8 300 MXN
+Typical weekday sales (Mon-Thu)	1 500 – 1 700 MXN
+Typical Friday sales	3 000 MXN
+April 2025 sales	130 000 MXN
+February 2025 sales	128 900 MXN
+Historic month w/ zero ads (≈Nov 2024)	56 000 MXN
+Sat test after price rise	4 000 MXN vs 2 000–3 000 MXN prior
+6. Marketing / Ads
+Baseline advertising budget mentioned: 5 000 MXN/mo
+Actual spend (Dec-2024): 6 500 MXN/mo
+Test weekend bump: 1 400 MXN vs usual 500 MXN
+Proposed scenario: 12 000 MXN/mo
+Facebook CPC test: 10 USD/day → 13 USD/day
+Cost per booking on FB: 1.48 USD | No-show rate: 50 %
+7. Fixed & Variable Expenses
+Expense	Amount
+Rent	13 650 MXN/mo
+Electricity	3 000 MXN/mo
+Water	400 MXN/mo
+Internet	400 MXN/mo
+Accountant	1 400 MXN/mo
+Staff wages	5 600 MXN/week (8 h per day)
+Advertising (baseline line-item)	5 000 MXN/mo
+Tortillas	120 MXN/day × 26 days ≈ 3 120 MXN/mo
+8. Operations & Capacity
+Operating hours: 12 pm – 7 pm
+Closed: Tuesdays → ≈ 26 operating days/month
+Seating capacity: 10 tables
+Reservation limits: 20 people/day or 12 people/hour
+Agua fresca machine: 2 containers
+9. Financial Targets & Status
+Profit goal (Apr-2025): 40 000 MXN/mo
+Personal “satisfied” income: 25 000 MXN/mo
+Reported monthly loss (Nov-2024): 18 000 MXN
+10. Misc. Figures
+Customer split: roughly ⅓ • ⅓ • ⅓ across Buffet Básico, Buffet Completo, Taco Trio
+Staff workday length: 8 h
+A/B-test headline conversion rates: 0.75 % vs 0.59 % (landing page copy)
+Tables rejected because of low-value reservations: ≈ 4 (per anecdote)
+
+[Jun 28, 2025, 03:51 PM] The current costs is 169 MXN in the taco trio. In the case of the promo pay 3 buffets gets the 4 for $1 I have made preliminary math and it shows a return after food expenses above $400 mxn
+
+[Jun 28, 2025, 06:28 PM] To get the promo. They need to make a reservation. The cost in Facebook ads is of 1.66 usd per reservation filled.
+
+[Jun 28, 2025, 06:48 PM] One of our weakness is our bathroom, small and poorly illuminated. Currently no money for improvement. Our kitchen needs a wall paint. Well we need some overall painting job.
+
+[Jun 28, 2025, 08:14 PM] We currently Don't make deliveries. Only at the restaurant
+
+[Jun 28, 2025, 08:59 PM] We open to our costumers at 12:30pm and close at 7pm
+
+[Jun 28, 2025, 10:45 PM] The no-show rate is a raw estime. I think is closer to 38-40%
+
+[Jun 28, 2025, 10:48 PM] We have started to send confirmations via WhatsApp a day before the reservation and the morning of the reservation. This at least help us free tables. But yeah the no-show is relatively high. Although is still profitable to spend on Facebook ads. The landing page for the reservations I made it myself and IT DRIVES around 70% of our sales
+
+[Jun 28, 2025, 10:51 PM] Don't have exact number at the moment, but at the top of my head is around 40% Taco Trio, 10% Buffet Basico and 50% Premium. This is my sales mix. I probably need to check those numbers,but I am sure is around those numbers. We sell around $5000 per month on water. We sold around $11,000 per month but it was reduced by the promo of water free in the promo
+
+[Jun 28, 2025, 11:19 PM] We pay to our staff: Flor 2400 MXN a week, Leslye 2050 MXN a week, Yeni 700 MXN (she works on Saturday and Sunday), Monse 700 MXN (she also works only on Saturday and Sunday). We close on Martes.
+
+[Jun 28, 2025, 11:24 PM] Flor is a crucial part of the staff. She not only works on the kitchen on weekdays, but as waitress on weekends. She offers ideas from menu to operational. She offers training to new staff. She is the backbone of the operations. While I Luis I like to work on the strategy. But on weekdays I am waiter to reduce cost of staff.
+
+[Jun 28, 2025, 11:31 PM] Leslye usually spends a lot of time in the phone. Arrives late and then takes time changing clothes in the bathroom. Many times starting to work until 11:30am wasting 30 minutes frequently. I need to log this and discount it from her weekly check
+
+[Jun 28, 2025, 11:34 PM] It's frequent to have costumers for 2 to 2.5 hours in a table, specially on weekends. On weekdays is lower. We only have 7 tables of 4 people, 1 of six people and 2 of two people
+
+[Jun 28, 2025, 11:35 PM] Hour peak hours are around 3pm to 4:30pm.
+
+[Jun 28, 2025, 11:59 PM] Probably I am wrong. But I feel like even if I spend more on advertising, on weekdays there is a cap on the people willing to go. 2 - 4 max people making a reservation at best. While on weekends the cap is only our capacity of space on the floor and re capacity to serve of the kitchen. And because it's a buffet, we need to be careful because the output of the kitchen can be hard if all costumers arrive at the same time. This is why we use reservations, to drive traffic in different hours. Hour sistems is smart enough to to show when a hour is full and show other times with less demand, so people distribute better over time
+
+[Jun 29, 2025, 01:47 AM] current buffet basico menu> TACO CALAMAR ROCA
+Aros de calamar en témpura.
+TACO ESTILO ENSENADA
+Pescado frito en témpura.
+TACO FILETE AL COCO
+Filete de pescado empanizado en coco.
+TACO FILETE A LA TALLA
+Filete de pescado con salsa a la talla
+TACO DE FILETE EMPANIZADO
+Filete de pescado empanizado.
+TACO PRESIDENTE
+Filete de pescado a la plancha con chile poblano, cebolla y queso oaxaca.
+HAMBURGUESA ENSENADA
+Hamburguesa de pescado en témpura.
+PASTA AL MOJO DE AJO
+Pasta con camarón al mojo de ajo.
+PASTA DEL MAR
+Pasta con camarón y mejillones en crema y especias.
+TACO DE ARRACHERA
+Arrachera marinada con chile poblano y cebolla morada.
+TACO DE BISTEC
+Bistec con chile poblano.
+FLAUTAS DEL MAR
+Flautas crujientes de camarón o pescado.
+TACO ARRECIFE
+Filete empanizado, queso Oaxaca, chile poblano.
+
+[Jun 29, 2025, 01:47 AM] current buffet premium (before was called buffet completo)>
+TACO CALAMAR ROCA
+Aros de calamar en témpura.
+ESTILO ENSENADA
+Pescado frito en témpura.
+TACO PRESIDENTE
+Filete de pescado a la plancha con chile poblano, cebolla y queso oaxaca.
+TACO FILETE AL COCO
+Filete de pescado empanizado en coco.
+HAMBURGUESA ENSENADA
+Hamburguesa de pescado en témpura.
+PASTA AL MOJO DE AJO
+Pasta con camarón al mojo de ajo.
+PASTA DEL MAR
+Pasta con camarón y mejillones en crema y especias.
+HAMBURGUESA CAMARÓN
+Con crujiente costra de queso.
+QUESATACO DE LANGOSTA Y CAMARÓN
+Langosta, camarón y col a la mantequilla con queso. Dorado.
+TACO COSTA CORAL
+Taco de camarón, pulpo y calamar con queso, chile poblano y cebolla.
+TACO DE ARRACHERA
+Arrachera marinada con chile poblano y cebolla morada.
+TACO DE BISTEC
+Bistec con chile poblano.
+TACO DE FILETE EMPANIZADO
+Filete de pescado empanizado.
+TACO ARRECIFE
+Filete empanizado, queso Oaxaca, chile poblano.
+TACO GOBERNADOR
+Camarón a la plancha, chile poblano, cebolla morada y queso Oaxaca.
+FLAUTAS DEL MAR
+Flautas crujientes de camarón o pescado.
+TACO CAMARÓN EMPANIZADO
+Camarón crujiente empanizado.
+TACO CAMARÓN ROCA
+Camarón en témpura.
+TACO PULPO A LA TALLA
+Pulpo picado con calamar a la talla.
+TACO CAMARÓN A LA TALLA
+Camarón a la talla.
+TACO CAMARÓN AL COCO
+Camarón empanizado en coco.
+TACO LANGOSTA Y CAMARÓN
+Langosta, camarón y col a la mantequilla.
+
+[Jun 29, 2025, 01:48 AM] current Taco trio>
+TACO ESTILO ENSENADA
+Pescado empanizado en témpura.
+TACO FILETE AL COCO
+Filete de pescado empanizado en coco.
+TACO PESCADO EMPANIZADO
+Filete de pescado empanizado.
+TACO CAMARÓN COCO
+Camarón empanizado en coco.
+TACO CAMARÓN EMPANIZADOS
+Camarón crujiente empanizado.
+TACO CAMARÓN ROCA
+Camarón en témpura.
+TACO ARRECIFE
+Filete empanizado, queso Oaxaca, chile poblano.
+TACO PRESIDENTE
+Filete de pescado a la plancha con chile poblano, cebolla y queso oaxaca.
+TACO FILETE AL COCO
+Filete de pescado empanizado en coco.
+TACO FILETE A LA TALLA
+Filete de pescado con salsa a la talla
+TACO COSTA CORAL
+Taco de camarón, pulpo y calamar con queso
+TACO GOBERNADOR
+Camarón a la plancha, chile poblano, cebolla morada y queso Oaxaca.
+TACO ARRACHERA
+TACO BISTEC
+
+[Jun 29, 2025, 01:59 AM] some costs of seafood from our provider Rey Camaron> Producto,Cantidad,MXN
+AROS DE CALAMAR,2.0000,220.00
+Calamar Picado,1.0000,190.00
+Cam 31/35,7.0000,1540.00
+Cam 21/25,9.0000,2025.00
+MEJILLON ENTERO CHILENO,1.0000,75.00
+Pulpo Cocido 70 %,1.0000,279.00
+Surimi Neptuno 1 kg,1.0000,96.00
+Filete de Tilapia premium 100 % 5/7 oz,13.6200,1389.24
+AROS DE CALAMAR,2.0000,220.00
+Calamar Picado,1.0000,190.00
+Cam 21/25,13.0000,2925.00
+Cam 26/30,8.0000,1784.00
+MEJILLON ENTERO CHILENO,1.0000,75.00
+Pulpo Cocido 70 %,1.0000,279.00
+Surimi Neptuno 1 kg,1.0000,96.00
+Filete de Tilapia premium 100 % 5/7 oz,13.6200,1389.24
+AROS DE CALAMAR,1.0000,110.00
+Cam 31/35,1.0000,220.00
+Pulpo Cocido 70 %,1.0000,279.00
+Filete de Tilapia premium 100 % 5/7 oz,9.0800,926.16
+Cola de Langosta Grande 450/550 g,0.5940,564.30
+AROS DE CALAMAR,1.0000,110.00
+Calamar Picado,1.0000,190.00
+Cam 31/35,2.0000,440.00
+Cam 21/25,4.0000,900.00
+Filete de Tilapia premium 100 % 5/7 oz,4.5400,463.08
+AROS DE CALAMAR,1.0000,110.00
+Calamar Picado,3.0000,570.00
+Cam 31/35,7.0000,1540.00
+Cam 21/25,9.0000,2025.00
+Filete de Tilapia Premium 100 % 3/5 oz,13.6200,1307.52
+MEJILLON ENTERO CHILENO,1.0000,75.00
+Pulpo Cocido 70 %,1.0000,279.00
+Surimi Neptuno 1 kg,1.0000,96.00
+Pulpo Cocido 70 %,1.0000,279.00
+AROS DE CALAMAR,1.0000,105.00
+Calamar Picado,3.0000,582.00
+Cam 31/35,5.0000,1100.00
+Cam 21/25,9.0220,2029.95
+Filete de Tilapia Premium 100 % 3/5 oz,18.1600,1707.04
+MEJILLON ENTERO CHILENO,2.0000,146.00
+AROS DE CALAMAR,2.0000,210.00
+Calamar Picado,2.0000,388.00
+Cam 31/35,5.0000,1025.00
+Cam 21/25,10.0000,2250.00
+Pulpo Cocido 70 %,1.0000,282.00
+Surimi Neptuno 1 kg,1.0000,96.00
+Filete de Tilapia premium 100 % 5/7 oz,9.0800,889.84
+Cola de Langosta Grande 450/550 g,0.5420,514.90
+
+[Jun 29, 2025, 08:23 AM] We have been showing an ad for cones with shrimp for walking-in people and in a week we haven't not seen any interest. We haven't sold a single cone.
+
+[Jun 29, 2025, 08:28 AM] We have tried a experiment, were we provided ingredients to make our tacos more fulfilling, like adding smashed potatoes to them. And other tactics. It worked, the costumers ate less tacos, but they still ordered the same 6.7 tacos in average but didn't eat the last one and was trough to the garbage. I suspect costumers have this hard limit in their minds, that to feel they took advantage of the buffet they need to eat in average 6.7 tacos. More research is needed
+
+[Jun 29, 2025, 08:40 AM] We created taco trio because we saw that buffet básico didn't generate enough profit, compared to the premium and it was the same amount of work for the kitchen. On weekends we can serve more people, keep profit and still be fast with our service
+
+[Jun 29, 2025, 08:41 AM] Before taco trio was introduced. The product mix sales where almost 50% básico and 50% buffet premium
+
+[Jun 29, 2025, 09:54 AM] I need to add a reminder to put gas LP for kitchen. We are ballparking it and it's not good because some day we might miss and leave our costumers without service
+
+[Jun 29, 2025, 10:57 AM] The cost per kilo of hand made tortilla is $25
+
+[Jun 29, 2025, 01:26 PM] Sunday, only 3 reservations. Low for a Sunday. Let's see how this translates to actual sales. Usually a low amount of reservations signals low traffic.
+
+[Jun 29, 2025, 01:29 PM] We suspect today will be low of sales, because people in Mexico usually get paid on the 15 and end of the month. If it lands on weekend, it's paid the last weekday. But this time the payment will arrive until tomorrow Monday. So probably people don't have so much money today.
+
+[Jun 29, 2025, 01:46 PM] It's raining right now.
+
+[Jun 29, 2025, 01:49 PM] fecha,totalcomedor,porcentajecomedor,totaldomicilio,porcentajedomicilio,totalrapido,porcentajerapido,nopersonas,cuentas,promedioporpersona,promedioporcuenta
+6/1/2025,9288.9241,100,0,0,0,0,44,18,211.1119,516.0513
+6/2/2025,2262.1724,100,0,0,0,0,10,3,226.2172,754.0575
+6/3/2025,0,0,0,0,0,0,0,0,0,0
+6/4/2025,5397,100,0,0,0,0,18,7,299.8333,771
+6/5/2025,4826,100,0,0,0,0,22,9,219.3636,536.2222
+6/6/2025,2328,100,0,0,0,0,14,8,166.2857,291
+6/7/2025,5612,100,0,0,0,0,24,9,233.8333,623.5556
+6/8/2025,6600,100,0,0,0,0,27,13,244.4444,507.6923
+6/9/2025,2680,100,0,0,0,0,10,6,268,446.6667
+6/10/2025,0,0,0,0,0,0,0,0,0,0
+6/11/2025,3972,100,0,0,0,0,16,7,248.25,567.4286
+6/12/2025,589,100,0,0,0,0,4,2,147.25,294.5
+6/13/2025,6398,100,0,0,0,0,25,11,255.92,581.6364
+6/14/2025,7195,100,0,0,0,0,32,15,224.8438,479.6667
+6/15/2025,7699,100,0,0,0,0,28,10,274.9643,769.9
+6/16/2025,2156,100,0,0,0,0,10,4,215.6,539
+6/17/2025,0,0,0,0,0,0,0,0,0,0
+6/18/2025,2850,100,0,0,0,0,9,6,316.6667,475
+6/19/2025,1906,100,0,0,0,0,8,4,238.25,476.5
+6/20/2025,1825,100,0,0,0,0,7,4,260.7143,456.25
+6/21/2025,7795,100,0,0,0,0,33,15,236.2121,519.6667
+6/22/2025,9500.6,100,0,0,0,0,36,13,263.9056,730.8154
+6/23/2025,3221,100,0,0,0,0,13,6,247.7692,536.8333
+6/24/2025,0,0,0,0,0,0,0,0,0,0
+6/25/2025,1729,100,0,0,0,0,10,6,172.9,288.1667
+6/26/2025,557,100,0,0,0,0,3,2,185.6667,278.5
+6/27/2025,3228.7241,100,0,0,0,0,13,5,248.3634,645.7448
+6/28/2025,8353,100,0,0,0,0,33,11,253.1212,759.3636
+6/29/2025,0,0,0,0,0,0,0,0,0,0
+6/30/2025,0,0,0,0,0,0,0,0,0,0
+
+[Jun 29, 2025, 01:54 PM] fecha,totalcomedor,nopersonas,cuentas,promedioporpersona,promedioporcuenta
+5/1/2025,3730.4,16,5,233.15,746.08
+5/2/2025,1897,8,4,237.125,474.25
+5/3/2025,6812.7241,30,12,227.0908,567.727
+5/4/2025,7044.8966,29,9,242.9275,782.7663
+5/5/2025,4860,19,10,255.7895,486
+5/6/2025,0,0,0,0,0
+5/7/2025,4422,19,8,232.7368,552.75
+5/8/2025,3727,16,8,232.9375,465.875
+5/9/2025,3352,13,7,257.8462,478.8571
+5/10/2025,11217,44,16,254.9318,701.0625
+5/11/2025,8357.7241,41,14,203.8469,596.9803
+5/12/2025,2551,8,4,318.875,637.75
+5/13/2025,0,0,0,0,0
+5/14/2025,2320,9,4,257.7778,580
+5/15/2025,8718,31,12,281.2258,726.5
+5/16/2025,6292,23,9,273.5652,699.1111
+5/17/2025,9780,42,15,232.8571,652
+5/18/2025,7279,28,11,259.9643,661.7273
+5/19/2025,149,2,1,74.5,149
+5/20/2025,0,0,0,0,0
+5/21/2025,3870.1724,16,7,241.8858,552.8818
+5/22/2025,1418.7241,6,4,236.454,354.681
+5/23/2025,4019,17,9,236.4118,446.5556
+5/24/2025,8058.8,38,13,212.0737,619.9077
+5/25/2025,5761,23,9,250.4783,640.1111
+5/26/2025,807,3,1,269,807
+5/27/2025,0,0,0,0,0
+5/28/2025,3293,11,5,299.3636,658.6
+5/29/2025,5045.7241,21,8,240.2726,630.7155
+5/30/2025,1329,4,3,332.25,443
+5/31/2025,6926,29,13,238.8276,532.7692
+
+[Jun 29, 2025, 01:58 PM] we have seen a strong correlation between number of reservations and people arriving to the restaurant. even if they are walk-ins. For example 7 reservations, 6, reservations is for sure a day with lots of activity. 1 to 2 reservatoins is a signal for low traffic.
+
+[Jun 29, 2025, 02:58 PM] I'm thinking on introducing a promo where we pay you the Uber.
+
+[Jun 29, 2025, 03:07 PM] At 2:53pm we had 3393 in sales today
+
+[Jun 29, 2025, 05:31 PM] CLAVE,DESCRIPCION,GRUPO,CANTIDAD VENDIDA,VENTA_TOTAL,PRECIO_DE_CATALOGO,VENTA_TOTAL_PRECIO_CATALOGO
+37004,AGUA CON REFIL,AGUA,166,7433.2974,49,8134
+45021,CAMARON EMPANIZADO CARTA,CARTA,1,69,69,69
+40001,CAMARONILLA,CARTA,1,39,39,39
+40010,ENSENADA,CARTA,1,42,42,42
+4542005,HAMBURGUESA,CARTA,7,623,89,623
+42004,PASTA DEL MAR,CARTA,2,212,106,212
+40008,TACO DE ARRACHERA,CARTA,5,180,36,180
+40004,TACO DE CAMARON,CARTA,5,245,49,245
+40005,TACO GOBERNADOR,CARTA,2,112,56,112
+36001,COCA COLA 355 ML,REFRESCO,31,1116,36,1116
+36004,COCA COLA ZERO,REFRESCO,9,324,36,324
+36002,SIDRAL MUNDET 355 ML,REFRESCO,2,72,36,72
+46005,ARRACHERA TRIO,TACO TRIO,46,0,0,0
+46,ARRECIFE TRIO,TACO TRIO,16,0,0,0
+46008,BISTECK TRIO,TACO TRIO,5,0,0,0
+46002,CAMARON COCO TRIO,TACO TRIO,99,0,0,0
+46009,CAMARON EMPANIZADO TRIO,TACO TRIO,44,0,0,0
+46007,CAMARON ROCA TRIO,TACO TRIO,47,0,0,0
+46033,COSTA CORAL TRIO,TACO TRIO,84,0,0,0
+46003,ENSENADA TRIO,TACO TRIO,76,0,0,0
+46011,FILETE COCO TRIO,TACO TRIO,20,0,0,0
+46031,FILETE TALLA TRIO,TACO TRIO,29,0,0,0
+46004,GOBERNADOR TRIO,TACO TRIO,18,0,0,0
+46034,GOBERNADOR TRIO,TACO TRIO,76,0,0,0
+46010,PESCADO EMPANIZADO TRIO,TACO TRIO,16,0,0,0
+46030,PRESIDENTE TRIO,TACO TRIO,24,0,0,0
+46015,TACO TRIO,TACO TRIO,211,31644.1975,153.6445,32418.9895
+44003,ARRACHERA BUFFET,TACO-BUFFET,128,0,0,0
+44004,BISTEC BUFFET,TACO-BUFFET,23,0,0,0
+34032,BUFFET $1,TACO-BUFFET,4,4,1,4
+44009,CALAMAR BUFFET,TACO-BUFFET,97,0,0,0
+44014,CAMARON COCO BUFFET,TACO-BUFFET,194,0,0,0
+42005,CAMARON EMPANIZADO BUFFET,TACO-BUFFET,87,0,0,0
+44019,CAMARON LANGOSTA BUFFET,TACO-BUFFET,156,0,0,0
+44039,CAMARON MOJO BUFFET,TACO-BUFFET,1,0,0,0
+44007,CAMARON ROCA BUFFET,TACO-BUFFET,160,0,0,0
+44038,CAMARON TALLA BUFFET,TACO-BUFFET,10,0,0,0
+44010,CHILAQUILES DEL MAR BUFFET,TACO-BUFFET,17,0,0,0
+44025,CHILE RELLENO,TACO-BUFFET,34,0,0,0
+44034,COMBO PREMIUM + AGUA,TACO-BUFFET,98,28584.003,291.6735,28584.003
+44027,COSTO BUFFET BASICO,TACO-BUFFET,100,21834.3,219,21900
+44022,COSTO BUFFET NIÑO,TACO-BUFFET,3,267,89,267
+38009,COSTO BUFFET PREMIUM,TACO-BUFFET,151,40619,269,40619
+44008,ENSENADA FILETE BUFFET,TACO-BUFFET,104,0,0,0
+44012,FILETE COCO BUFFET,TACO-BUFFET,83,0,0,0
+44035,FILETE TALLA BUFFET,TACO-BUFFET,49,0,0,0
+44023,FLAUTAS MAR,TACO-BUFFET,95,0,0,0
+44017,GOBERNADOR BUFFET,TACO-BUFFET,133,0,0,0
+44026,HAMBURGUESA,TACO-BUFFET,105,0,0,0
+44018,PASTA MARINERA BUFFET,TACO-BUFFET,127,0,0,0
+44036,PASTA MOJO AJO BUFFET,TACO-BUFFET,34,0,0,0
+44011,PESCADO EMPANIZADO BUFFET,TACO-BUFFET,47,0,0,0
+44028,PULPO TALLA,TACO-BUFFET,128,0,0,0
+44037,QUESATACO LANGOSTA,TACO-BUFFET,69,0,0,0
+44030,TACO ARRECIFE,TACO-BUFFET,92,0,0,0
+44032,TACO COSTA CORAL,TACO-BUFFET,130,0,0,0
+44029,TACO PRESIDENTE,TACO-BUFFET,75,0,0,0
+
+[Jun 29, 2025, 05:32 PM] The above sales are from the last 30 days
+
+[Jun 29, 2025, 05:41 PM] At 5:40pm we sold 9840 MXN today. Probably we will end the day like this. Good sales
+
+[Jun 29, 2025, 05:45 PM] Leslye, Monse and Yeni are paid on Sunday, Flor on Monday.
+
+[Jun 29, 2025, 05:59 PM] Invoice from our provider Granados:  Cantidad | Descripción                              | Precio Unitario | Importe
+1.00     | Empanizador Kelloggs 8kg                | 650.00          | 650.00
+10.00    | Chile Poblano                            | 25.00           | 250.00
+7.00     | Cebolla Morada                           | 16.50           | 115.50
+5.00     | Cebolla Blanca Extra Grande              | 14.50           | 72.50
+5.00     | Col Blanca                                | 18.50           | 92.50
+2.00     | Harina 1Kilo                              | 22.00           | 44.00
+8.00     | Jitomate Orgánico                         | 22.00           | 176.00
+2.00     | Margarina Iberia 1Kilo                    | 100.00          | 200.00
+2.60     | Queso Oaxaca Corona Etq. Amarilla         | 117.00          | 304.20
+1.00     | Arrachera Aguascalientes                  | 110.00          | 110.00
+5.00     | Pasta Sopa .200 Grs                       | 8.00            | 40.00
+5.00     | Limón Agrio                               | 18.50           | 92.50
+1.00     | Bolsa Basura                              | 55.00           | 55.00
+1.00     | Chayote Sin Espina                        | 50.00           | 50.00
+1.00     | Calabacita Italiana                       | 32.00           | 32.00
+1.08     | Aguacate Hass Flor Loca                   | 55.00           | 59.40
+1.00     | Aceite 20Lts                              | 670.00          | 670.00
+1.00     | Zanahoria Mediana                         | 18.50           | 18.50
+2.30     | Huevo Blanco TradicionalMoreña           | 16.50           | 38.00
+1.00     | Crema Lala 4Lt                            | 245.00          | 245.00
+3.00     | Azúcar Morena por Kilo 1K                 | 19.90           | 59.70
+2.00     | Consomé de Poll                           | 37.00           | 74.00
+1.00     | Pimienta Negra Molida                     | 180.00          | 180.00
+1.00     | Jugo Sazonador Love 1Kg                   | 79.00           | 79.00
+1.00     | Bolsa de Asa                              | 58.00           | 58.00
+1.00     | Mayonesa 3.4Kg Maccormick                 | 294.00          | 294.00
+1.00     | Ajo Molido                                | 120.00          | 120.00
+
+[Jun 29, 2025, 07:11 PM] Monse an employee that has worked for use for only two weekends that she has found gaps in the hygiene of the restaurant. Like leaving the trash can open and washing the trash cans in the sink of the kitchen
+
+[Jun 29, 2025, 07:13 PM] We need to buy toilet paper tomorrow, I think we are low
+
+[Jun 30, 2025, 03:41 AM] We are no longer actively promoting the shrimp cond
+
+[Jun 30, 2025, 10:17 AM] we pay rent on the 5 of the month
+
+[Jun 30, 2025, 11:09 AM] Two reservations today Monday. At this hour (11:08am) one of 4 and one of 5. One with the promo of free water and the other for the promo of $1 buffet. Let's see how this translates to sales
+
+[Jun 30, 2025, 11:09 AM] Today is cloudy at this hour
+
+[Jun 30, 2025, 11:35 AM] Today Leslye arrived at 11:04am. Inside the tolerance time allowed of 15 min. Flor arrived 10:59 am
+
+[Jun 30, 2025, 11:47 AM] Will update with specific recepies. But for now to give you a rough idea. Our tacos for buffet usually have 2 shrimps in the buffet. The ones for the fryer (the big shrimps). And the ones coming from plancha 4 small shrimps. In taco trio the shirmps are 3 from those that come from the frier. Rough numbers
+
+[Jun 30, 2025, 01:07 PM] Leslye in bathroom today at. 1pm I think she goes to often to the bathroom, maybe to use the phone
+
+[Jun 30, 2025, 02:40 PM] We put gas LP. $1000 MXN today. We where at 10% and we ended with 39% in the tank of the restaurant
+
+[Jun 30, 2025, 02:42 PM] I found a note from the 13/06/25. Front gas LP, we put 599..49 and we increased the amount of was LP from 23% to 40%. This was the last time we put gas until today that we put 1000 mxn
+
+[Jun 30, 2025, 03:06 PM] With copesmar ((seafood provider) $218 el 21/25 shrimp and $195 el 31/35 shrimp. Octopus $415 mxn per kilo. 20 kilos is the amount sould per caja. Considering switching to this provider. Currently buying from Rey Camarón
+
+[Jun 30, 2025, 06:24 PM] this are some cash reguster widrawals. there are some mention of tortillas, but this could be tortillas not handmade or sometimes handmade tortillas. so dont use this to replace the amount spend on the main expense of handmade tortillas. this table is only a snapshot of some expenses that are not shown elsewhere:
+| Concepto                | Count | Total MXN | Average MXN | Dates                                                                                          |
+| ----------------------- | ----- | --------- | ----------- | ---------------------------------------------------------------------------------------------- |
+| REFRESCOS               | 1     | 200.00    | 200.00      | 01/06/2025                                                                                     |
+| MIRANDA                 | 1     | 347.50    | 347.50      | 01/06/2025                                                                                     |
+| PAN BIMBO               | 1     | 100.00    | 100.00      | 01/06/2025                                                                                     |
+| GARRAFONES              | 3     | 440.00    | 146.67      | 04/06/2025, 11/06/2025, 25/06/2025                                                             |
+| RENTA                   | 1     | 150.00    | 150.00      | 05/06/2025                                                                                     |
+| UBER REY CAMARON        | 1     | 70.00     | 70.00       | 05/06/2025                                                                                     |
+| TIENDA                  | 3     | 487.00    | 162.33      | 07/06/2025, 08/06/2025, 28/06/2025                                                             |
+| TORTILLAS               | 8     | 1 007.00  | 125.88      | 08/06/2025, 11/06/2025, 12/06/2025, 14/06/2025, 18/06/2025, 27/06/2025, 28/06/2025, 29/06/2025 |
+| TORTILLA                | 1     | 125.00    | 125.00      | 09/06/2025                                                                                     |
+| TORTILLAS, CERVEZA, ETC | 1     | 229.00    | 229.00      | 22/06/2025                                                                                     |
+| CAMBIO                  | 1     | 0.00      | 0.00        | 18/06/2025                                                                                     |
+| PEPINO Y ESPINACA       | 1     | 40.00     | 40.00       | 18/06/2025                                                                                     |
+| SECURITY                | 1     | 100.00    | 100.00      | 20/06/2025                                                                                     |
+| UBER                    | 1     | 75.00     | 75.00       | 19/06/2025                                                                                     |
+| LESLYE                  | 1     | 38.00     | 38.00       | 19/06/2025                                                                                     |
+| COCA                    | 1     | 424.00    | 424.00      | 13/06/2025                                                                                     |
+| SACATE                  | 1     | 24.00     | 24.00       | 13/06/2025                                                                                     |
+| HAMBURGUESA PAN         | 1     | 100.00    | 100.00      | 13/06/2025                                                                                     |
+| GASTOS FLOR TIENDA      | 1     | 200.00    | 200.00      | 15/06/2025                                                                                     |
+| BASURA                  | 1     | 170.00    | 170.00      | 28/06/2025                                                                                     |
+| CLORO                   | 1     | 10.00     | 10.00       | 27/06/2025                                                                                     |
+| TORTILLAS MAQUINA       | 1     | 22.50     | 22.50       | 28/06/2025                                                                                     |
+| PAN DE HAMBURGUESA      | 2     | 150.00    | 75.00       | 28/06/2025 (×2)                                                                                |
+
+[Jun 30, 2025, 06:33 PM] we have two types of tortillas, ones hand made and another none handmade (machine made). The cost per kilo of handmade tortillas is 25 mxn per kilo. the tortillas none handmade cost 23.50 mxn.
+currently we are buying handmade 4 kilos per weekday and on sunday and saturday 7 kilos. None handmade 4 kilos for the whole weekdays and on weekends 4 for both days (sunday and saturday).
+
+[Jun 30, 2025, 06:46 PM] For the month of June we spend $4206 MXN on both tortillas, handmade and not handmade.
+
+[Jun 30, 2025, 07:06 PM] We increased the price of the taco trio from 149 to 169. Around two weeks ago
+
+[Jul 1, 2025, 08:39 AM] Toilet paper costs 60 MXN per paper, probably we can find a better price in bulk. We need aprox 5 per month
+
+[Jul 2, 2025, 02:13 AM] Facebook charges per 1000 ads shown. The cost of a revelation made with my landing page when the go from the ad to it is just a stat to have better idea of the cost of a reservation. We send confirmation to people via WhatsApp and ask them if they can't go to click a link to free the table.
+
+[Jul 2, 2025, 02:48 AM] Here in Morelia a buffet of Mexican food charges: 189 MXN. Another one costs 170 MXN. Buffets of seafood can cost 289 MXN in one place. 279 MXN a place where they sell you meat in buffet. A espadas de carne buffet with nice food cost 500 MXN. All prices are per person.
+
+[Jul 2, 2025, 02:52 AM] We include the buffet básico, because it serves as a promo for our advertising efforts.
+
+[Jul 2, 2025, 12:05 PM] Historic Montly sales: mes	venta	cuentas	cuentapromedio	comensales	consumopromedio	año
+SEPTIEMBRE	16496.5	106	155.6274	109	151.344	2024
+OCTUBRE	53499.0	315	169.8381	333	160.6577	2024
+NOVIEMBRE	66276.0	236	280.8305	268	247.2985	2024
+DICIEMBRE	111535.1	229	487.0528	365	305.5756	2024
+ENERO	83691.0483	185	452.384	350	239.1173	2025
+FEBRERO	128963.6411	231	558.2842	517	249.4461	2025
+MARZO	164394.4947	272	604.3915	658	249.8397	2025
+ABRIL	130774.3429	219	597.1431	545	239.9529	2025
+MAYO	133038.1654	221	601.9826	546	243.6596	2025
+JUNIO	120851.1447	209	578.2351	494	244.6379	2025
+```
+
+[Jul 2, 2025, 01:05 PM] Tacos a half block away cost 18 per taco. They are made of barbacoa de res and they have good demand
+
+[Jul 2, 2025, 01:51 PM] We received this goods today, here are the invoices: Distribuidora Granados (Folio 233751 · 02/JUL/25 07:01)
+Cantidad	Unidad	Descripción	Precio unitario	Importe
+6.00	KGS	CHILE POBLANO	25.00	150.00
+7.00	KGS	CEBOLLA MORADA	14.50	101.50
+3.30	KGS	CEBOLLA BLANCA EXTRA GRANDE	14.50	47.85
+5.00	PIEZA	COL BLANCA	18.50	92.50
+4.00	KGS	HARINA 1KILO	22.00	88.00
+8.00	KGS	JITOMATE ORGÁNICO	18.50	148.00
+3.00	PIEZA	MARGARINA IBERIA 1KILO	100.00	300.00
+3.80	KGS	QUESO OAXACA CORONA ETQ. AMARILLA	117.00	444.60
+3.00	KGS	ARRACHERA AGUASCALIENTES	110.00	330.00
+5.00	PIEZA	PASTA .5GRS BARELA	30.00	150.00
+5.02	KGS	LIMÓN AGRIO	16.50	82.83
+0.78	KGS	BOLSA BASURA	55.99	43.67
+1.00	KGS	BISTECK DE RES CONTRA	162.00	162.00
+1.10	KGS	CHAYOTE SIN ESPINA	40.00	44.00
+1.00	KGS	CALABACITA ITALIANA	22.00	22.00
+1.30	KGS	AGUACATE HASS FLOR LOCA	55.00	71.50
+1.00	PIEZA	ACEITE 20 LTS	670.00	670.00
+1.00	KGS	ZANAHORIA MEDIANA	16.50	16.50
+1.90	KGS	HUEVO BLANCO TRADICIONALMOREÑA	41.00	77.90
+1.00	PIEZA	CREMA LALA 4 LT	245.00	245.00
+3.00	KGS	AZÚCAR MORENA POR KILO 1 K	19.90	59.70
+1.02	KGS	AJO	125.00	127.50
+1.00	PIEZA	MAIZENA NATURAL 750 GR	76.00	76.00
+2.00	KGS	CHILE PERÓN	105.00	210.00
+2.00	KGS	PIMIENTO MORRÓN AMARILLO	48.00	96.00
+3.00	KGS	COCO RAYADO	130.00	390.00
+3.00	KGS	PEPINO NEGRO	18.50	55.50
+1.00	MANOJO	ESPINACA MNJ	45.00	45.00
+---
+Rey Camarón  (Remisión 6243 · 01/07/2025)
+Cantidad	Unidad	Descripción	P. Unitario	Importe
+11.00	KG	CAM 21/25 (EXTRAGRANDE SIN CABEZA)	201.00	2,215.00
+7.00	KG	CAM 31/35 (MED/GRANDE SIN CABEZA)	83.52	583.52
+9.08	KG	FILETE DE TILAPIA PREMIUM 100% 3/5 OZ.	95.00	862.60
+0.35	KG	COLA DE LANGOSTA GRANDE (450/550 GR)	279.00	97.65
+1.00	PZ	PULPO COCIDO 70%	279.00	279.00
+2.00	KG	ALMEJA CHOCOLATA	57.94	115.88
+1.00	KG	AROS DE CALAMAR	105.00	105.00
+1.00	KG	CALAMAR PICADO	194.00	194.00
+1.00	KG	MELÓN ENTERO CHILEÑO	73.00	73.00
+
+[Jul 2, 2025, 01:58 PM] Recipe for Camaron y langosta filling
+2 kg col blanca picada finamente
+1 Kg Camaron 31-31 picado finamente
+700 gr Surimi picado finamente
+125 gr langosta picada finamente
+500 gr mantequilla
+35 gr sazonador Rojo.
+100 gr cascara camaron
+50 gr cascara langosta.
+En una olla a fuego medio derretir 250 gr de mantequilla, agregar la cascara de camaron y la cascara de langosta, mover hasta que las cascaras cambien de color, en la licuadora moler todo perfectamente.
+En la misma olla agregar el restante de la mantequilla y dejar derretir, agregar el col y lo que se molio en la licuadora, revolver constantemente hasta que el col se vuelva transparente. Agregar el camaron, el surimi, la langosta y el sazonador, revolver hasta que el camaron este cocido.
+
+[Jul 2, 2025, 03:18 PM] correct invoice for today for rey camaron:
+Remisión (Invoice): 6243
+Fecha (Date): 01/07/2025
+Items
+CANT (Qty)	UNI (Unit)	DESCRIPCIÓN (Description)	P. UNIT. (Unit Price)	IMPORTE (Total)
+11.0	KG	Cam 21/25 (Extragrande sin cabeza)	$ 215.00	$ 2,365.00
+7.0	KG	Cam 31/35 (Med/Grande sin cab.)	$ 201.00	$ 1,407.00
+9.08	KG	Filete de Tilapia Premium 100% 3/5 oz.	$ 94.00	$ 853.52
+0.635	KG	Cola de Langosta Grande (450/550 gramos)	$ 950.00	$ 603.25
+1.0	PZ	Pulpo Cocido 70%	$ 279.00	$ 279.00
+2.014	KG	ALMEJA CHOCOLATA	$ 67.00	$ 134.94
+1.0	KG	AROS DE CALAMAR	$ 105.00	$ 105.00
+1.0	KG	Calamar Picado	$ 194.00	$ 194.00
+1.0	KG	MEJILLON ENTERO CHILENO	$ 73.00	$ 73.00
+
+[Jul 2, 2025, 09:58 PM] Today we didn't open, because the son of Flor was sick. Is the first time since we opened that this happens.
+
+[Jul 2, 2025, 09:58 PM] We need a botiquín, currently we don't have one. We need to recharge our extintores
+
+[Jul 2, 2025, 10:28 PM] So you can have better context of what represents money for me. For example the rent of my home is $7000 MXN. I need a laptop worth $12000 MXN. If I had 25,000 more per month, my life will be so much easier.
+
+[Jul 4, 2025, 10:06 AM] When we had one single buffet at 199. We saw a lot of demand for weekdays and weekends.
+
+[Jul 4, 2025, 11:15 AM] The pulpa to make the water for the refill cost us 135 per liter. We use half of a liter for weekdays and a full liter for Saturday and Sunday
+
+[Jul 4, 2025, 06:50 PM] Yesterday sales where 2365 MXN. Today 1958 MXN
+
+[Jul 5, 2025, 02:47 PM] 5 reservations for today Saturday at 2:47pm, no sales yet. Sunny day
+
+[Jul 5, 2025, 03:10 PM] 3:10pm today Saturday. Still no sales
+
+[Jul 5, 2025, 06:01 PM] SALES DATA OF SOME MONTHS:
+clave,descripcion,grupo,precio,cantidad,venta_total,precio_de_venta,precio_de_catalogo,venta_total_precio_catalogo,march
+37004,AGUA CON REFIL,AGUA,43.5786,437,19043.8482,43.5786,49,21413,March
+38002,CAMARONES AL COCO,CARTA,146,2,292,146,146,292,March
+40001,CAMARONILLA,CARTA,39,3,117,39,39,117,March
+4542005,HAMBURGUESA,CARTA,89,6,534,89,89,534,March
+40002,PESCADILLA,CARTA,38,2,76,38,38,76,March
+40006,TACO DE BISTEC,CARTA,32,11,352,32,32,352,March
+40004,TACO DE CAMARON,CARTA,39,1,39,39,39,39,March
+40005,TACO GOBERNADOR,CARTA,56,1,56,56,56,56,March
+36001,COCA COLA 355 ML,REFRESCO,35.9538,78,2804.3964,35.9538,36,2808,March
+36004,COCA COLA ZERO,REFRESCO,36,6,216,36,36,216,March
+36006,FANTA,REFRESCO,36,2,72,36,36,72,March
+36005,FRESCA,REFRESCO,36,1,36,36,36,36,March
+36002,SIDRAL MUNDET 355 ML,REFRESCO,36,6,216,36,36,216,March
+46005,ARRACHERA TRIO,TACO TRIO,0,16,0,0,0,0,March
+46008,BISTECK TRIO,TACO TRIO,0,4,0,0,0,0,March
+46006,CALAMAR ROCA,TACO TRIO,0,4,0,0,0,0,March
+46002,CAMARON COCO TRIO,TACO TRIO,0,27,0,0,0,0,March
+46009,CAMARON EMPANIZADO TRIO,TACO TRIO,0,12,0,0,0,0,March
+46001,CAMARON LANGOSTA,TACO TRIO,0,30,0,0,0,0,March
+46013,CAMARON PLANCHA,TACO TRIO,0,19,0,0,0,0,March
+46007,CAMARON ROCA TRIO,TACO TRIO,0,20,0,0,0,0,March
+46003,ENSENADA TRIO,TACO TRIO,0,32,0,0,0,0,March
+46011,FILETE COCO TRIO,TACO TRIO,0,4,0,0,0,0,March
+46004,GOBERNADOR TRIO,TACO TRIO,0,32,0,0,0,0,March
+46014,PESCADILLA,TACO TRIO,0,7,0,0,0,0,March
+46010,PESCADO EMPANIZADO TRIO,TACO TRIO,0,16,0,0,0,0,March
+46015,TACO TRIO,TACO TRIO,133.6686,137,18312.5982,133.6686,134.2555,18393.0035,March
+44003,ARRACHERA BUFFET,TACO-BUFFET,0,271,0,0,0,0,March
+44004,BISTEC BUFFET,TACO-BUFFET,0,73,0,0,0,0,March
+44009,CALAMAR BUFFET,TACO-BUFFET,0,204,0,0,0,0,March
+44014,CAMARON COCO BUFFET,TACO-BUFFET,0,237,0,0,0,0,March
+42005,CAMARON EMPANIZADO BUFFET,TACO-BUFFET,0,187,0,0,0,0,March
+44019,CAMARON LANGOSTA BUFFET,TACO-BUFFET,0,302,0,0,0,0,March
+44013,CAMARON PLANCHA BUFFET,TACO-BUFFET,0,76,0,0,0,0,March
+44007,CAMARON ROCA BUFFET,TACO-BUFFET,0,122,0,0,0,0,March
+44015,CAMARONILLA BUFFET,TACO-BUFFET,0,4,0,0,0,0,March
+44010,CHILAQUILES DEL MAR BUFFET,TACO-BUFFET,0,46,0,0,0,0,March
+44025,CHILE RELLENO,TACO-BUFFET,0,80,0,0,0,0,March
+44033,COMBO ESPECIAL,TACO-BUFFET,0,2,0,0,0,0,March
+44027,COSTO BUFFET BASICO,TACO-BUFFET,198.7358,226,44914.2908,198.7358,199,44974,March
+44022,COSTO BUFFET NIÑO,TACO-BUFFET,89,9,801,89,89,801,March
+38009,COSTO BUFFET PREMIUM,TACO-BUFFET,260.4966,294,76586.0004,260.4966,260.4966,76586.0004,March
+44008,ENSENADA FILETE BUFFET,TACO-BUFFET,0,252,0,0,0,0,March
+44012,FILETE COCO BUFFET,TACO-BUFFET,0,213,0,0,0,0,March
+44023,FLAUTAS MAR,TACO-BUFFET,0,159,0,0,0,0,March
+44017,GOBERNADOR BUFFET,TACO-BUFFET,0,223,0,0,0,0,March
+44026,HAMBURGUESA,TACO-BUFFET,0,285,0,0,0,0,March
+44018,PASTA MARINERA BUFFET,TACO-BUFFET,0,229,0,0,0,0,March
+44016,PESCADILLA BUFFET,TACO-BUFFET,0,5,0,0,0,0,March
+44011,PESCADO EMPANIZADO BUFFET,TACO-BUFFET,0,162,0,0,0,0,March
+44028,PULPO TALLA,TACO-BUFFET,0,100,0,0,0,0,March
+44030,TACO ARRECIFE,TACO-BUFFET,0,29,0,0,0,0,March
+44032,TACO COSTA CORAL,TACO-BUFFET,0,36,0,0,0,0,March
+44029,TACO PRESIDENTE,TACO-BUFFET,0,58,0,0,0,0,March
+44031,TRIO COSTA CORAL,TACO-BUFFET,0,4,0,0,0,0,March
+38002,CAMARONES AL COCO,CARTA,146,2,292,146,146,292,April
+38001,CAMARONES EMPANIZADOS,CARTA,136,2,272,136,136,272,April
+40010,ENSENADA,CARTA,42,1,42,42,42,42,April
+38004,FILETE EMPANIZADO,CARTA,116,1,116,116,116,116,April
+4542005,HAMBURGUESA,CARTA,63.8497,8,510.7976,63.8497,89,712,April
+42004,PASTA DEL MAR,CARTA,106,2,212,106,106,212,April
+40008,TACO DE ARRACHERA,CARTA,33.8824,17,576.0008,33.8824,36,612,April
+40006,TACO DE BISTEC,CARTA,32,2,64,32,32,64,April
+40004,TACO DE CAMARON,CARTA,36.75,4,147,36.75,46.5,186,April
+40005,TACO GOBERNADOR,CARTA,56,2,112,56,56,112,April
+36003,CIEL MINERAL,REFRESCO,36,4,144,36,36,144,April
+36001,COCA COLA 355 ML,REFRESCO,36,60,2160,36,36,2160,April
+36004,COCA COLA ZERO,REFRESCO,36,4,144,36,36,144,April
+36006,FANTA,REFRESCO,36,4,144,36,36,144,April
+36002,SIDRAL MUNDET 355 ML,REFRESCO,36,9,324,36,36,324,April
+46005,ARRACHERA TRIO,TACO TRIO,0,30,0,0,0,0,April
+46,ARRECIFE TRIO,TACO TRIO,0,18,0,0,0,0,April
+46008,BISTECK TRIO,TACO TRIO,0,7,0,0,0,0,April
+46006,CALAMAR ROCA,TACO TRIO,0,1,0,0,0,0,April
+46002,CAMARON COCO TRIO,TACO TRIO,0,56,0,0,0,0,April
+46009,CAMARON EMPANIZADO TRIO,TACO TRIO,0,44,0,0,0,0,April
+46001,CAMARON LANGOSTA,TACO TRIO,0,2,0,0,0,0,April
+46013,CAMARON PLANCHA,TACO TRIO,0,5,0,0,0,0,April
+46007,CAMARON ROCA TRIO,TACO TRIO,0,42,0,0,0,0,April
+46033,COSTA CORAL TRIO,TACO TRIO,0,17,0,0,0,0,April
+46003,ENSENADA TRIO,TACO TRIO,0,53,0,0,0,0,April
+46011,FILETE COCO TRIO,TACO TRIO,0,29,0,0,0,0,April
+46031,FILETE TALLA TRIO,TACO TRIO,0,7,0,0,0,0,April
+46004,GOBERNADOR TRIO,TACO TRIO,0,59,0,0,0,0,April
+46034,GOBERNADOR TRIO,TACO TRIO,0,14,0,0,0,0,April
+46010,PESCADO EMPANIZADO TRIO,TACO TRIO,0,26,0,0,0,0,April
+46030,PRESIDENTE TRIO,TACO TRIO,0,7,0,0,0,0,April
+46015,TACO TRIO,TACO TRIO,144.6156,167,24150.8052,144.6156,147.0838,24562.9946,April
+44003,ARRACHERA BUFFET,TACO-BUFFET,0,140,0,0,0,0,April
+44004,BISTEC BUFFET,TACO-BUFFET,0,28,0,0,0,0,April
+44009,CALAMAR BUFFET,TACO-BUFFET,0,124,0,0,0,0,April
+44014,CAMARON COCO BUFFET,TACO-BUFFET,0,196,0,0,0,0,April
+42005,CAMARON EMPANIZADO BUFFET,TACO-BUFFET,0,97,0,0,0,0,April
+44019,CAMARON LANGOSTA BUFFET,TACO-BUFFET,0,167,0,0,0,0,April
+44007,CAMARON ROCA BUFFET,TACO-BUFFET,0,67,0,0,0,0,April
+44010,CHILAQUILES DEL MAR BUFFET,TACO-BUFFET,0,35,0,0,0,0,April
+44025,CHILE RELLENO,TACO-BUFFET,0,41,0,0,0,0,April
+44034,COMBO PREMIUM + AGUA,TACO-BUFFET,288,129,37152,288,288,37152,April
+44027,COSTO BUFFET BASICO,TACO-BUFFET,208.29,140,29160.6,208.29,209.1429,29280.006,April
+44022,COSTO BUFFET NIÑO,TACO-BUFFET,89,1,89,89,89,89,April
+38009,COSTO BUFFET PREMIUM,TACO-BUFFET,269,93,25017,269,269,25017,April
+44008,ENSENADA FILETE BUFFET,TACO-BUFFET,0,141,0,0,0,0,April
+44012,FILETE COCO BUFFET,TACO-BUFFET,0,148,0,0,0,0,April
+44035,FILETE TALLA BUFFET,TACO-BUFFET,0,24,0,0,0,0,April
+44023,FLAUTAS MAR,TACO-BUFFET,0,96,0,0,0,0,April
+44017,GOBERNADOR BUFFET,TACO-BUFFET,0,130,0,0,0,0,April
+44026,HAMBURGUESA,TACO-BUFFET,0,168,0,0,0,0,April
+44018,PASTA MARINERA BUFFET,TACO-BUFFET,0,132,0,0,0,0,April
+44011,PESCADO EMPANIZADO BUFFET,TACO-BUFFET,0,90,0,0,0,0,April
+44028,PULPO TALLA,TACO-BUFFET,0,128,0,0,0,0,April
+44030,TACO ARRECIFE,TACO-BUFFET,0,68,0,0,0,0,April
+44032,TACO COSTA CORAL,TACO-BUFFET,0,97,0,0,0,0,April
+44029,TACO PRESIDENTE,TACO-BUFFET,0,103,0,0,0,0,April
+44031,TRIO COSTA CORAL,TACO-BUFFET,0,10,0,0,0,0,April
+37004,AGUA CON REFIL,AGUA,44.6238,145,6470.451,44.6238,49,7105,May
+40001,CAMARONILLA,CARTA,39,4,156,39,39,156,May
+40010,ENSENADA,CARTA,42,1,42,42,42,42,May
+4542005,HAMBURGUESA,CARTA,89,11,979,89,89,979,May
+42004,PASTA DEL MAR,CARTA,106,4,424,106,106,424,May
+40008,TACO DE ARRACHERA,CARTA,36,6,216,36,36,216,May
+40006,TACO DE BISTEC,CARTA,32,2,64,32,32,64,May
+40004,TACO DE CAMARON,CARTA,49,9,441,49,49,441,May
+40005,TACO GOBERNADOR,CARTA,56,1,56,56,56,56,May
+36003,CIEL MINERAL,REFRESCO,36,4,144,36,36,144,May
+36001,COCA COLA 355 ML,REFRESCO,35.0769,39,1367.9991,35.0769,36,1404,May
+36004,COCA COLA ZERO,REFRESCO,35.8,9,322.2,35.8,36,324,May
+36005,FRESCA,REFRESCO,36,1,36,36,36,36,May
+36002,SIDRAL MUNDET 355 ML,REFRESCO,36,2,72,36,36,72,May
+46005,ARRACHERA TRIO,TACO TRIO,0,35,0,0,0,0,May
+46,ARRECIFE TRIO,TACO TRIO,0,17,0,0,0,0,May
+46008,BISTECK TRIO,TACO TRIO,0,3,0,0,0,0,May
+46002,CAMARON COCO TRIO,TACO TRIO,0,74,0,0,0,0,May
+46009,CAMARON EMPANIZADO TRIO,TACO TRIO,0,50,0,0,0,0,May
+46007,CAMARON ROCA TRIO,TACO TRIO,0,36,0,0,0,0,May
+46033,COSTA CORAL TRIO,TACO TRIO,0,71,0,0,0,0,May
+46003,ENSENADA TRIO,TACO TRIO,0,78,0,0,0,0,May
+46011,FILETE COCO TRIO,TACO TRIO,0,20,0,0,0,0,May
+46031,FILETE TALLA TRIO,TACO TRIO,0,13,0,0,0,0,May
+46004,GOBERNADOR TRIO,TACO TRIO,0,39,0,0,0,0,May
+46034,GOBERNADOR TRIO,TACO TRIO,0,37,0,0,0,0,May
+46010,PESCADO EMPANIZADO TRIO,TACO TRIO,0,17,0,0,0,0,May
+46030,PRESIDENTE TRIO,TACO TRIO,0,19,0,0,0,0,May
+46015,TACO TRIO,TACO TRIO,144.8883,183,26514.5589,144.8883,149,27267,May
+44003,ARRACHERA BUFFET,TACO-BUFFET,0,124,0,0,0,0,May
+44004,BISTEC BUFFET,TACO-BUFFET,0,29,0,0,0,0,May
+44009,CALAMAR BUFFET,TACO-BUFFET,0,119,0,0,0,0,May
+44014,CAMARON COCO BUFFET,TACO-BUFFET,0,175,0,0,0,0,May
+42005,CAMARON EMPANIZADO BUFFET,TACO-BUFFET,0,81,0,0,0,0,May
+44019,CAMARON LANGOSTA BUFFET,TACO-BUFFET,0,188,0,0,0,0,May
+44007,CAMARON ROCA BUFFET,TACO-BUFFET,0,112,0,0,0,0,May
+44015,CAMARONILLA BUFFET,TACO-BUFFET,0,1,0,0,0,0,May
+44010,CHILAQUILES DEL MAR BUFFET,TACO-BUFFET,0,30,0,0,0,0,May
+44025,CHILE RELLENO,TACO-BUFFET,0,45,0,0,0,0,May
+44034,COMBO PREMIUM + AGUA,TACO-BUFFET,280.951,143,40175.993,280.951,288,41184,May
+44027,COSTO BUFFET BASICO,TACO-BUFFET,219,102,22338,219,219,22338,May
+44022,COSTO BUFFET NIÑO,TACO-BUFFET,89,3,267,89,89,267,May
+38009,COSTO BUFFET PREMIUM,TACO-BUFFET,269,123,33087,269,269,33087,May
+44008,ENSENADA FILETE BUFFET,TACO-BUFFET,0,119,0,0,0,0,May
+44012,FILETE COCO BUFFET,TACO-BUFFET,0,90,0,0,0,0,May
+44035,FILETE TALLA BUFFET,TACO-BUFFET,0,40,0,0,0,0,May
+44023,FLAUTAS MAR,TACO-BUFFET,0,91,0,0,0,0,May
+44017,GOBERNADOR BUFFET,TACO-BUFFET,0,155,0,0,0,0,May
+44026,HAMBURGUESA,TACO-BUFFET,0,121,0,0,0,0,May
+44018,PASTA MARINERA BUFFET,TACO-BUFFET,0,130,0,0,0,0,May
+44011,PESCADO EMPANIZADO BUFFET,TACO-BUFFET,0,53,0,0,0,0,May
+44028,PULPO TALLA,TACO-BUFFET,0,131,0,0,0,0,May
+44030,TACO ARRECIFE,TACO-BUFFET,0,88,0,0,0,0,May
+44032,TACO COSTA CORAL,TACO-BUFFET,0,124,0,0,0,0,May
+44029,TACO PRESIDENTE,TACO-BUFFET,0,71,0,0,0,0,May
+44031,TRIO COSTA CORAL,TACO-BUFFET,0,1,0,0,0,0,May
+37004,AGUA CON REFIL,AGUA,47.2212,146,6894.2952,47.2212,49,7154,June
+45021,CAMARON EMPANIZADO CARTA,CARTA,69,1,69,69,69,69,June
+40010,ENSENADA,CARTA,42,1,42,42,42,42,June
+4542005,HAMBURGUESA,CARTA,89,6,534,89,89,534,June
+42004,PASTA DEL MAR,CARTA,106,1,106,106,106,106,June
+40008,TACO DE ARRACHERA,CARTA,36,5,180,36,36,180,June
+40004,TACO DE CAMARON,CARTA,49,2,98,49,49,98,June
+40005,TACO GOBERNADOR,CARTA,56,1,56,56,56,56,June
+36003,CIEL MINERAL,REFRESCO,36,1,36,36,36,36,June
+36001,COCA COLA 355 ML,REFRESCO,36,36,1296,36,36,1296,June
+36004,COCA COLA ZERO,REFRESCO,36,9,324,36,36,324,June
+36002,SIDRAL MUNDET 355 ML,REFRESCO,36,3,108,36,36,108,June
+46005,ARRACHERA TRIO,TACO TRIO,0,34,0,0,0,0,June
+46,ARRECIFE TRIO,TACO TRIO,0,16,0,0,0,0,June
+46008,BISTECK TRIO,TACO TRIO,0,5,0,0,0,0,June
+46002,CAMARON COCO TRIO,TACO TRIO,0,95,0,0,0,0,June
+46009,CAMARON EMPANIZADO TRIO,TACO TRIO,0,38,0,0,0,0,June
+46007,CAMARON ROCA TRIO,TACO TRIO,0,44,0,0,0,0,June
+46033,COSTA CORAL TRIO,TACO TRIO,0,68,0,0,0,0,June
+46003,ENSENADA TRIO,TACO TRIO,0,68,0,0,0,0,June
+46011,FILETE COCO TRIO,TACO TRIO,0,18,0,0,0,0,June
+46031,FILETE TALLA TRIO,TACO TRIO,0,29,0,0,0,0,June
+46004,GOBERNADOR TRIO,TACO TRIO,0,17,0,0,0,0,June
+46034,GOBERNADOR TRIO,TACO TRIO,0,69,0,0,0,0,June
+46010,PESCADO EMPANIZADO TRIO,TACO TRIO,0,15,0,0,0,0,June
+46030,PRESIDENTE TRIO,TACO TRIO,0,25,0,0,0,0,June
+46015,TACO TRIO,TACO TRIO,150.5011,190,28595.209,150.5011,154.5789,29369.991,June
+44003,ARRACHERA BUFFET,TACO-BUFFET,0,123,0,0,0,0,June
+44004,BISTEC BUFFET,TACO-BUFFET,0,16,0,0,0,0,June
+34032,BUFFET $1,TACO-BUFFET,1,6,6,1,1,6,June
+44009,CALAMAR BUFFET,TACO-BUFFET,0,82,0,0,0,0,June
+44014,CAMARON COCO BUFFET,TACO-BUFFET,0,185,0,0,0,0,June
+42005,CAMARON EMPANIZADO BUFFET,TACO-BUFFET,0,81,0,0,0,0,June
+44019,CAMARON LANGOSTA BUFFET,TACO-BUFFET,0,134,0,0,0,0,June
+44039,CAMARON MOJO BUFFET,TACO-BUFFET,0,1,0,0,0,0,June
+44007,CAMARON ROCA BUFFET,TACO-BUFFET,0,145,0,0,0,0,June
+44038,CAMARON TALLA BUFFET,TACO-BUFFET,0,12,0,0,0,0,June
+44010,CHILAQUILES DEL MAR BUFFET,TACO-BUFFET,0,10,0,0,0,0,June
+44025,CHILE RELLENO,TACO-BUFFET,0,26,0,0,0,0,June
+44034,COMBO PREMIUM + AGUA,TACO-BUFFET,292.1379,87,25415.9973,292.1379,292.1379,25415.9973,June
+44027,COSTO BUFFET BASICO,TACO-BUFFET,218.1988,82,17892.3016,218.1988,219,17958,June
+44022,COSTO BUFFET NIÑO,TACO-BUFFET,89,3,267,89,89,267,June
+38009,COSTO BUFFET PREMIUM,TACO-BUFFET,269,145,39005,269,269,39005,June
+44008,ENSENADA FILETE BUFFET,TACO-BUFFET,0,95,0,0,0,0,June
+44012,FILETE COCO BUFFET,TACO-BUFFET,0,75,0,0,0,0,June
+44035,FILETE TALLA BUFFET,TACO-BUFFET,0,40,0,0,0,0,June
+44023,FLAUTAS MAR,TACO-BUFFET,0,80,0,0,0,0,June
+44017,GOBERNADOR BUFFET,TACO-BUFFET,0,128,0,0,0,0,June
+44026,HAMBURGUESA,TACO-BUFFET,0,96,0,0,0,0,June
+44018,PASTA MARINERA BUFFET,TACO-BUFFET,0,111,0,0,0,0,June
+44036,PASTA MOJO AJO BUFFET,TACO-BUFFET,0,34,0,0,0,0,June
+44011,PESCADO EMPANIZADO BUFFET,TACO-BUFFET,0,43,0,0,0,0,June
+44028,PULPO TALLA,TACO-BUFFET,0,108,0,0,0,0,June
+44037,QUESATACO LANGOSTA,TACO-BUFFET,0,78,0,0,0,0,June
+44030,TACO ARRECIFE,TACO-BUFFET,0,83,0,0,0,0,June
+44032,TACO COSTA CORAL,TACO-BUFFET,0,129,0,0,0,0,June
+44029,TACO PRESIDENTE,TACO-BUFFET,0,62,0,0,0,0,June
+
+[Jul 5, 2025, 06:43 PM] We sold only $3600 today Saturday
+
+[Jul 5, 2025, 11:14 PM] Today 3 reservations didn't arrived
+
+[Jul 6, 2025, 12:53 PM] 6 reservations for today sunday. 12:53pm. No sales so far
+
+[Jul 6, 2025, 02:36 PM] Raining today at 2:35pm
+
+[Jul 6, 2025, 07:32 PM] Today, Sunday we sold 9990 mxn
+
+[Jul 10, 2025, 02:29 PM] yesterday we sold 4316 mxn (miercoles)
+
+[Jul 10, 2025, 02:30 PM] monday of this week we sold 2359 mxn
+
+[Jul 10, 2025, 03:14 PM] This was when our buffet cost only 199. It was the distribution of where our costumers came from. Now after price change, the passing by costumers drop to zero. source	amount	percent	money
+redes	45	57%	$62,658
+pass by	21	27%	$29,241
+recomendacion	11	14%	$15,316
+google maps	2	3%	$2,785
+
+[Jul 10, 2025, 03:41 PM] before we had two vertical banners promoting the buffet at 199, this drived costumers walkin. Now we have one promoting the basico at 219 and another one Taco Trio at 169.
+
+[Jul 10, 2025, 04:08 PM] The average revenue per table in the last 30 days is 598.41.
+
+[Jul 10, 2025, 04:09 PM] ✦ The average revenue per table in the last 60 days is 588.86.
+
+[Jul 11, 2025, 04:04 AM] Soda cost per unit 18 MXN per unit (coca cola)
+
+[Jul 11, 2025, 01:59 PM] Current cost per booking on the landing page using Facebook ads, 1.68 usd
+
+[Jul 11, 2025, 03:18 PM] last 30 days cost per booking using facebook ads: $2.24 usd per booking
+
+[Jul 12, 2025, 11:39 AM] 3 reservations for today, until now
+
+[Jul 12, 2025, 02:01 PM] 2:01pm a reservation arrived. one canceled. Today
+
+[Jul 12, 2025, 02:13 PM] yesterday I spend 10 usd in facebook ads
+
+[Jul 12, 2025, 03:17 PM] current sales unitl 3:17pm today. 1934 mxn.
+
+[Jul 12, 2025, 05:41 PM] it appears that we are going to end saturday with 4217 mxn in sales. its 5:41pm
+
+[Jul 12, 2025, 05:53 PM] we have a machine with two tanks of 18 liters for agua fresca. We currently put coconut and strawberry. We make the water with Pulpa Mia (provider) extractos. We make half of each on weekdays and full on weekend (Saturday and Sunday)
+
+[Jul 12, 2025, 05:54 PM] We server the tacos witbh the tortilla and the main ingredient. The costumers then walk to our table to put salsas and other stuff to their tacos.
+
+[Jul 12, 2025, 05:55 PM] We had a problem with flyes, but reduced the problem with a product called EDY, that kills the flyes, we put it once a week
+
+[Jul 12, 2025, 06:45 PM] Today total sales at the end of the day $4600.
+
+[Jul 13, 2025, 05:25 PM] today we sold 11476 mxn. today is a sunday.
+
+[Jul 13, 2025, 05:38 PM] yesterday Saturday 12 we spend 25.44 usd. and today we spend 9 usd. In facebook ads
+
+[Jul 13, 2025, 05:50 PM] Sales of the following days. june 30 $3055, july 10 $1957, july 11 $2375
+
+[Jul 14, 2025, 06:23 PM] today monday 14 of july, we sold $5010.60
+
+[Jul 14, 2025, 07:30 PM] In Mexico, “la quincena” is the common bi-monthly payday.
+Most employees are paid on the 15th and the 30th of every month[^0^].What happens if the 15th or 30th is a non-business day?Sunday: Banks do not process payroll on Sundays, so the payment is moved to the following Monday[^2^].Official holiday: The standard practice is to bring the payday forward to the last preceding business day (e.g., Thursday if the 15th is a Saturday and Friday is a holiday
+
+[Jul 15, 2025, 03:19 PM] snapshot of invocies from reycamaron:
+21-05-2025  $6958.24
+28-05-2025  $2099.46
+31-05-2025  $2103.08
+05-06-2025  $6002.52
+09-06-2025 $279
+10-06-2025 $5669.99
+19-06-2025 $5655.74
+25-06-2025 $4849.15
+
+[Jul 15, 2025, 03:34 PM] snapshot of invoices from granados:
+19-06-2025  4221.14 mxn
+25-06-2025  4511.79 mxn
+02-07-2025  4347.55 mxn
+10-07-2025  4347.55 mxn
+11-07-2025 104.99 mxn
+the omition of a date after or before, doesnt mean we didnt get an invoice. Use an average the get and idea of spend per week to have a better data point.
+
+[Jul 16, 2025, 04:57 PM] zero reservation in the morning. Today 16 july. light rain at 4:54pm. I spend 3 usd on ads yesterday. I suspect the amount spend in the previosu day disctates the amount of traffic for the following day, this given that there is people willing to buy
+
+[Jul 16, 2025, 05:24 PM] rain stopped. 5pm
+
+[Jul 16, 2025, 06:44 PM] today 16 july, we sold $2824
+
+[Jul 17, 2025, 02:53 PM] today we had one reservation in the morning
+
+[Jul 17, 2025, 03:11 PM] in this two weeks, there have been two people who wanted to buy the cono with shirmp
+
+[Jul 17, 2025, 03:15 PM] we are thinking of extending our open hours by one hour. We suspect there is more demand late. We wouldnt sell the buttet after 5:30pm. and only will sell the taco trio after 5:30pm at a price of $99 (only on this hours)
+
+[Jul 17, 2025, 03:17 PM] the plan of extending the time we are open will be tested by one week. using our current staff. the will arrive at different hours to cover the entier shift and also we will reduce the working schedule by 30 min for them. so they wount burn out. This will be done from monday to friday one week only to validate the idea
+
+[Jul 17, 2025, 03:33 PM] yesterday we had 3 tables in the last half hour. and one additional that we couldnt serve because he arrived one minute before closing.
+
+[Jul 17, 2025, 06:00 PM] we had 2 people in the same table at 6pm, today
+
+[Jul 17, 2025, 06:19 PM] VERY IMPORTANT, WHEN PEOPLE MAKE THE RESERVATION:
+36 reservations analyzed.
+19 (52.8 %) booked on the same day of their visit.
+6 (16.7 %) booked one day before.
+Combined 25 (69.5 %) reserved within one day of their visit.
+The remaining 11 (30.6 %) reserved 2–14 days in advance:
+• 2 days before: 1 (2.8 %)
+• 4 days before: 2 (5.6 %)
+• 5 days before: 2 (5.6 %)
+• 6 days before: 3 (8.3 %)
+• 7 days before: 1 (2.8 %)
+• 8 days before: 1 (2.8 %)
+• 14 days before: 1 (2.8 %)
+
+[Jul 17, 2025, 06:42 PM] today Thursday 17 we sold $1948
+
+[Jul 18, 2025, 10:53 AM] MORE PRECISE DATA OF COST FROM PROVIDERS, TAKING INTO ACCOUNT MORE DATA
+Granados:
+Total payments: $36,828.00
+Date range: May 19 to July 17 (approximately 8.5 weeks)
+Weekly average: $4,332.71
+Rey Camaron:
+Regular payments total: $52,579.49
+Date range: May 14 to July 10 (approximately 8 weeks)
+Additional cash payments: $2,000 MXN per month = approximately $500 MXN per week
+Weekly average from regular payments: $6,572.44
+Weekly average including cash: $7,072.44 (assuming $500 MXN weekly)
+
+[Jul 18, 2025, 03:06 PM] today two reservations in the morning
+
+[Jul 18, 2025, 03:50 PM] WE BELIEVE THIS FACTORS HAVE AN EFFECT IN OUR SALES
+18–29 Aug 2025 — SEP “Fase Intensiva” (teacher planning). Schools shut to students; parents finish shopping before the 30 Aug quincena. Household liquidity stays tight; weekday family dining remains soft. Some noon traffic from teachers attending workshops may offset.
+1 Sep 2025 — Cycle start for all basic-education levels. Fixed school costs (transport, lunches, fees) lock in; weekday family restaurant visits fall, especially dinners. Quick breakfast and grab-and-go near schools can edge up; weekend sales usually normalise after pay-day.
+
+[Jul 18, 2025, 06:28 PM] Today, friday 18, 2025. We sold $4907.00
+
+[Jul 18, 2025, 06:46 PM] one person arrived at 6:45pm. asking if we had service still. unfortunitaely we are 15 min of closing and kitchen closes at 6:30pm currently
+
+[Jul 19, 2025, 01:51 PM] today at 1:51pm. we have 5 reservations. one for $1 buffet and the rest for free refill water
+
+[Jul 19, 2025, 01:53 PM] probably is going to rain in the next 30 min
+
+[Jul 19, 2025, 03:44 PM] Leslye has been showing a great actitud, with her arrival time. Lately she arrives on time and she is very willing to learn other stations (iron for one week). And she is giving ideas to improve the menu, she is good at spoting good mixes with the current ingredients we have and have a good taste. She is more willing to be part of a team
+
+[Jul 19, 2025, 04:14 PM] today at 4:13pm $4886 in sales. No rain still. altough cloudy.
+
+[Jul 19, 2025, 07:38 PM] Today we sold 10,000 MXN
+
+[Jul 19, 2025, 07:44 PM] Yesterday, Friday, we spend $14.33 usd on ads.
+
+[Jul 19, 2025, 07:46 PM] Today, Saturday, we spend $12.69
+
+[Jul 20, 2025, 12:43 PM] Today zero reservations at 12:43pm
+
+[Jul 20, 2025, 02:27 PM] 2:26 pm of today, still no reservations. $573 in sales at the moment
+
+[Jul 20, 2025, 02:33 PM] yesterday I had a payment problem and my facebook ads stopped mid afternoon. which only allowed me to spend  $12.94 Saturday 19. I resumed ads until 11:30am today sunday
+
+[Jul 20, 2025, 03:14 PM] at 3:14pm, still the same sales $573
+
+[Jul 20, 2025, 03:57 PM] at 3:51pm today, $851 mxn
+
+[Jul 20, 2025, 03:58 PM] one reservation today at 3:58pm
+
+[Jul 20, 2025, 04:00 PM] two reservatoins at 3:59pm
+
+[Jul 20, 2025, 05:23 PM] additional invoices from rey camaron:
+08/05/2025 $1645
+19/07/2025 $277
+18/07/2025 $814.76
+
+[Jul 20, 2025, 05:26 PM] Rey camaron additional purchase on 20/07/2025
+$1983.88
+
+[Jul 20, 2025, 05:29 PM] today we spend 17 usd on ads, but they ran from 11:30pm to 5:30pm only
+
+[Jul 20, 2025, 05:37 PM] in the last 30 days the cost of a reservation on the system is 2.61 usd and in the promo for $1 the cost is 2.99 usd per booking
+
+[Jul 20, 2025, 06:05 PM] On of my banners advertise the Taco Trio for $169.
+
+[Jul 20, 2025, 06:07 PM] as of 6:07pm we have sold $5122 TODAY
+
+[Jul 21, 2025, 03:02 AM] in december we had the following pricing structure>
+buffet weekends (saturday and sunday) $219, weekdays 199. It was a single buffet
+
+[Jul 21, 2025, 03:04 AM] In march 27 we had stil a buffet for $199
+
+[Jul 21, 2025, 03:05 AM] January 29, we already had the two tier buffet 199 and 249 mxn.
+
+[Jul 21, 2025, 03:06 AM] in January 26 we ahd the premium buffet for 239 mxn
+
+[Jul 21, 2025, 03:07 AM] jan 24 we had the single tier buffet for 199 on weekdays and 239 on weekends
+
+[Jul 21, 2025, 03:08 AM] In december 19 we had the buffet for $199 weekdays and $219 on weekends. single tier
+
+[Jul 21, 2025, 03:09 AM] in November we had only one buffet. the cost was $169, everyday
+
+[Jul 21, 2025, 02:23 PM] today we put GAS LP, it was almost at zero or zero. it went up till 31% with $1000
+
+[Jul 22, 2025, 12:17 AM] today we only sold 900 mxn
+
+[Jul 24, 2025, 08:10 AM] I have a feeling that there is a ceiling on the costumer pool. So even if I spend more on ads, there are days I would not get more costumers. This pass week I spend on ads and didn't see the increase I wanted. Need to check actual numbers.
+
+[Jul 24, 2025, 02:47 PM] today no reservations for today at 2:47pm
+
+[Jul 26, 2025, 02:38 PM] Today we have 6 reservations, right now
+
+[Jul 26, 2025, 04:19 PM] last 30 days cost of the promo of $1, $3.46 per reservation
+cost of free refill, $3.93 per reservation.
+
+[Jul 26, 2025, 04:48 PM] today until now sales are $5992, saturday 4:45pm
+
+[Jul 26, 2025, 05:25 PM] 30 days data:
+DESCRIPCION	GRUPO	CANTIDAD Vendida
+CAMARON COCO TRIO	TACO TRIO	52
+COSTA CORAL TRIO	TACO TRIO	46
+GOBERNADOR TRIO	TACO TRIO	34
+ENSENADA TRIO	TACO TRIO	31
+CAMARON EMPANIZADO TRIO	TACO TRIO	25
+FILETE COCO TRIO	TACO TRIO	24
+PRESIDENTE TRIO	TACO TRIO	24
+CAMARON ROCA TRIO	TACO TRIO	22
+ARRECIFE TRIO	TACO TRIO	19
+ARRACHERA TRIO	TACO TRIO	18
+GOBERNADOR TRIO	TACO TRIO	17
+FILETE TALLA TRIO	TACO TRIO	12
+PESCADO EMPANIZADO TRIO	TACO TRIO	8
+BISTECK TRIO	TACO TRIO	2
+
+[Jul 26, 2025, 05:25 PM] 30 days data:
+DESCRIPCION	GRUPO	CANTIDAD Vendida
+CAMARON COCO BUFFET	TACO-BUFFET	171
+QUESATACO LANGOSTA	TACO-BUFFET	170
+HAMBURGUESA	TACO-BUFFET	149
+CALAMAR BUFFET	TACO-BUFFET	139
+PULPO TALLA	TACO-BUFFET	137
+GOBERNADOR BUFFET	TACO-BUFFET	131
+ARRACHERA BUFFET	TACO-BUFFET	127
+TACO COSTA CORAL	TACO-BUFFET	113
+PROMO PREMIUM + AGUA	TACO-BUFFET	108
+PASTA MOJO AJO BUFFET	TACO-BUFFET	104
+CAMARON LANGOSTA BUFFET	TACO-BUFFET	102
+FLAUTAS MAR	TACO-BUFFET	102
+FILETE COCO BUFFET	TACO-BUFFET	95
+PASTA MARINERA BUFFET	TACO-BUFFET	93
+CAMARON ROCA BUFFET	TACO-BUFFET	92
+ENSENADA FILETE BUFFET	TACO-BUFFET	92
+TACO ARRECIFE	TACO-BUFFET	85
+CAMARON EMPANIZADO BUFFET	TACO-BUFFET	77
+TACO PRESIDENTE	TACO-BUFFET	71
+PESCADO EMPANIZADO BUFFET	TACO-BUFFET	61
+CAMARON TALLA BUFFET	TACO-BUFFET	52
+BISTEC BUFFET	TACO-BUFFET	30
+FILETE TALLA BUFFET	TACO-BUFFET	30
+PROMO BUFFET 199	TACO-BUFFET	7
+CAMARON MOJO BUFFET	TACO-BUFFET	6
+
+[Jul 26, 2025, 06:28 PM] Today we sold 6528 MXN
+
+[Jul 27, 2025, 09:25 PM] Today we sold 11635. Sunday 27 of July
+
+[Jul 27, 2025, 09:26 PM] Yesterday Saturday we sold, 6528 MXN
+
+[Jul 28, 2025, 06:22 PM] These are the current sales for the month of July, until 27 of july:
+01/07/2025	0
+02/07/2025	0
+03/07/2025	2365
+04/07/2025	1958
+05/07/2025	3648
+06/07/2025	9977.7241
+07/07/2025	2359
+08/07/2025	0
+09/07/2025	4316
+10/07/2025	1957
+11/07/2025	2375
+12/07/2025	4600.0146
+13/07/2025	11476
+14/07/2025	5001.0828
+15/07/2025	0
+16/07/2025	2814.4828
+17/07/2025	1948
+18/07/2025	4907
+19/07/2025	10058
+20/07/2025	5145.7241
+21/07/2025	872
+22/07/2025	0
+23/07/2025	3064
+24/07/2025	1666
+25/07/2025	3815
+26/07/2025	6456
+27/07/2025	11365
+total so for the month of july 2025 until 27,  $102114 mxn
+
+[Aug 7, 2025, 08:22 PM] Today we spend 1200 MXN in gas LP. We were at 9% and raised the level to 60%
+
+[Aug 21, 2025, 03:08 PM] yesterday 20 of august we put gas LP. We were at 25% and we are now at 73%. we put 1500 mxn
+
+[Aug 27, 2025, 05:00 PM] we sold in ALL July 2025, $120851
+we sold in ALL July 2025, $109319
+
+[Aug 27, 2025, 06:05 PM] this is data from our POS software, from the last 30 days:
+
+DESCRIPCION	GRUPO	PRECIO	CANTIDAD	VENTA_TOTAL
+AGUA CON REFIL	AGUA	48.9091	108	5282.1828
+CAMARON ROCA	CARTA	69	1	69
+HAMBURGUESA	CARTA	89	3	267
+PASTA DEL MAR	CARTA	106	1	106
+CIEL MINERAL	REFRESCO	36	2	72
+COCA COLA 355 ML	REFRESCO	36	25	900
+COCA COLA ZERO	REFRESCO	36	7	252
+FANTA	REFRESCO	36	1	36
+SIDRAL MUNDET 355 ML	REFRESCO	34.2	4	136.8
+ARRACHERA TRIO	TACO TRIO	0	31	0
+ARRECIFE TRIO	TACO TRIO	0	18	0
+BISTECK TRIO	TACO TRIO	0	8	0
+CAMARON COCO TRIO	TACO TRIO	0	56	0
+CAMARON EMPANIZADO TRIO	TACO TRIO	0	42	0
+CAMARON ROCA TRIO	TACO TRIO	0	24	0
+COSTA CORAL TRIO	TACO TRIO	0	55	0
+ENSENADA TRIO	TACO TRIO	0	36	0
+EXPRESS	TACO TRIO	159	5	795
+FILETE COCO TRIO	TACO TRIO	0	20	0
+FILETE TALLA TRIO	TACO TRIO	0	12	0
+GOBERNADOR TRIO	TACO TRIO	0	38	0
+GOBERNADOR TRIO	TACO TRIO	0	30	0
+PESCADO EMPANIZADO TRIO	TACO TRIO	0	25	0
+PRESIDENTE TRIO	TACO TRIO	0	39	0
+TACO TRIO	TACO TRIO	167.5983	142	23798.9586
+ARRACHERA BUFFET	TACO-BUFFET	0	124	0
+BISTEC BUFFET	TACO-BUFFET	0	33	0
+BUFFET $1	TACO-BUFFET	1	11	11
+CALAMAR BUFFET	TACO-BUFFET	0	77	0
+CAMARON COCO BUFFET	TACO-BUFFET	0	148	0
+CAMARON EMPANIZADO BUFFET	TACO-BUFFET	0	57	0
+CAMARON LANGOSTA BUFFET	TACO-BUFFET	0	76	0
+CAMARON MOJO BUFFET	TACO-BUFFET	0	5	0
+CAMARON ROCA BUFFET	TACO-BUFFET	0	84	0
+CAMARON TALLA BUFFET	TACO-BUFFET	0	7	0
+COSTO BUFFET BASICO	TACO-BUFFET	219	77	16863
+COSTO BUFFET NIÑO	TACO-BUFFET	89	2	178
+COSTO BUFFET PREMIUM	TACO-BUFFET	267.4629	105	28083.6045
+ENSENADA FILETE BUFFET	TACO-BUFFET	0	91	0
+ENTRE SEMANA PROMO	TACO-BUFFET	189	2	378
+FILETE COCO BUFFET	TACO-BUFFET	0	92	0
+FILETE MOJO BUFFET	TACO-BUFFET	0	39	0
+FILETE TALLA BUFFET	TACO-BUFFET	0	50	0
+FLAUTAS MAR	TACO-BUFFET	0	80	0
+GOBERNADOR BUFFET	TACO-BUFFET	0	86	0
+HAMBURGUESA	TACO-BUFFET	0	67	0
+PASTA MARINERA BUFFET	TACO-BUFFET	0	8	0
+PASTA MOJO AJO BUFFET	TACO-BUFFET	0	60	0
+PESCADO EMPANIZADO BUFFET	TACO-BUFFET	0	39	0
+PLATO CAMARONES	TACO-BUFFET	0	97	0
+PROMO PREMIUM + AGUA	TACO-BUFFET	301.6444	90	27147.996
+PULPO TALLA	TACO-BUFFET	0	17	0
+QUESATACO ADOBADO BUFFET	TACO-BUFFET	0	62	0
+QUESATACO LANGOSTA	TACO-BUFFET	0	124	0
+TACO ARRECIFE	TACO-BUFFET	0	68	0
+TACO COSTA CORAL	TACO-BUFFET	0	84	0
+TACO DIABLITO BUFFET	TACO-BUFFET	0	93	0
+TACO ESPECIAL	TACO-BUFFET	0	48	0
+TACO PRESIDENTE	TACO-BUFFET	0	41	0
+TACO VERA BUFFET	TACO-BUFFET	0	78	0
+
+precio and venta total is in mxn
+
+[Sep 3, 2025, 01:30 PM] sales data from AUGUST 2025
+
+fecha	venta	nopersonas	cuentas	promedioporpersona	promedioporcuenta
+01/08/2025	5340	21	7	254.2857	762.8571
+02/08/2025	3730.724	17	6	219.4544	621.7873
+03/08/2025	9195.0073	38	13	241.9739	707.3083
+04/08/2025	0	0	0	0	0
+05/08/2025	0	0	0	0	0
+06/08/2025	305	1	1	305	305
+07/08/2025	2765	10	3	276.5	921.6667
+08/08/2025	2002	9	5	222.4444	400.4
+09/08/2025	6138	26	11	236.0769	558
+10/08/2025	9803.7241	44	11	222.8119	891.2476
+11/08/2025	1503	5	2	300.6	751.5
+12/08/2025	0	0	0	0	0
+13/08/2025	4752	16	6	297	792
+14/08/2025	0	0	0	0	0
+15/08/2025	1656	5	3	331.2	552
+16/08/2025	3931	14	6	280.7857	655.1667
+17/08/2025	8664	34	12	254.8235	722
+18/08/2025	3017	12	5	251.4167	603.4
+19/08/2025	0	0	0	0	0
+20/08/2025	4601	20	6	230.05	766.8333
+21/08/2025	1470	5	4	294	367.5
+22/08/2025	2186	9	5	242.8889	437.2
+23/08/2025	5157	24	9	214.875	573
+24/08/2025	4958	19	8	260.9474	619.75
+25/08/2025	2763	12	6	230.25	460.5
+26/08/2025	0	0	0	0	0
+27/08/2025	1862	8	4	232.75	465.5
+28/08/2025	2079	11	3	189	693
+29/08/2025	3775.1724	17	9	222.069	419.4636
+30/08/2025	6750	28	16	241.0714	421.875
+31/08/2025	7766	29	12	267.7931	647.1667
+
+[Sep 3, 2025, 01:38 PM] granados facturas del mes de agosto:
+
+$2524.40
+$3409.50
+$3653.23
+$4344.94
+
+[Sep 3, 2025, 01:43 PM] rey camaron facturas del mes de agosto
+
+$4697.64
+$3760
+$7517.81
+
+[Sep 3, 2025, 03:42 PM] Data from the month of August 2025
+
+Peak hours: 15:00 ($28,868), 14:00 ($27,432), 16:00 ($25,691). 14:00–17:59 generates 92.9% of revenue.
+Weekend share: 62.1% of revenue. Daily volatility: CV 0.612 (high).
+Top 4 SKUs contribute 90.9% of revenue (COSTO BUFFET PREMIUM 25.8%, PROMO PREMIUM + AGUA 25.2%, TACO TRIO 22.8%, COSTO BUFFET BASICO 17.1%).
+
+[Sep 3, 2025, 03:51 PM] desengrasante expense: $120
+Limpiapisos: 240 mxn
+Cloro: 60 mxn
+Papel secante: 300 mxn
+Aproximate per month
+
+[Sep 3, 2025, 03:52 PM] new cost of tortillas hand made per kilo: 31mxn
+each kilo has 25-30 tortillas
+
+[Sep 3, 2025, 04:03 PM] We operate a very small buffet. We try to use as few employess as possible on weekdays (two staff in kitchen and me as waitstaff). 
+
+One weekends (sabado y domingo) we have two more poeple (Yeni and Monse) They operate in the kitchen. Flor goes out from kitchen and is waitstaff with me. 
+
+Our tables are few so this staff is able to serve all if needed ( 12 tables), but for example on weekdays we only serve 2 o 3 at the time max. 
+
+on weekdays we have a lot of excess capacity in kitchen that we dont use.

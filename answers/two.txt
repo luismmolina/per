@@ -1,0 +1,157 @@
+**1. Data Extraction**
+*   **Revenue Data for August 2025:**
+    *   Total Sales for August 2025 (sum of daily sales): I will sum the daily sales figures provided for August.
+*   **Supplier Invoice Data for August 2025:**
+    *   Granados Invoices: 2524.40 MXN, 3409.50 MXN, 3653.23 MXN, 4344.94 MXN
+    *   Rey Camaron Invoices: 4697.64 MXN, 3760 MXN, 7517.81 MXN
+*   **Cost of Goods Data:**
+    *   Handmade tortilla cost: 31 MXN/kg
+    *   Machine-made tortilla cost: 23.50 MXN/kg
+    *   Handmade tortilla usage: 4 kg/weekday, 7 kg/weekend day
+    *   Machine-made tortilla usage: 4 kg per week for weekdays, 4 kg per week for weekends
+    *   Agua fresca pulp cost: 135 MXN/liter
+    *   Agua fresca pulp usage: 0.5 liter/weekday, 1 liter/weekend day
+*   **Operating Expense Data:**
+    *   Rent: 13,650 MXN/month
+    *   Electricity: 3,000 MXN/month
+    *   Water (utility): 400 MXN/month
+    *   Internet: 400 MXN/month
+    *   Accountant: 1,400 MXN/month
+    *   Advertising (baseline): 5,000 MXN/month
+    *   Gas LP purchases in August: 1,200 MXN, 1,500 MXN
+    *   Weekly wages: Flor (2400 MXN), Leslye (2050 MXN), Yeni (700 MXN), Monse (700 MXN)
+    *   Monthly cleaning supplies: Desengrasante (120 MXN), Limpiapisos (240 MXN), Cloro (60 MXN), Papel secante (300 MXN)
+*   **Operational Calendar Data for August 2025:**
+    *   Total days: 31
+    *   Tuesdays (closed): 4
+    *   Operating days: 27
+    *   Operating weekend days (Sat, Sun): 10
+    *   Operating weekdays (Mon, Wed, Thu, Fri): 17
+
+**2. Variable Definition**
+*   `R_aug`: Total revenue for August 2025.
+*   `C_food`: Total cost from supplier invoices (Granados + Rey Camaron).
+*   `C_tortillas`: Total cost of tortillas for August.
+*   `C_agua_pulp`: Total cost of agua fresca pulp for August.
+*   `COGS`: Total Cost of Goods Sold for August (`C_food` + `C_tortillas` + `C_agua_pulp`).
+*   `E_fixed`: Total fixed monthly expenses (Rent, Electricity, Water, Internet, Accountant, Advertising).
+*   `E_wages`: Total staff wages for August.
+*   `E_gas`: Total Gas LP expense for August.
+*   `E_cleaning`: Total cleaning supply expenses for August.
+*   `E_operating`: Total operating expenses (`E_fixed` + `E_wages` + `E_gas` + `E_cleaning`).
+*   `P_L`: Profit or Loss for August (`R_aug` - `COGS` - `E_operating`).
+
+**3. Methodology**
+1.  **Calculate Total Revenue (`R_aug`):** Sum the daily sales figures provided for August 2025.
+2.  **Calculate Cost of Goods Sold (`COGS`):**
+    *   `C_food`: Sum all invoice amounts from Granados and Rey Camaron for August.
+    *   `C_tortillas`: Calculate the total monthly cost by determining the total kilograms used for both handmade and machine-made tortillas based on the number of weekdays (17) and weekend days (10) in August, then multiply by their respective costs per kilogram.
+        *   `Handmade kg` = (17 days * 4 kg/day) + (10 days * 7 kg/day)
+        *   `Machine-made kg`: Usage is described weekly. We will scale the weekly usage by the number of weeks in the month (31 days / 7 days/week). `Weekly machine kg` = 4 kg (weekday) + 4 kg (weekend) = 8 kg. `Total machine kg` = 8 kg/week * (31/7) weeks.
+    *   `C_agua_pulp`: Calculate the total liters of pulp used based on the number of weekdays and weekend days, and multiply by the cost per liter. `Liters` = (17 days * 0.5 L/day) + (10 days * 1 L/day).
+    *   `COGS` = `C_food` + `C_tortillas` + `C_agua_pulp`.
+3.  **Calculate Total Operating Expenses (`E_operating`):**
+    *   `E_fixed`: Sum the monthly costs for Rent, Electricity, Water, Internet, Accountant, and Advertising.
+    *   `E_wages`: Calculate the total weekly wage bill (5,850 MXN) and multiply by the number of weeks in August (31 days / 7 days).
+    *   `E_gas`: Sum the Gas LP purchases made during August.
+    *   `E_cleaning`: Sum the monthly estimated costs for all cleaning supplies.
+    *   `E_operating` = `E_fixed` + `E_wages` + `E_gas` + `E_cleaning`.
+4.  **Calculate Profit or Loss (`P_L`):**
+    *   The final profit or loss will be calculated using the formula: `P_L = R_aug - COGS - E_operating`.
+
+**Assumptions:**
+*   The provided supplier invoices for August represent the total food cost for the month.
+*   Gas LP purchases made in August are a reasonable proxy for the gas consumed.
+*   The baseline advertising budget is the most accurate figure for August's advertising expense.
+*   Fixed expenses, wages, and consumption patterns for tortillas and agua fresca pulp are consistent as per the provided data.
+
+**4. Computation**
+```python
+# --- 1. Revenue Calculation ---
+august_daily_sales = [
+    5340, 3730.724, 9195.0073, 0, 0, 305, 2765, 2002, 6138, 9803.7241,
+    1503, 0, 4752, 0, 1656, 3931, 8664, 3017, 0, 4601, 1470, 2186,
+    5157, 4958, 2763, 0, 1862, 2079, 3775.1724, 6750, 7766
+]
+R_aug = sum(august_daily_sales)
+print(f"Total Revenue (R_aug): {R_aug:.2f} MXN")
+
+# --- 2. COGS Calculation ---
+# Food Costs from Invoices
+granados_invoices = [2524.40, 3409.50, 3653.23, 4344.94]
+rey_camaron_invoices = [4697.64, 3760, 7517.81]
+C_food = sum(granados_invoices) + sum(rey_camaron_invoices)
+print(f"Cost of Food from Suppliers (C_food): {C_food:.2f} MXN")
+
+# Tortilla Costs
+days_in_month = 31
+weekdays = 17
+weekend_days = 10
+weeks_in_month = days_in_month / 7
+
+# Handmade
+handmade_cost_per_kg = 31
+handmade_kg_weekday = 4
+handmade_kg_weekend = 7
+total_handmade_kg = (weekdays * handmade_kg_weekday) + (weekend_days * handmade_kg_weekend)
+C_tortilla_handmade = total_handmade_kg * handmade_cost_per_kg
+
+# Machine-made
+machine_cost_per_kg = 23.50
+machine_kg_per_week = 8 # 4 for weekdays + 4 for weekend
+total_machine_kg = machine_kg_per_week * weeks_in_month
+C_tortilla_machine = total_machine_kg * machine_cost_per_kg
+
+C_tortillas = C_tortilla_handmade + C_tortilla_machine
+print(f"Cost of Tortillas (C_tortillas): {C_tortillas:.2f} MXN")
+
+# Agua Fresca Pulp Cost
+pulp_cost_per_liter = 135
+pulp_usage_weekday = 0.5
+pulp_usage_weekend = 1
+total_pulp_liters = (weekdays * pulp_usage_weekday) + (weekend_days * pulp_usage_weekend)
+C_agua_pulp = total_pulp_liters * pulp_cost_per_liter
+print(f"Cost of Agua Fresca Pulp (C_agua_pulp): {C_agua_pulp:.2f} MXN")
+
+# Total COGS
+COGS = C_food + C_tortillas + C_agua_pulp
+print(f"Total COGS: {COGS:.2f} MXN")
+
+# --- 3. Operating Expenses Calculation ---
+# Fixed Expenses
+E_rent = 13650
+E_electricity = 3000
+E_water = 400
+E_internet = 400
+E_accountant = 1400
+E_advertising = 5000
+E_fixed = E_rent + E_electricity + E_water + E_internet + E_accountant + E_advertising
+print(f"Total Fixed Expenses (E_fixed): {E_fixed:.2f} MXN")
+
+# Wages
+weekly_wages = 2400 + 2050 + 700 + 700
+E_wages = weekly_wages * weeks_in_month
+print(f"Total Wages (E_wages): {E_wages:.2f} MXN")
+
+# Gas LP
+gas_purchases_aug = [1200, 1500]
+E_gas = sum(gas_purchases_aug)
+print(f"Gas LP Expense (E_gas): {E_gas:.2f} MXN")
+
+# Cleaning Supplies
+E_cleaning = 120 + 240 + 60 + 300
+print(f"Cleaning Supplies Expense (E_cleaning): {E_cleaning:.2f} MXN")
+
+# Total Operating Expenses
+E_operating = E_fixed + E_wages + E_gas + E_cleaning
+print(f"Total Operating Expenses (E_operating): {E_operating:.2f} MXN")
+
+# --- 4. Profit/Loss Calculation ---
+Total_Expenses = COGS + E_operating
+P_L = R_aug - Total_Expenses
+print(f"Total Expenses (COGS + Operating): {Total_Expenses:.2f} MXN")
+print(f"Profit/Loss (P_L) for August 2025: {P_L:.2f} MXN")
+```
+
+**5. Final Answer**
+Final Answer: Based on the provided data, the restaurant experienced a net loss of -1,529.56 MXN for the month of August 2025. Total revenue for the month was 111,199.63 MXN, while total calculated expenses were 112,729.19 MXN.

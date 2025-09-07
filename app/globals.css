@@ -1,0 +1,310 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* AMOLED-optimized base styles */
+@layer base {
+  html {
+    background-color: #000000;
+    color-scheme: dark;
+  }
+  
+  body {
+    background-color: #000000;
+    color: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Mobile viewport and safe area handling */
+@supports (padding: max(0px)) {
+  .safe-area-inset-top {
+    padding-top: max(env(safe-area-inset-top), 0px);
+  }
+  .safe-area-inset-bottom {
+    padding-bottom: max(env(safe-area-inset-bottom), 0px);
+  }
+  .safe-area-inset-left {
+    padding-left: max(env(safe-area-inset-left), 0px);
+  }
+  .safe-area-inset-right {
+    padding-right: max(env(safe-area-inset-right), 0px);
+  }
+}
+
+/* Keyboard height environment variable support */
+@supports (height: env(keyboard-inset-height)) {
+  .keyboard-aware-bottom {
+    bottom: env(keyboard-inset-height, 0px);
+  }
+  .keyboard-aware-height {
+    height: calc(100vh - env(keyboard-inset-height, 0px) - 160px);
+  }
+}
+
+/* Viewport height with visual viewport support */
+.full-height {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height */
+}
+
+.messages-container {
+  height: calc(100vh - 160px);
+  height: calc(100dvh - 160px); /* Dynamic viewport height */
+}
+
+/* Prevent zooming on iOS when focused on inputs */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input[type="text"], input[type="email"], textarea {
+    font-size: 16px;
+  }
+}
+
+/* Better scrolling on mobile */
+html {
+  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+body {
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  height: 100%;
+  height: -webkit-fill-available;
+}
+
+/* Enhanced AMOLED scrollbar */
+.custom-scrollbar {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #333333 #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #333333;
+  border-radius: 3px;
+  border: 1px solid #000000;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #444444;
+}
+
+/* Enhanced animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+}
+
+@keyframes thoughtTransition {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slideUp {
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+.animate-pulseGlow {
+  animation: pulseGlow 2s infinite;
+}
+
+.animate-thoughtTransition {
+  animation: thoughtTransition 0.4s ease-out forwards;
+}
+
+/* Enhanced focus states for accessibility */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-accent-blue focus:ring-offset-2 focus:ring-offset-black;
+}
+
+/* Better touch targets */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  @apply bg-accent-blue hover:bg-blue-600 active:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring;
+}
+
+.btn-secondary {
+  @apply bg-amoled-gray hover:bg-amoled-lightGray active:bg-amoled-border text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring border border-amoled-border;
+}
+
+.btn-success {
+  @apply bg-accent-green hover:bg-emerald-600 active:bg-emerald-700 text-white font-medium rounded-xl transition-all duration-200 active:scale-95 focus-ring;
+}
+
+/* Enhanced input styles */
+.input-enhanced {
+  @apply bg-amoled-gray border border-amoled-border text-white placeholder-amoled-textMuted rounded-xl px-4 py-3 focus:border-accent-blue focus:ring-2 focus:ring-accent-blue focus:ring-opacity-20 transition-all duration-200;
+}
+
+/* Message bubble enhancements */
+.message-bubble {
+  @apply rounded-2xl shadow-lg border border-amoled-border/70 backdrop-blur-sm;
+}
+
+.message-bubble-ai {
+  @apply bg-amoled-gray text-white border-amoled-border;
+}
+
+.message-bubble-user {
+  @apply bg-gradient-to-br from-accent-blue to-accent-purple text-white shadow-glow-blue;
+}
+
+.message-bubble-note {
+  @apply bg-gradient-to-br from-accent-green to-accent-emerald text-white shadow-glow-green;
+}
+
+/* Keep the bottom bar glued to the keyboard */
+.keyboard-aware-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  /* iOS Safari: when VKB opens, the visual viewport shrinks;
+     env(keyboard-inset-bottom) becomes the keyboard height */
+  bottom: env(keyboard-inset-bottom, 0);
+  transition: none; /* instant, no bounce */
+  background: linear-gradient(to top, #000000 0%, #000000 80%, transparent 100%);
+  backdrop-filter: blur(10px);
+}
+
+/* Enhanced loading states */
+.loading-dots {
+  @apply flex space-x-1 items-center;
+}
+
+.loading-dots > div {
+  @apply w-2 h-2 bg-amoled-textSecondary rounded-full animate-bounce;
+}
+
+.loading-dots > div:nth-child(2) {
+  animation-delay: 0.1s;
+}
+
+.loading-dots > div:nth-child(3) {
+  animation-delay: 0.2s;
+}
+
+/* Enhanced menu styles */
+.menu-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm z-50;
+}
+
+.menu-content {
+  @apply bg-amoled-gray border border-amoled-border rounded-2xl shadow-2xl backdrop-blur-md;
+}
+
+/* Enhanced notification styles */
+.notification {
+  @apply fixed top-4 left-1/2 -translate-x-1/2 bg-amoled-gray border border-amoled-border text-white px-6 py-3 rounded-xl shadow-2xl z-50 animate-slideUp backdrop-blur-md;
+}
+
+/* Better typography */
+.text-gradient {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Enhanced code block styles */
+.code-block {
+  @apply bg-amoled-dark border border-amoled-border rounded-xl overflow-hidden;
+}
+
+.code-header {
+  @apply bg-amoled-gray px-4 py-3 border-b border-amoled-border flex items-center justify-between;
+}
+
+.code-content {
+  @apply p-4 text-sm font-mono text-green-400 overflow-x-auto;
+}
+
+/* Responsive improvements */
+@media (max-width: 640px) {
+  .mobile-optimized {
+    @apply px-4 py-3;
+  }
+  
+  .mobile-text {
+    @apply text-sm;
+  }
+}
+
+/* Dark mode optimizations */
+@media (prefers-color-scheme: dark) {
+  .amoled-optimized {
+    background-color: #000000;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .high-contrast {
+    @apply border-2 border-white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
