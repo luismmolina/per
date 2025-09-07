@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
-import fs from 'fs'
-import path from 'path'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -24,37 +22,29 @@ export async function POST(req: NextRequest) {
     if (!buffer || buffer.length === 0) {
       return NextResponse.json({ error: 'Uploaded audio is empty' }, { status: 400 })
     }
-
-    // Choose a temp filename and extension
-    const origName = (file as any).name || 'audio'
-    const extGuess = (origName.split('.').pop() || '').slice(0, 8).toLowerCase() || 'webm'
-    const tmpDir = '/tmp'
-    const tmpPath = path.join(tmpDir, `voice-${Date.now()}-${Math.random().toString(36).slice(2)}.${extGuess}`)
-
-    fs.writeFileSync(tmpPath, buffer)
-    const stats = fs.statSync(tmpPath)
-    if (!stats.size) {
-      return NextResponse.json({ error: 'Saved audio file is empty' }, { status: 400 })
-    }
+    
+    // Build a File object for the SDK with a stable filename and MIME
+    const name = ((file as any).name as string) || 'voice_note.webm'
+    const type = ((file as any).type as string) || 'audio/webm'
+    const makeFile = () => new File([buffer], name, { type })
 
     const groq = new Groq({ apiKey })
-    const common: any = {
-      file: fs.createReadStream(tmpPath),
-      model: 'whisper-large-v3-turbo',
-      response_format: 'verbose_json',
-    }
-
     let transcription: any
     try {
-      // Prefer translation-to-English if available in SDK
-      transcription = await (groq as any).audio.translations.create(common)
+      // Prefer English translation if available
+      transcription = await (groq as any).audio.translations.create({
+        file: makeFile(),
+        model: 'whisper-large-v3',
+        response_format: 'verbose_json',
+      })
     } catch {
-      // Fallback to plain transcription
-      transcription = await groq.audio.transcriptions.create(common)
+      // Fallback to transcription
+      transcription = await groq.audio.transcriptions.create({
+        file: makeFile(),
+        model: 'whisper-large-v3',
+        response_format: 'verbose_json',
+      })
     }
-
-    // Clean up temp file
-    try { fs.unlinkSync(tmpPath) } catch {}
 
     return NextResponse.json({
       text: (transcription as any)?.text || '',
