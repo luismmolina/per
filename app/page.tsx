@@ -1743,26 +1743,6 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
               </button>
               <button
                 onClick={() => {
-                  applyBrownsRazor()
-                  setIsMenuOpen(false)
-                }}
-                disabled={isApplyingBrownsRazor || isLoading}
-                className="w-full flex items-center space-x-4 px-6 py-4 text-left text-white hover:bg-amoled-lightGray disabled:hover:bg-amoled-gray disabled:opacity-50 transition-colors touch-target"
-              >
-                <div className="w-10 h-10 bg-accent-amber/20 rounded-xl flex items-center justify-center">
-                  {isApplyingBrownsRazor ? (
-                    <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
-                  ) : (
-                    <Search className="w-5 h-5 text-accent-amber" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <span className="text-base font-medium">Brown's Razor</span>
-                  <p className="text-xs text-amoled-textMuted mt-1">Apply first principles thinking</p>
-                </div>
-              </button>
-              <button
-                onClick={() => {
                   pruneConversation()
                   setIsMenuOpen(false)
                 }}
@@ -1828,6 +1808,18 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
               >
                 <Plus className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm font-semibold truncate">Add Note</span>
+              </button>
+              <button
+                onClick={applyBrownsRazor}
+                disabled={isApplyingBrownsRazor || isLoading}
+                className="btn-secondary flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+              >
+                {isApplyingBrownsRazor ? (
+                  <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
+                ) : (
+                  <Search className="w-5 h-5 flex-shrink-0" />
+                )}
+                <span className="text-sm font-semibold truncate">Execution Coach</span>
               </button>
               <button
                 onClick={askAI}
