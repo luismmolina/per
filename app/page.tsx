@@ -1729,43 +1729,45 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
                 onChange={handleInputTextChange}
                 onKeyPress={handleKeyPress}
                 onFocus={handleTextareaFocus}
-                placeholder="Type your note or question here..."
+                placeholder="Type your note or question here... (Press Enter to ask AI)"
                 disabled={isLoading}
               className="input-enhanced w-full resize-none"
               />
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={toggleRecording}
               disabled={isTranscribing}
-              className="btn-secondary w-14 h-14 flex items-center justify-center rounded-xl"
+              className="btn-secondary w-16 h-16 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl touch-target shadow-lg active:scale-95 transition-transform"
               aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
               title={isRecording ? 'Stop recording' : 'Start voice note'}
             >
               {isTranscribing ? (
-                <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
+                <div className="w-6 h-6 sm:w-5 sm:h-5 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
               ) : isRecording ? (
-                <StopIcon className="w-5 h-5 text-accent-red" />
+                <StopIcon className="w-6 h-6 sm:w-5 sm:h-5 text-accent-red" />
               ) : (
-                <MicIcon className="w-5 h-5 text-accent-purple" />
+                <MicIcon className="w-6 h-6 sm:w-5 sm:h-5 text-accent-purple" />
               )}
             </button>
-            <button
-              onClick={addNote}
-              disabled={isAddNoteDisabled}
-              className="btn-success flex-1 flex items-center justify-center space-x-3 px-4 py-4 touch-target"
-            >
-              <Plus className="w-5 h-5" />
-              <span className="text-base font-semibold">Add Note</span>
-            </button>
-            <button
-              onClick={askAI}
-              disabled={isAskAIDisabled}
-              className="btn-primary flex-1 flex items-center justify-center space-x-3 px-4 py-4 touch-target"
-            >
-              <Send className="w-5 h-5" />
-              <span className="text-base font-semibold">Ask AI</span>
-            </button>
+            <div className="flex-1 flex items-center space-x-2">
+              <button
+                onClick={addNote}
+                disabled={isAddNoteDisabled}
+                className="btn-success flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+              >
+                <Plus className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-semibold truncate">Add Note</span>
+              </button>
+              <button
+                onClick={askAI}
+                disabled={isAskAIDisabled}
+                className="btn-primary flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+              >
+                <Send className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-semibold truncate">Ask AI</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
