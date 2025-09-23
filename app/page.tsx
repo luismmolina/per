@@ -1729,7 +1729,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
                 onChange={handleInputTextChange}
                 onKeyPress={handleKeyPress}
                 onFocus={handleTextareaFocus}
-                placeholder="Type your note or question here... (Press Enter to ask AI)"
+                placeholder=""
                 disabled={isLoading}
               className="input-enhanced w-full resize-none"
               />
