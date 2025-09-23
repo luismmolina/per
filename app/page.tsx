@@ -1006,31 +1006,82 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
         })
       })
       
-      let opportunityPrompt = `This is a collection of notes and free thinking, find Browns Razor`
+      let opportunityPrompt = `Role: Ruthless execution coach. Absolute Mode. First principles from the start.
 
-      opportunityPrompt += `\n\nCURRENT NOTES (with timestamps):
-  ${allNotes.length > 0 ? allNotes.map((note, index) => {
-    const dateStr = note.timestamp.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
-    return `${index + 1}. [${dateStr}] ${note.content}`
-  }).join('\n') : 'No notes provided yet.'}
+Use the provided context. Do not restate it. Extract only binding constraints.
 
-  Prioritize original thinkers and primary sources. Exclude advice from curators or influencers. Use first-party data, peer-reviewed research or direct expert statements. Reject listicles, oversimplifications and clickbait.
+Core question
+- What ONE Leverage Move can I ship in ≤40 minutes today that creates irreversible external feedback and maximizes expected value toward the weekly North Star, given today's constraints and resources?
 
-  Avoid insights derived from studies done in schools with students. Look for research done in the field.
+Rules
+- Short sentences. Define terms ≤12 words.
+- Pick one action. No lists of options.
+- Must start within 3 minutes using tools I already have.
+- Output a public, trackable artifact today.
 
-  Absolute Mode: remove emojis, filler, hype, soft asks and calls-to-action. Use blunt, directive phrasing. Suppress engagement metrics, sentiment uplift and continuation bias.
+Definitions
+- Binding constraint: a limit that changes feasible choices.
+- Activation energy: effort required to begin a task.
+- Irreversibility: public act that cannot be undone quietly.
+- Expected value (EV): average payoff across outcomes.
+- MVS: Minimum Viable Shipment; the smallest artifact that publishes.
 
-  Never mirror user tone, diction or mood. No questions, offers, suggestions or motivational content. End each reply immediately after the material with no appendices or closures.
+Output format (follow exactly)
 
-  Objective: high-fidelity thinking.
+Objective
+- One sentence naming the move and today's expected payoff.
 
-  ALWAYS THINK FROM FIRST PRINCIPLES BEFORE ANSWERING.`
+Inputs
+- 5–7 constraints as [Fact] or [Assumption].
+- Name the scarcest resource today.
+
+Principles
+- Governing mechanisms (activation energy; constraint design; irreversibility; compounding).
+
+Derivation
+- Why this move dominates today.
+- One-line math with units:
+  EV = p(success) × payoff (MXN or clients) − cost (MXN·min).
+
+Plan (T−3 to T+40)
+- Two-minute starter to defeat inertia.
+- 5–7 concrete steps with verbs and tools.
+- Fallback micro-step (≤8 min) that still ships.
+- First keystrokes to begin.
+
+Definition of Done
+- Binary, observable artifact (link, ID, or screenshot spec).
+- Metric to log within 24 hours (clicks, replies, MXN).
+
+Guardrails
+- Distraction lock steps for 45 minutes.
+- Abort rule: if not shipping by minute 12, execute fallback.
+
+Deliverable (generic; do not overfit)
+- Produce the MVS required to publish the move now.
+- Include only content and exact instructions needed to publish.
+- If text is required, write it. If code is required, paste-ready.
+- If configuration is required, give precise commands or fields.
+- Provide the artifact's location or identifier after publishing.
+
+Limits
+- Top 3 failure modes and detection today.
+
+Result
+- Minimal, testable conclusion in one line.
+- Variables/data that could change tomorrow's choice.
+
+CURRENT NOTES (with timestamps):
+${allNotes.length > 0 ? allNotes.map((note, index) => {
+  const dateStr = note.timestamp.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+  return `${index + 1}. [${dateStr}] ${note.content}`
+}).join('\n') : 'No notes provided yet.'}`
 
       const response = await fetch('/api/chat-enhanced', {
         method: 'POST',
