@@ -1770,7 +1770,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
       {/* Input Area - Fixed at bottom */}
       <div
         ref={bottomBarRef}
-        className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-4 pb-8 safe-area-inset-bottom"
+        className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-4 pb-10 safe-area-inset-bottom"
       >
         <div className="max-w-4xl mx-auto space-y-4">
           <div className="relative">
@@ -1807,7 +1807,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 className="btn-success flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
                 <Plus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold truncate">Note</span>
+                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Note</span>
               </button>
               <button
                 onClick={applyBrownsRazor}
@@ -1819,7 +1819,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 ) : (
                   <Search className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 )}
-                <span className="text-xs sm:text-sm font-semibold truncate">Coach</span>
+                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Coach</span>
               </button>
               <button
                 onClick={askAI}
@@ -1827,7 +1827,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 className="btn-primary flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
                 <Send className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold truncate">AI</span>
+                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">AI</span>
               </button>
             </div>
           </div>
