@@ -373,7 +373,7 @@ export default function Home() {
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isPruning, setIsPruning] = useState(false)
-  const [isFindingOpportunity, setIsFindingOpportunity] = useState(false)
+  const [isApplyingBrownsRazor, setIsApplyingBrownsRazor] = useState(false)
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const [visibleMessageCount, setVisibleMessageCount] = useState(30)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -957,10 +957,10 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
     }
   }
 
-  const findProfitOpportunity = async () => {
-    if (isFindingOpportunity) return
+  const applyBrownsRazor = async () => {
+    if (isApplyingBrownsRazor) return
 
-    setIsFindingOpportunity(true)
+    setIsApplyingBrownsRazor(true)
     
     try {
       // Get all notes for analysis with timestamps
@@ -987,7 +987,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
         })
       })
       
-      let opportunityPrompt = `You are a business consultant. Based on the notes provided, recommend ONE opportunity with the highest chance of increasing profits.`
+      let opportunityPrompt = `This is a collection of notes and free thinking, find Browns Razor`
 
       opportunityPrompt += `\n\nCURRENT NOTES (with timestamps):
   ${allNotes.length > 0 ? allNotes.map((note, index) => {
@@ -1001,8 +1001,17 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
     return `${index + 1}. [${dateStr}] ${note.content}`
   }).join('\n') : 'No notes provided yet.'}
 
-  TASK:
-  Identify one actionable opportunity most likely to boost profits. Keep it under two sentences and briefly explain why it is promising.`
+  Prioritize original thinkers and primary sources. Exclude advice from curators or influencers. Use first-party data, peer-reviewed research or direct expert statements. Reject listicles, oversimplifications and clickbait.
+
+  Avoid insights derived from studies done in schools with students. Look for research done in the field.
+
+  Absolute Mode: remove emojis, filler, hype, soft asks and calls-to-action. Use blunt, directive phrasing. Suppress engagement metrics, sentiment uplift and continuation bias.
+
+  Never mirror user tone, diction or mood. No questions, offers, suggestions or motivational content. End each reply immediately after the material with no appendices or closures.
+
+  Objective: high-fidelity thinking.
+
+  ALWAYS THINK FROM FIRST PRINCIPLES BEFORE ANSWERING.`
 
       const response = await fetch('/api/chat-enhanced', {
         method: 'POST',
@@ -1072,8 +1081,8 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
       })
 
     } catch (error) {
-      console.error('Failed to find profit opportunity:', error)
-      let errorMessage = 'Sorry, I encountered an error while searching for a profit opportunity. Please try again.';
+      console.error('Failed to apply Brown\'s Razor:', error)
+      let errorMessage = 'Sorry, I encountered an error while applying Brown\'s Razor. Please try again.';
       if (error instanceof Error) {
         errorMessage = `Error: ${error.message}`;
       }
@@ -1087,7 +1096,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
       
       setMessages(prev => [...prev, errorResponse])
     } finally {
-      setIsFindingOpportunity(false)
+      setIsApplyingBrownsRazor(false)
     }
   }
 
@@ -1664,22 +1673,22 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
               </button>
               <button
                 onClick={() => {
-                  findProfitOpportunity()
+                  applyBrownsRazor()
                   setIsMenuOpen(false)
                 }}
-                disabled={isFindingOpportunity || isLoading}
+                disabled={isApplyingBrownsRazor || isLoading}
                 className="w-full flex items-center space-x-4 px-6 py-4 text-left text-white hover:bg-amoled-lightGray disabled:hover:bg-amoled-gray disabled:opacity-50 transition-colors touch-target"
               >
                 <div className="w-10 h-10 bg-accent-amber/20 rounded-xl flex items-center justify-center">
-                  {isFindingOpportunity ? (
+                  {isApplyingBrownsRazor ? (
                     <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
                   ) : (
                     <Search className="w-5 h-5 text-accent-amber" />
                   )}
                 </div>
                 <div className="flex-1">
-                  <span className="text-base font-medium">Find Profit Opportunity</span>
-                  <p className="text-xs text-amoled-textMuted mt-1">Analyze your notes</p>
+                  <span className="text-base font-medium">Brown's Razor</span>
+                  <p className="text-xs text-amoled-textMuted mt-1">Apply first principles thinking</p>
                 </div>
               </button>
               <button

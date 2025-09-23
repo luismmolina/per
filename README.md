@@ -8,7 +8,7 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
 - **Two-Action Interface**: Simply type and choose to either "Add Note" or "Ask AI"
 - **Smart Context**: AI receives only your notes (not questions) as context for intelligent responses
 - **Production Cost Integration**: Automatically fetches and includes current production cost data from your API
-- **Profit Opportunity Finder**: Click the lens icon to discover the highest-probability opportunity to increase profits
+- **Brown's Razor**: Click the lens icon to apply first principles thinking to your notes
 - **Conversation Management**: Delete individual notes, prune conversations and download notes with timestamps
 - **Persistent Storage**: Your conversations are automatically saved and restored between sessions
 - **Clean, Modern UI**: Chat-like interface with distinct styling for notes vs AI responses
@@ -38,14 +38,13 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
 
 4. **If you can't connect to Gemini:**
 
-   - Call [http://localhost:3000/api/debug](http://localhost:3000/api/debug) to verify your environment
    - You may need a new API key from [Google AI Studio](https://ai.google.dev/)
 
 ## How to Use
 
 1. **Adding Notes**: Type your thoughts, ideas, or information and click "Add Note" to save them to your knowledge base
 2. **Asking Questions**: Type a question and click "Ask AI" to get contextual responses based on all your previous notes
-3. **Find Profit Opportunity**: Click the lens icon (🔍) to get the most promising way to increase profits
+3. **Brown's Razor**: Click the lens icon (🔍) to apply first principles thinking to your notes
 4. **Managing Conversations**: Use the trash icon (🗑️) to delete a note, the scissors icon (✂️) to clean up conversations, and the download icon (📥) to export notes
 5. **Smart Context**: Only your notes (not questions or AI responses) are sent to the AI as context
 
@@ -100,7 +99,9 @@ The production cost data includes:
 ## Enhanced AI Capabilities
 
 ### First Principles Thinking
+
 The AI uses enhanced prompts that encourage:
+
 - **Rigorous analytical methods** with practical business insights
 - **First principles thinking** to break down complex problems
 - **Physics principles** (thermodynamics, fluid dynamics, optimization) when applicable
@@ -108,15 +109,19 @@ The AI uses enhanced prompts that encourage:
 - **Mathematical precision** - business decisions often hinge on 1% differences
 
 ### Code Execution
+
 - **Python code execution** for all mathematical calculations
 - **Precise financial calculations** with proper rounding
 - **Confidence intervals** and uncertainty estimates
 - **Step-by-step calculations** shown in code blocks
 
-### Profit Opportunity Finder
-Click the lens icon to get AI-powered insights on:
-- The single opportunity most likely to increase profits
-- A short explanation of why it has a high chance of success
+### Brown's Razor
+
+Click the lens icon to apply first principles thinking to your notes using Brown's Razor methodology:
+
+- Rigorous first principles analysis of your knowledge base
+- Prioritizes primary sources and direct expert statements
+- Avoids oversimplifications and clickbait-style advice
 
 ## Tech Stack
 
@@ -132,8 +137,8 @@ Click the lens icon to get AI-powered insights on:
 
 The app uses Google's Gemini AI API. **If you're experiencing connection issues:**
 
-1. **Run diagnostics**: Visit `/api/debug` in your browser to verify environment variables
-2. **Check your API key**: If diagnostics fail with "API key not valid", you need a new key
+1. **Check your API key**: Make sure your Gemini API key is properly configured
+2. **Verify your key**: If you get authentication errors, you need a valid API key
 3. **Get a new API key**: Go to [Google AI Studio](https://ai.google.dev/) → "Get API Key" → "Create API Key"
 4. **Configure environment**: Copy `.env.example` to `.env.local` and fill in the required keys
 
@@ -155,6 +160,7 @@ For production use, keep your keys only in environment variables, never in sourc
 ### Environment Setup
 
 Add these environment variables to your `.env.local` (values shown are examples):
+
 ```
 DATABASE_URL=postgresql://USER:PASSWORD@HOST/DB?sslmode=require
 # Optional alternates if you use them elsewhere
@@ -166,6 +172,7 @@ PGPASSWORD=...
 ```
 
 Install the Postgres client:
+
 ```
 npm install @neondatabase/serverless
 ```
@@ -181,8 +188,8 @@ npm install @neondatabase/serverless
 
 Proprietary License - All Rights Reserved
 
-This software is protected by copyright and proprietary rights. Commercial use, 
-distribution, or modification requires explicit written permission from the 
+This software is protected by copyright and proprietary rights. Commercial use,
+distribution, or modification requires explicit written permission from the
 copyright holder.
 
 For licensing inquiries, please contact the copyright holder.
