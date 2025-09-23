@@ -11,13 +11,13 @@ module.exports = {
         // AMOLED-optimized colors
         amoled: {
           black: "#000000",
-          dark: "#0b1220",    // deep navy‑black
-          gray: "#111a2b",     // primary surface
-          lightGray: "#18233a", // hover surface
-          border: "#22304a",   // cool border
+          dark: "#000000", // pure black for AMOLED
+          gray: "#000000", // pure black for AMOLED
+          lightGray: "#111111", // very dark gray for hover
+          border: "#222222", // dark gray border
           text: "#ffffff",
-          textSecondary: "#9fb3c8", // desaturated blue‑gray
-          textMuted: "#6b7c93",     // muted steel
+          textSecondary: "#cccccc", // brighter secondary text for better contrast
+          textMuted: "#999999", // brighter muted text for better contrast
         },
         primary: {
           50: "#f0f9ff",
@@ -40,12 +40,12 @@ module.exports = {
         },
         // Bold modern accents (distinct from previous look)
         accent: {
-          blue: "#7c4dff",     // electric violet
-          green: "#a3e635",    // lime
-          purple: "#ff4d8d",   // vivid magenta
-          amber: "#fb923c",    // vibrant orange
-          red: "#f43f5e",      // rose
-          emerald: "#22d3ee",  // neon cyan
+          blue: "#7c4dff", // electric violet
+          green: "#a3e635", // lime
+          purple: "#ff4d8d", // vivid magenta
+          amber: "#fb923c", // vibrant orange
+          red: "#f43f5e", // rose
+          emerald: "#22d3ee", // neon cyan
         },
       },
       // Enhanced animations

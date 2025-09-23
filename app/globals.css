@@ -219,7 +219,7 @@ body {
      env(keyboard-inset-bottom) becomes the keyboard height */
   bottom: env(keyboard-inset-bottom, 0);
   transition: none; /* instant, no bounce */
-  background: linear-gradient(to top, #000000 0%, #000000 80%, transparent 100%);
+  background: #000000;
   backdrop-filter: blur(10px);
 }
 

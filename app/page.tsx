@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef, useEffect, memo, useCallback, useMemo } from 'react'
+import React, { useState, useRef, useEffect, memo, useCallback, useMemo, useImperativeHandle } from 'react'
 import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
@@ -329,7 +329,7 @@ const MessagesList = memo(
 
 MessagesList.displayName = 'MessagesList'
 
-// Simplified textarea component without expensive height adjustments
+// Auto-resizing textarea component
 const OptimizedTextarea = React.forwardRef<
   HTMLTextAreaElement,
   {
@@ -342,13 +342,31 @@ const OptimizedTextarea = React.forwardRef<
     className?: string
   }
 >(({ value, onChange, onKeyPress, onFocus, placeholder, disabled, className }, ref) => {
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Handle ref forwarding
+  useImperativeHandle(ref, () => textareaRef.current!, [])
+
   const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value)
+    // Auto-resize immediately after content change
+    const textarea = e.target
+    textarea.style.height = 'auto'
+    textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
   }, [onChange])
+
+  // Auto-resize when value changes externally (like clearing input)
+  useEffect(() => {
+    if (textareaRef.current) {
+      const textarea = textareaRef.current
+      textarea.style.height = 'auto'
+      textarea.style.height = Math.min(textarea.scrollHeight, 200) + 'px'
+    }
+  }, [value])
 
   return (
     <textarea
-      ref={ref}
+      ref={textareaRef}
       value={value}
       onChange={handleChange}
       onKeyDown={onKeyPress}
@@ -360,7 +378,8 @@ const OptimizedTextarea = React.forwardRef<
       style={{
         fontSize: '16px', // prevent iOS zoom
         minHeight: '56px',
-        maxHeight: '200px'
+        maxHeight: '200px',
+        transition: 'height 0.1s ease-out' // Smooth resize animation
       }}
     />
   )
@@ -1413,7 +1432,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
   }, [messages.length])
 
   return (
-    <div className="bg-amoled-black min-h-screen">
+    <div className="bg-black min-h-screen">
       {/* Top App Bar */}
       <div ref={topBarRef} className="sticky top-0 z-40 bg-black/60 backdrop-blur-sm border-b border-amoled-border safe-area-inset-top">
         <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -1491,8 +1510,8 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
         )}
 
         {/* Bottom-anchored message area */}
-        <div className="flex flex-col justify-end min-h-full mt-4 sm:mt-6">
-          <div className="space-y-3 sm:space-y-4">
+        <div className="flex flex-col justify-end min-h-full mt-2 sm:mt-4">
+          <div className="space-y-2 sm:space-y-3">
             <MessagesList
               messages={visibleMessages}
               onCopy={copyMessage}
