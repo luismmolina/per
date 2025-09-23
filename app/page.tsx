@@ -1800,34 +1800,34 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 <MicIcon className="w-6 h-6 sm:w-5 sm:h-5 text-accent-purple" />
               )}
             </button>
-            <div className="flex-1 flex items-center space-x-2">
+            <div className="flex-1 flex items-center space-x-1 sm:space-x-2">
               <button
                 onClick={addNote}
                 disabled={isAddNoteDisabled}
-                className="btn-success flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+                className="btn-success flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
-                <Plus className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-semibold truncate">Add Note</span>
+                <Plus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold truncate">Note</span>
               </button>
               <button
                 onClick={applyBrownsRazor}
                 disabled={isApplyingBrownsRazor || isLoading}
-                className="btn-secondary flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+                className="btn-secondary flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
                 {isApplyingBrownsRazor ? (
-                  <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
+                  <div className="w-4 h-4 sm:w-5 sm:h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
                 ) : (
-                  <Search className="w-5 h-5 flex-shrink-0" />
+                  <Search className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
                 )}
-                <span className="text-sm font-semibold truncate">Execution Coach</span>
+                <span className="text-xs sm:text-sm font-semibold truncate">Coach</span>
               </button>
               <button
                 onClick={askAI}
                 disabled={isAskAIDisabled}
-                className="btn-primary flex-1 h-14 flex items-center justify-center space-x-2 px-3 touch-target"
+                className="btn-primary flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
-                <Send className="w-5 h-5 flex-shrink-0" />
-                <span className="text-sm font-semibold truncate">Ask AI</span>
+                <Send className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span className="text-xs sm:text-sm font-semibold truncate">AI</span>
               </button>
             </div>
           </div>
