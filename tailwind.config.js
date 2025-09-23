@@ -65,18 +65,39 @@ module.exports = {
           "50%": { transform: "translateY(-5px)" },
         },
       },
-      // Enhanced spacing for better touch targets
+      // Mobile-optimized spacing system
       spacing: {
         18: "4.5rem",
         88: "22rem",
+        // Mobile-friendly spacing
+        "mobile-xs": "0.25rem",
+        "mobile-sm": "0.5rem",
+        "mobile-md": "0.75rem",
+        "mobile-lg": "1rem",
+        "mobile-xl": "1.5rem",
+        "mobile-2xl": "2rem",
+        "mobile-3xl": "3rem",
+        // Touch target friendly spacing
+        "touch-sm": "2.75rem",
+        "touch-md": "3rem",
+        "touch-lg": "3.5rem",
+        "touch-xl": "4rem",
       },
-      // Better typography
+      // Mobile-optimized typography
       fontSize: {
         xs: ["0.75rem", { lineHeight: "1.2" }],
         sm: ["0.875rem", { lineHeight: "1.4" }],
         base: ["1rem", { lineHeight: "1.5" }],
         lg: ["1.125rem", { lineHeight: "1.4" }],
         xl: ["1.25rem", { lineHeight: "1.3" }],
+        // Mobile-specific font sizes
+        "mobile-xs": ["0.75rem", { lineHeight: "1.3" }],
+        "mobile-sm": ["0.875rem", { lineHeight: "1.4" }],
+        "mobile-base": ["1rem", { lineHeight: "1.5" }],
+        "mobile-lg": ["1.125rem", { lineHeight: "1.4" }],
+        "mobile-xl": ["1.25rem", { lineHeight: "1.3" }],
+        "mobile-2xl": ["1.5rem", { lineHeight: "1.2" }],
+        "mobile-3xl": ["2rem", { lineHeight: "1.1" }],
       },
       // Enhanced border radius for modern look
       borderRadius: {

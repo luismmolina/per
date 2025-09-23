@@ -1484,52 +1484,44 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
 
   return (
     <div className="bg-black min-h-screen">
-      {/* Top App Bar */}
-      <div ref={topBarRef} className="sticky top-0 z-40 bg-black/60 backdrop-blur-sm border-b border-amoled-border safe-area-inset-top">
-        <div className="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center shadow-glow-blue">
-              <Bot className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <div className="text-sm font-semibold text-white">Contextual Assistant</div>
-              <div className="text-xs text-amoled-textMuted">Notes + AI on Android</div>
-            </div>
-          </div>
+      {/* Mobile-optimized Top Menu Bar */}
+      <div ref={topBarRef} className="sticky top-0 z-40 bg-black/80 backdrop-blur-md border-b border-amoled-border safe-area-inset-top mobile-touch">
+        <div className="max-w-4xl mx-auto mobile-padding flex items-center justify-end">
           <button
             onClick={() => setIsMenuOpen(true)}
-            className="p-2 rounded-xl hover:bg-amoled-lightGray focus-ring touch-target"
+            className="mobile-padding rounded-xl hover:bg-amoled-lightGray focus-ring touch-target mobile-touch"
             aria-label="Open menu"
           >
             <span className="text-xl leading-none text-white/80" aria-hidden="true">⋮</span>
           </button>
         </div>
       </div>
-      {/* Messages Area */}
+      {/* Mobile-optimized Messages Area */}
       <div
         ref={messagesContainerRef}
-        className="overflow-y-auto px-3 sm:px-5 py-4 sm:py-6 custom-scrollbar messages-container"
+        className="overflow-y-auto mobile-padding custom-scrollbar messages-container mobile-touch"
         style={{
           height: `calc(100dvh - ${bottomBarHeight}px - ${topBarHeight}px)`,
+          maxHeight: `calc(100dvh - ${bottomBarHeight}px - ${topBarHeight}px)`,
         }}
       >
         {messages.length === 0 && !currentResponse && !isThinking && (
-          <div className="text-center py-12 sm:py-16 px-6 flex flex-col items-center justify-center">
-            <div className="w-20 h-20 bg-gradient-to-br from-accent-blue to-accent-purple rounded-3xl flex items-center justify-center mb-6 shadow-glow-blue">
-              <Bot className="w-10 h-10 text-white" />
+          <div className="text-center mobile-padding mobile-2xl flex flex-col items-center justify-center mobile-touch">
+            <div className="w-24 h-24 sm:w-20 sm:h-20 bg-gradient-to-br from-accent-blue to-accent-purple rounded-3xl flex items-center justify-center mb-8 shadow-glow-blue">
+              <Bot className="w-12 h-12 sm:w-10 sm:h-10 text-white" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold text-white mb-3 text-gradient">
+            <h2 className="text-2xl sm:text-xl font-semibold text-white mb-4 text-gradient mobile-text">
               Welcome to your Contextual Assistant
             </h2>
-            <p className="text-base sm:text-lg text-amoled-textSecondary max-w-lg mx-auto leading-relaxed">
+            <p className="text-lg sm:text-base text-amoled-textSecondary max-w-lg mx-auto leading-relaxed mobile-body">
               Start by adding a note to build your knowledge base, or ask the AI a question to get instant insights.
             </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-3 max-w-md">
-              <div className="flex items-center space-x-2 text-sm text-amoled-textMuted">
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 max-w-md mobile-spacing">
+              <div className="flex items-center space-x-2 text-base sm:text-sm text-amoled-textMuted">
                 <div className="w-2 h-2 bg-accent-green rounded-full"></div>
                 <span>Add notes for context</span>
               </div>
-              <div className="flex items-center space-x-2 text-sm text-amoled-textMuted">
+              <div className="flex items-center space-x-2 text-base sm:text-sm text-amoled-textMuted">
                 <div className="w-2 h-2 bg-accent-blue rounded-full"></div>
                 <span>Ask questions anytime</span>
               </div>
@@ -1537,13 +1529,13 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           </div>
         )}
 
-        {/* Load More Button - Show when there are more messages */}
+        {/* Mobile-optimized Load More Button */}
         {hasMoreMessages && (
-          <div className="text-center py-2">
+          <div className="text-center mobile-padding">
             <button
               onClick={loadMoreMessages}
               disabled={isLoadingMore}
-              className="btn-secondary px-6 py-3 touch-target"
+              className="btn-secondary mobile-padding touch-target mobile-touch w-full max-w-xs"
             >
               {isLoadingMore ? (
                 <div className="flex items-center space-x-3">
@@ -1767,67 +1759,67 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         </>
       )}
 
-      {/* Input Area - Fixed at bottom */}
+      {/* Mobile-optimized Input Area */}
       <div
         ref={bottomBarRef}
-        className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-4 pb-10 safe-area-inset-bottom"
+        className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border mobile-padding pb-safe safe-area-inset-bottom mobile-touch"
       >
-        <div className="max-w-4xl mx-auto space-y-4">
+        <div className="max-w-4xl mx-auto mobile-spacing">
           <div className="relative">
-                          <OptimizedTextarea
-                value={inputText}
-                onChange={handleInputTextChange}
-                onKeyPress={handleKeyPress}
-                onFocus={handleTextareaFocus}
-                placeholder=""
-                disabled={isLoading}
-              className="input-enhanced w-full resize-none"
-              />
+            <OptimizedTextarea
+              value={inputText}
+              onChange={handleInputTextChange}
+              onKeyPress={handleKeyPress}
+              onFocus={handleTextareaFocus}
+              placeholder="Type your note or question..."
+              disabled={isLoading}
+              className="input-enhanced w-full resize-none mobile-touch"
+            />
           </div>
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="flex items-center mobile-spacing">
             <button
               onClick={toggleRecording}
               disabled={isTranscribing}
-              className="btn-secondary w-16 h-16 sm:w-14 sm:h-14 flex items-center justify-center rounded-xl touch-target shadow-lg active:scale-95 transition-transform"
+              className="btn-secondary mobile-touch touch-target flex-shrink-0"
               aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
               title={isRecording ? 'Stop recording' : 'Start voice note'}
             >
               {isTranscribing ? (
-                <div className="w-6 h-6 sm:w-5 sm:h-5 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
+                <div className="w-6 h-6 animate-spin rounded-full border-2 border-accent-purple border-t-transparent"></div>
               ) : isRecording ? (
-                <StopIcon className="w-6 h-6 sm:w-5 sm:h-5 text-accent-red" />
+                <StopIcon className="w-6 h-6 text-accent-red" />
               ) : (
-                <MicIcon className="w-6 h-6 sm:w-5 sm:h-5 text-accent-purple" />
+                <MicIcon className="w-6 h-6 text-accent-purple" />
               )}
             </button>
-            <div className="flex-1 flex items-center space-x-1 sm:space-x-2">
+            <div className="flex-1 flex items-center mobile-margin">
               <button
                 onClick={addNote}
                 disabled={isAddNoteDisabled}
-                className="btn-success flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
+                className="btn-success flex-1 min-w-0 mobile-touch touch-target"
               >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Note</span>
+                <Plus className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-semibold truncate ml-2">Note</span>
               </button>
               <button
                 onClick={applyBrownsRazor}
                 disabled={isApplyingBrownsRazor || isLoading}
-                className="btn-secondary flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
+                className="btn-secondary flex-1 min-w-0 mx-2 mobile-touch touch-target"
               >
                 {isApplyingBrownsRazor ? (
-                  <div className="w-4 h-4 sm:w-5 sm:h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
+                  <div className="w-5 h-5 animate-spin rounded-full border-2 border-accent-amber border-t-transparent"></div>
                 ) : (
-                  <Search className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <Search className="w-5 h-5 flex-shrink-0" />
                 )}
-                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Coach</span>
+                <span className="text-sm font-semibold truncate ml-2">Coach</span>
               </button>
               <button
                 onClick={askAI}
                 disabled={isAskAIDisabled}
-                className="btn-primary flex-1 min-w-0 h-16 sm:h-14 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
+                className="btn-primary flex-1 min-w-0 mobile-touch touch-target"
               >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">AI</span>
+                <Send className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-semibold truncate ml-2">AI</span>
               </button>
             </div>
           </div>
