@@ -7,6 +7,7 @@ export const dynamic = 'force-dynamic'
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
 const DEFAULT_MODEL = process.env.GROQ_TRANSCRIBE_MODEL || 'whisper-large-v3'
+type TranscriptResponseFormat = 'json' | 'text' | 'srt' | 'verbose_json' | 'vtt'
 
 function parseGranularities(value: string | null) {
   if (!value) return undefined
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     const isLastChunk = (form.get('isLast') as string) === 'true'
     const language = (form.get('language') as string) || undefined
     const prompt = (form.get('prompt') as string) || undefined
-    const responseFormat = (form.get('response_format') as string) || 'verbose_json'
+    const responseFormat = (form.get('response_format') as TranscriptResponseFormat | null) ?? 'verbose_json'
     const mode = ((form.get('mode') as string) || 'auto').toLowerCase()
     const timestampGranularities = parseGranularities(form.get('timestampGranularities') as string | null)
     const model = (form.get('model') as string) || DEFAULT_MODEL
@@ -76,14 +77,13 @@ export async function POST(req: NextRequest) {
 
     const groq = new Groq({ apiKey })
 
-    const sharedPayload: Record<string, any> = {
+    const sharedPayload = {
       file: normalizedFile,
       model,
       response_format: responseFormat,
       temperature,
+      ...(prompt ? { prompt } : {}),
     }
-
-    if (prompt) sharedPayload.prompt = prompt
 
     const transcriptionPayload = {
       ...sharedPayload,
