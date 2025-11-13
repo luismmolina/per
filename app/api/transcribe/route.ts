@@ -76,30 +76,36 @@ export async function POST(req: NextRequest) {
 
     const groq = new Groq({ apiKey })
 
-    const basePayload: any = {
+    const sharedPayload: Record<string, any> = {
       file: normalizedFile,
       model,
       response_format: responseFormat,
       temperature,
     }
 
-    if (language) basePayload.language = language
-    if (prompt) basePayload.prompt = prompt
-    if (timestampGranularities?.length && responseFormat === 'verbose_json') {
-      basePayload.timestamp_granularities = timestampGranularities
+    if (prompt) sharedPayload.prompt = prompt
+
+    const transcriptionPayload = {
+      ...sharedPayload,
+      ...(language ? { language } : {}),
+      ...(timestampGranularities?.length && responseFormat === 'verbose_json'
+        ? { timestamp_granularities: timestampGranularities }
+        : {}),
     }
+
+    const translationPayload = { ...sharedPayload }
 
     let transcription: any
     const shouldTryTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
 
     try {
       if (shouldTryTranslation) {
-        transcription = await (groq as any).audio.translations.create(basePayload)
+        transcription = await (groq as any).audio.translations.create(translationPayload)
       } else {
         throw new Error('Skip translation')
       }
     } catch {
-      transcription = await groq.audio.transcriptions.create(basePayload)
+      transcription = await groq.audio.transcriptions.create(transcriptionPayload)
     }
 
     return NextResponse.json({
