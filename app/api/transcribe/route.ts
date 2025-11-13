@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
+import type { TranscriptionCreateParams } from 'groq-sdk/resources/audio/transcriptions'
+import type { TranslationCreateParams } from 'groq-sdk/resources/audio/translations'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -7,7 +9,8 @@ export const dynamic = 'force-dynamic'
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
 const DEFAULT_MODEL = process.env.GROQ_TRANSCRIBE_MODEL || 'whisper-large-v3'
-type TranscriptResponseFormat = 'json' | 'text' | 'srt' | 'verbose_json' | 'vtt'
+type TranscriptResponseFormat = 'json' | 'text' | 'verbose_json'
+const TRANSLATION_SUPPORTED_MODELS = new Set(['whisper-large-v3'])
 
 function parseGranularities(value: string | null) {
   if (!value) return undefined
@@ -40,11 +43,14 @@ export async function POST(req: NextRequest) {
     const isLastChunk = (form.get('isLast') as string) === 'true'
     const language = (form.get('language') as string) || undefined
     const prompt = (form.get('prompt') as string) || undefined
-    const responseFormat = (form.get('response_format') as TranscriptResponseFormat | null) ?? 'verbose_json'
+    const requestedFormat = ((form.get('response_format') as string | null) ?? '').toLowerCase()
+    const responseFormat: TranscriptResponseFormat =
+      requestedFormat === 'text' || requestedFormat === 'json' ? (requestedFormat as TranscriptResponseFormat) : 'verbose_json'
     const mode = ((form.get('mode') as string) || 'auto').toLowerCase()
     const timestampGranularities = parseGranularities(form.get('timestampGranularities') as string | null)
     const model = (form.get('model') as string) || DEFAULT_MODEL
-    const temperature = Number(form.get('temperature') ?? '0')
+    const parsedTemperature = Number(form.get('temperature') ?? '0')
+    const temperature = Number.isFinite(parsedTemperature) ? parsedTemperature : 0
 
     let fileBuffer: ArrayBuffer | null = null
     let fileSize = typeof file.size === 'number' ? file.size : undefined
@@ -77,26 +83,31 @@ export async function POST(req: NextRequest) {
 
     const groq = new Groq({ apiKey })
 
-    const sharedPayload = {
+    const basePayload = {
       file: normalizedFile,
       model,
-      response_format: responseFormat,
       temperature,
       ...(prompt ? { prompt } : {}),
     }
 
-    const transcriptionPayload = {
-      ...sharedPayload,
+    const transcriptionPayload: TranscriptionCreateParams = {
+      ...basePayload,
+      response_format: responseFormat,
       ...(language ? { language } : {}),
       ...(timestampGranularities?.length && responseFormat === 'verbose_json'
         ? { timestamp_granularities: timestampGranularities }
         : {}),
     }
 
-    const translationPayload = { ...sharedPayload }
+    const translationPayload: TranslationCreateParams = {
+      ...basePayload,
+      response_format: responseFormat === 'verbose_json' ? 'json' : responseFormat,
+    }
 
     let transcription: any
-    const shouldTryTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
+    const wantsTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
+    const modelSupportsTranslation = TRANSLATION_SUPPORTED_MODELS.has(model)
+    const shouldTryTranslation = wantsTranslation && modelSupportsTranslation
 
     try {
       if (shouldTryTranslation) {
@@ -104,7 +115,10 @@ export async function POST(req: NextRequest) {
       } else {
         throw new Error('Skip translation')
       }
-    } catch {
+    } catch (error) {
+      if (shouldTryTranslation) {
+        console.warn('Groq translation failed, retrying as transcription', error)
+      }
       transcription = await groq.audio.transcriptions.create(transcriptionPayload)
     }
 
@@ -117,6 +131,8 @@ export async function POST(req: NextRequest) {
         isLastChunk,
         model,
         responseFormat,
+        translationAttempted: shouldTryTranslation,
+        translationSkippedReason: wantsTranslation && !modelSupportsTranslation ? 'model_not_supported' : undefined,
         durationMs: Date.now() - startedAt,
       },
     })
