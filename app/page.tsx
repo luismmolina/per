@@ -1,7 +1,21 @@
 ﻿'use client'
 
 import React, { useState, useRef, useEffect, memo, useCallback, useMemo, useImperativeHandle } from 'react'
-import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
+import {
+  Plus,
+  Send,
+  Bot,
+  User,
+  Scissors,
+  Search,
+  Copy,
+  Check,
+  Download,
+  Trash,
+  ArrowDown,
+  MoreVertical,
+  X,
+} from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -1443,7 +1457,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         aria-label="Open menu"
         style={{ marginTop: 'env(safe-area-inset-top)' }}
       >
-        <span className="text-lg leading-none text-white/90" aria-hidden="true">â‹®</span>
+        <MoreVertical className="h-5 w-5 text-white/90" aria-hidden="true" />
       </button>
       {/* Messages Area */}
       <div
@@ -1648,10 +1662,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           onClick={scrollToBottom}
           className="fixed right-4 z-40 rounded-full bg-amoled-gray border border-amoled-border shadow-amoled touch-target flex items-center justify-center w-12 h-12 hover:bg-amoled-lightGray active:scale-95 transition-all"
           style={{ bottom: bottomBarHeight + 12 }}
-          aria-label="Scroll to latest"
-        >
-          <span className="text-xl text-white leading-none" aria-hidden="true">â†“</span>
-        </button>
+        aria-label="Scroll to latest"
+      >
+        <ArrowDown className="h-5 w-5 text-white" aria-hidden="true" />
+      </button>
       )}
 
       {/* Bottom Sheet Menu (Android style) */}
@@ -1662,7 +1676,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
             <div className="px-6 pt-4 pb-2 flex items-center justify-between">
               <h3 className="text-white font-semibold text-lg">Quick actions</h3>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl hover:bg-amoled-lightGray focus-ring" aria-label="Close menu">
-                <span className="text-lg leading-none text-white/80" aria-hidden="true">âœ•</span>
+                <X className="h-5 w-5 text-white/80" aria-hidden="true" />
               </button>
             </div>
             <div className="divide-y divide-amoled-border">
