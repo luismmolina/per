@@ -81,6 +81,57 @@ interface DishesData {
   }
 }
 
+const MAX_VOICE_DURATION_MS = 20 * 60 * 1000 // 20 minutes
+const CHUNK_TIMESLICE_MS = 60_000 // capture a chunk roughly every minute
+const MAX_CHUNK_BYTES = 22 * 1024 * 1024 // stay under Groq's 25 MB free-tier cap
+
+type ChunkStatus = 'queued' | 'uploading' | 'success' | 'error'
+
+interface VoiceChunk {
+  id: string
+  index: number
+  status: ChunkStatus
+  isLast: boolean
+  attempt: number
+  error?: string
+}
+
+interface VoiceSessionState {
+  id: string
+  startedAt: number
+  elapsedMs: number
+  previewText: string
+  isRecording: boolean
+  isProcessing: boolean
+  status: 'idle' | 'recording' | 'processing' | 'complete' | 'error'
+  chunks: VoiceChunk[]
+  lastError?: string
+}
+
+interface ChunkJob {
+  id: string
+  blob: Blob
+  chunkIndex: number
+  sessionId: string
+  isLast: boolean
+  attempt: number
+}
+
+const safeId = () => {
+  const cryptoObj = typeof globalThis !== 'undefined' ? (globalThis.crypto as Crypto | undefined) : undefined
+  return cryptoObj && typeof cryptoObj.randomUUID === 'function'
+    ? cryptoObj.randomUUID()
+    : `voice-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
+}
+
+const formatDuration = (ms: number) => {
+  if (!ms || ms < 0) return '00:00'
+  const totalSeconds = Math.floor(ms / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
 // Memoized Markdown component to prevent unnecessary re-renders
 const Markdown = React.memo(
   ({ children }: { children: string }) => (
@@ -756,78 +807,349 @@ export default function Home() {
   // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
   const [isRecording, setIsRecording] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
+  const [voiceSession, setVoiceSession] = useState<VoiceSessionState | null>(null)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const recordedChunksRef = useRef<Blob[]>([])
+  const chunkQueueRef = useRef<ChunkJob[]>([])
+  const chunkCounterRef = useRef(0)
+  const activeSessionIdRef = useRef<string | null>(null)
+  const pendingStopRef = useRef(false)
+  const isProcessingChunkRef = useRef(false)
+  const failedChunkRef = useRef<ChunkJob | null>(null)
+  const voiceChunkTotals = useMemo(() => {
+    if (!voiceSession) return { completed: 0, total: 0, percent: 0 }
+    const completed = voiceSession.chunks.filter((chunk) => chunk.status === 'success').length
+    const total = voiceSession.chunks.length
+    const percent = total ? Math.round((completed / total) * 100) : 0
+    return { completed, total, percent }
+  }, [voiceSession])
 
-  const transcribeBlob = useCallback(async (blob: Blob) => {
-    try {
-      setIsTranscribing(true)
-      const form = new FormData()
-      form.append('audio', new File([blob], 'voice_note.webm', { type: blob.type || 'audio/webm' }))
-      const res = await fetch('/api/transcribe', { method: 'POST', body: form })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err?.error || `Transcription failed (${res.status})`)
+  const finalizeVoiceSession = useCallback(
+    (sessionId: string, textContent: string) => {
+      const cleaned = textContent?.trim()
+      if (!cleaned) {
+        showError('Transcription completed but returned no text. Please try again.')
+        setVoiceSession((prev) =>
+          prev && prev.id === sessionId ? { ...prev, status: 'error', lastError: 'Empty transcription' } : prev
+        )
+        return
       }
-      const data = await res.json()
-      const text = (data?.text || '').trim()
-      if (!text) throw new Error('Empty transcription')
 
       const newNote: Message = {
         id: Date.now().toString(),
-        content: text,
+        content: cleaned,
         type: 'note',
-        timestamp: new Date()
+        timestamp: new Date(),
       }
-      setMessages(prev => [...prev, newNote])
+      setMessages((prev) => [...prev, newNote])
+      setVoiceSession((prev) =>
+        prev && prev.id === sessionId ? { ...prev, status: 'complete', previewText: cleaned } : prev
+      )
       setTimeout(() => scrollToBottom(), 200)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      showError(`Voice note error: ${msg}`)
-    } finally {
-      setIsTranscribing(false)
-    }
-  }, [setMessages, scrollToBottom, showError])
-
-  const toggleRecording = useCallback(async () => {
-    try {
-      if (!isRecording) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined
-        const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
-        recordedChunksRef.current = []
-        mr.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data)
-        }
-        mr.onstop = async () => {
-          try {
-            const blob = new Blob(recordedChunksRef.current, { type: mr.mimeType || 'audio/webm' })
-            stream.getTracks().forEach(t => t.stop())
-            if (!blob || blob.size === 0) {
-              showError('No audio captured. Please speak for at least 1–2 seconds and try again.')
-            } else {
-              await transcribeBlob(blob)
-            }
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e)
-            showError(`Recording error: ${msg}`)
-          }
-        }
-        mediaRecorderRef.current = mr
-        // Use a timeslice to ensure chunks are emitted while recording
-        mr.start(400)
-        setIsRecording(true)
-      } else {
-        // Flush any pending data before stopping
-        try { mediaRecorderRef.current?.requestData() } catch {}
-        mediaRecorderRef.current?.stop()
-        setIsRecording(false)
+      if (activeSessionIdRef.current === sessionId) {
+        activeSessionIdRef.current = null
       }
+    },
+    [setMessages, scrollToBottom, showError]
+  )
+
+  const sendChunkForTranscription = useCallback(async (job: ChunkJob) => {
+    const form = new FormData()
+    const type = job.blob.type || mediaRecorderRef.current?.mimeType || 'audio/webm'
+    form.append('audio', new File([job.blob], `voice_${job.sessionId}_${job.chunkIndex}.webm`, { type }))
+    form.append('sessionId', job.sessionId)
+    form.append('chunkIndex', job.chunkIndex.toString())
+    form.append('isLast', job.isLast ? 'true' : 'false')
+    form.append('response_format', 'verbose_json')
+    form.append('timestampGranularities', 'word,segment')
+    form.append('mode', 'transcribe')
+
+    const res = await fetch('/api/transcribe', { method: 'POST', body: form })
+    const payload = await res.json().catch(() => null)
+    if (!res.ok) {
+      throw new Error(payload?.error || `Transcription failed (${res.status})`)
+    }
+    return payload
+  }, [])
+
+  const handleChunkSuccess = useCallback(
+    (job: ChunkJob, payload: any) => {
+      let combinedPreview = ''
+      setVoiceSession((prev) => {
+        if (!prev || prev.id !== job.sessionId) return prev
+        const chunkText = (payload?.text || '').trim()
+        combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
+        const updated: VoiceSessionState = {
+          ...prev,
+          previewText: combinedPreview,
+          chunks: prev.chunks.map((chunk) =>
+            chunk.id === job.id ? { ...chunk, status: 'success', error: undefined } : chunk
+          ),
+          isProcessing: chunkQueueRef.current.length > 0,
+          lastError: undefined,
+          status: job.isLast ? 'complete' : 'processing',
+          isRecording: job.isLast ? false : prev.isRecording,
+        }
+        if (job.isLast) {
+          updated.isProcessing = false
+        }
+        return updated
+      })
+
+      if (job.isLast) {
+        finalizeVoiceSession(job.sessionId, combinedPreview)
+        setIsTranscribing(false)
+      }
+    },
+    [finalizeVoiceSession]
+  )
+
+  const handleChunkFailure = useCallback(
+    (job: ChunkJob, error: Error) => {
+      failedChunkRef.current = job
+      setVoiceSession((prev) => {
+        if (!prev || prev.id !== job.sessionId) return prev
+        return {
+          ...prev,
+          status: 'error',
+          isProcessing: false,
+          chunks: prev.chunks.map((chunk) =>
+            chunk.id === job.id ? { ...chunk, status: 'error', error: error.message } : chunk
+          ),
+          lastError: error.message,
+          isRecording: false,
+        }
+      })
+      setIsTranscribing(false)
+      showError(`Chunk ${job.chunkIndex + 1} failed: ${error.message}`)
+    },
+    [showError]
+  )
+
+  const processChunkQueue = useCallback(() => {
+    if (isProcessingChunkRef.current) return
+    const job = chunkQueueRef.current.shift()
+
+    if (!job) {
+      setIsTranscribing(false)
+      setVoiceSession((prev) => {
+        if (!prev || prev.id !== activeSessionIdRef.current) return prev
+        return { ...prev, isProcessing: false }
+      })
+      return
+    }
+
+    isProcessingChunkRef.current = true
+    setIsTranscribing(true)
+    setVoiceSession((prev) => {
+      if (!prev || prev.id !== job.sessionId) return prev
+      return {
+        ...prev,
+        chunks: prev.chunks.map((chunk) =>
+          chunk.id === job.id ? { ...chunk, status: 'uploading', error: undefined } : chunk
+        ),
+        status: 'processing',
+        isProcessing: true,
+      }
+    })
+
+    sendChunkForTranscription(job)
+      .then((payload) => handleChunkSuccess(job, payload))
+      .catch((error) => handleChunkFailure(job, error instanceof Error ? error : new Error(String(error))))
+      .finally(() => {
+        isProcessingChunkRef.current = false
+        processChunkQueue()
+      })
+  }, [handleChunkFailure, handleChunkSuccess, sendChunkForTranscription])
+
+  const enqueueChunk = useCallback(
+    (blob: Blob, isLast: boolean) => {
+      const sessionId = activeSessionIdRef.current
+      if (!sessionId) return
+
+      const job: ChunkJob = {
+        id: `${sessionId}-${chunkCounterRef.current}`,
+        blob,
+        chunkIndex: chunkCounterRef.current,
+        sessionId,
+        isLast,
+        attempt: 1,
+      }
+      chunkCounterRef.current += 1
+      chunkQueueRef.current.push(job)
+      setVoiceSession((prev) => {
+        if (!prev || prev.id !== sessionId) return prev
+        return {
+          ...prev,
+          chunks: [
+            ...prev.chunks,
+            {
+              id: job.id,
+              index: job.chunkIndex,
+              status: 'queued',
+              isLast: job.isLast,
+              attempt: job.attempt,
+            },
+          ],
+          status: 'processing',
+          isProcessing: true,
+          lastError: undefined,
+        }
+      })
+      processChunkQueue()
+    },
+    [processChunkQueue]
+  )
+
+  const retryLastFailedChunk = useCallback(() => {
+    const failed = failedChunkRef.current
+    if (!failed) return
+
+    const retryJob: ChunkJob = { ...failed, attempt: failed.attempt + 1 }
+    failedChunkRef.current = retryJob
+    chunkQueueRef.current.unshift(retryJob)
+    setVoiceSession((prev) => {
+      if (!prev || prev.id !== retryJob.sessionId) return prev
+      return {
+        ...prev,
+        status: 'processing',
+        isProcessing: true,
+        lastError: undefined,
+        chunks: prev.chunks.map((chunk) =>
+          chunk.id === retryJob.id ? { ...chunk, status: 'queued', attempt: retryJob.attempt, error: undefined } : chunk
+        ),
+      }
+    })
+    processChunkQueue()
+  }, [processChunkQueue])
+
+  const startVoiceRecording = useCallback(async () => {
+    if (typeof window === 'undefined' || typeof MediaRecorder === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
+      showError('Voice capture is not supported in this browser/environment.')
+      return
+    }
+
+    const sessionId = safeId()
+    activeSessionIdRef.current = sessionId
+    chunkQueueRef.current = []
+    chunkCounterRef.current = 0
+    failedChunkRef.current = null
+    pendingStopRef.current = false
+    isProcessingChunkRef.current = false
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      const preferredMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((candidate) =>
+        MediaRecorder.isTypeSupported(candidate)
+      )
+      const mr = new MediaRecorder(stream, preferredMime ? { mimeType: preferredMime } : undefined)
+      mediaRecorderRef.current = mr
+
+      setVoiceSession({
+        id: sessionId,
+        startedAt: Date.now(),
+        elapsedMs: 0,
+        previewText: '',
+        isRecording: true,
+        isProcessing: false,
+        status: 'recording',
+        chunks: [],
+        lastError: undefined,
+      })
+
+      mr.ondataavailable = (event) => {
+        if (!event.data || event.data.size === 0) return
+        if (event.data.size > MAX_CHUNK_BYTES) {
+          showError('Captured audio chunk is too large; stopping recording to protect the session. Please try shorter segments.')
+          pendingStopRef.current = true
+          mr.stop()
+          return
+        }
+        const isLastChunk = pendingStopRef.current && mr.state === 'inactive'
+        enqueueChunk(event.data, isLastChunk)
+      }
+
+      mr.onerror = (event) => {
+        const errMessage =
+          (event as unknown as { error?: { message?: string } }).error?.message || 'Unknown recorder issue'
+        showError(`Recorder error: ${errMessage}`)
+        pendingStopRef.current = true
+        try {
+          mr.stop()
+        } catch (err) {
+          console.warn('Failed to stop recorder after error', err)
+        }
+      }
+
+      mr.onstop = () => {
+        stream.getTracks().forEach((track) => track.stop())
+        setVoiceSession((prev) => {
+          if (!prev || prev.id !== sessionId) return prev
+          if (chunkCounterRef.current === 0) {
+            return {
+              ...prev,
+              isRecording: false,
+              status: 'error',
+              lastError: 'No audio detected. Please try recording again.',
+            }
+          }
+          return { ...prev, isRecording: false }
+        })
+        if (chunkCounterRef.current === 0) {
+          showError('No audio captured. Please speak for a couple of seconds and try again.')
+        }
+        setIsRecording(false)
+        pendingStopRef.current = false
+      }
+
+      mr.start(CHUNK_TIMESLICE_MS)
+      setIsRecording(true)
     } catch (e) {
+      activeSessionIdRef.current = null
       const msg = e instanceof Error ? e.message : String(e)
       showError(`Mic permission or recording failed: ${msg}`)
+      throw e
     }
-  }, [isRecording, transcribeBlob, showError])
+  }, [enqueueChunk, showError])
+
+  const stopVoiceRecording = useCallback(() => {
+    pendingStopRef.current = true
+    try {
+      mediaRecorderRef.current?.stop()
+    } catch (err) {
+      console.warn('Failed to stop recorder', err)
+    }
+    setIsRecording(false)
+  }, [])
+
+  const toggleRecording = useCallback(async () => {
+    if (isRecording) {
+      stopVoiceRecording()
+      return
+    }
+    try {
+      await startVoiceRecording()
+    } catch {
+      // startVoiceRecording already surfaced the error
+    }
+  }, [isRecording, startVoiceRecording, stopVoiceRecording])
+
+  useEffect(() => {
+    if (!voiceSession?.isRecording) return
+    const interval = setInterval(() => {
+      setVoiceSession((prev) => {
+        if (!prev || !prev.isRecording) return prev
+        return { ...prev, elapsedMs: Date.now() - prev.startedAt }
+      })
+    }, 500)
+    return () => clearInterval(interval)
+  }, [voiceSession?.isRecording])
+
+  useEffect(() => {
+    if (!voiceSession?.isRecording) return
+    if (voiceSession.elapsedMs < MAX_VOICE_DURATION_MS) return
+    showError('Reached the 20 minute limit. Finishing your recording…')
+    stopVoiceRecording()
+  }, [voiceSession?.elapsedMs, voiceSession?.isRecording, showError, stopVoiceRecording])
 
   const deleteNote = (id: string) => {
     if (!confirm('Delete this note?')) return
@@ -1761,6 +2083,82 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-3 pb-8 safe-area-inset-bottom"
       >
         <div className="max-w-4xl mx-auto space-y-3">
+          {voiceSession && (
+            <div className="bg-amoled-lightGray/50 border border-amoled-border rounded-2xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-semibold text-white">Voice session</p>
+                  <p className="text-xs text-amoled-textMuted">
+                    {voiceSession.status === 'recording'
+                      ? 'Recording…'
+                      : voiceSession.status === 'processing'
+                        ? 'Transcribing…'
+                        : voiceSession.status === 'complete'
+                          ? 'Saved to notes'
+                          : voiceSession.status === 'error'
+                            ? 'Needs attention'
+                            : 'Idle'}
+                  </p>
+                </div>
+                <span className="font-mono text-lg text-accent-purple">{formatDuration(voiceSession.elapsedMs)}</span>
+              </div>
+
+              {voiceSession.isRecording && (
+                <div className="flex items-end space-x-1 h-10">
+                  {[...Array(12)].map((_, idx) => (
+                    <div
+                      key={`bar-${idx}`}
+                      className="flex-1 bg-accent-purple/40 rounded-full animate-pulse"
+                      style={{ animationDelay: `${idx * 80}ms`, height: `${20 + ((idx * 37) % 60)}%` }}
+                    ></div>
+                  ))}
+                </div>
+              )}
+
+              <div className="bg-amoled-dark/60 rounded-xl p-3 min-h-[72px] text-sm text-white/90 border border-amoled-border">
+                {voiceSession.previewText ? (
+                  <p className="whitespace-pre-line">{voiceSession.previewText}</p>
+                ) : (
+                  <p className="text-amoled-textMuted text-sm">
+                    {voiceSession.status === 'recording'
+                      ? 'Listening… live transcript will appear here.'
+                      : 'No transcript yet.'}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[11px] uppercase tracking-wide text-amoled-textMuted">
+                  <span>
+                    Chunks {voiceChunkTotals.completed}/{voiceChunkTotals.total}
+                  </span>
+                  <span>{voiceChunkTotals.percent}%</span>
+                </div>
+                <div className="h-2 bg-amoled-dark rounded-full overflow-hidden mt-1">
+                  <div
+                    className="h-full bg-gradient-to-r from-accent-purple to-accent-pink transition-all duration-500"
+                    style={{
+                      width: `${voiceChunkTotals.percent}%`,
+                    }}
+                  ></div>
+                </div>
+              </div>
+
+              {voiceSession.lastError && (
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-accent-amber">
+                  <span>{voiceSession.lastError}</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={retryLastFailedChunk}
+                      className="px-3 py-1 rounded-lg bg-accent-purple/20 text-white text-xs font-semibold hover:bg-accent-purple/30 transition-colors"
+                    >
+                      Retry chunk
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
           <div className="relative">
                           <OptimizedTextarea
                 value={inputText}
@@ -1775,7 +2173,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={toggleRecording}
-              disabled={isTranscribing}
+              disabled={isTranscribing && !isRecording}
               className="btn-secondary w-12 h-12 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl touch-target shadow-lg active:scale-95 transition-transform"
               aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
               title={isRecording ? 'Stop recording' : 'Start voice note'}

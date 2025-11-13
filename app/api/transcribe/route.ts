@@ -4,12 +4,29 @@ import Groq from 'groq-sdk'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
+const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
+const DEFAULT_MODEL = process.env.GROQ_TRANSCRIBE_MODEL || 'whisper-large-v3'
+
+function parseGranularities(value: string | null) {
+  if (!value) return undefined
+  return value
+    .split(',')
+    .map((token) => token.trim())
+    .filter((token) => token === 'word' || token === 'segment')
+}
+
 export async function POST(req: NextRequest) {
+  const startedAt = Date.now()
+
   try {
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) {
       return NextResponse.json({ error: 'GROQ_API_KEY not set' }, { status: 500 })
     }
+
+    const tier = (process.env.GROQ_AUDIO_TIER || 'free').toLowerCase()
+    const byteLimit = tier === 'dev' ? DEV_TIER_MAX_BYTES : FREE_TIER_MAX_BYTES
 
     const form = await req.formData()
     const file = form.get('audio') as File | null
@@ -17,38 +34,77 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided (field name: audio)' }, { status: 400 })
     }
 
+    const sessionId = (form.get('sessionId') as string) || undefined
+    const chunkIndex = Number(form.get('chunkIndex') ?? '0')
+    const isLastChunk = (form.get('isLast') as string) === 'true'
+    const language = (form.get('language') as string) || undefined
+    const prompt = (form.get('prompt') as string) || undefined
+    const responseFormat = (form.get('response_format') as string) || 'verbose_json'
+    const mode = ((form.get('mode') as string) || 'auto').toLowerCase()
+    const timestampGranularities = parseGranularities(form.get('timestampGranularities') as string | null)
+    const model = (form.get('model') as string) || DEFAULT_MODEL
+    const temperature = Number(form.get('temperature') ?? '0')
+
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     if (!buffer || buffer.length === 0) {
       return NextResponse.json({ error: 'Uploaded audio is empty' }, { status: 400 })
     }
-    
-    // Build a File object for the SDK with a stable filename and MIME
-    const name = ((file as any).name as string) || 'voice_note.webm'
-    const type = ((file as any).type as string) || 'audio/webm'
-    const makeFile = () => new File([buffer], name, { type })
+
+    if (buffer.length > byteLimit) {
+      return NextResponse.json(
+        {
+          error: `Audio chunk is too large (${(buffer.length / (1024 * 1024)).toFixed(2)} MB). Max allowed is ${
+            byteLimit / (1024 * 1024)
+          } MB for the current plan.`,
+        },
+        { status: 413 }
+      )
+    }
+
+    const fileName = ((file as any).name as string) || `voice_chunk_${chunkIndex}.webm`
+    const mimeType = ((file as any).type as string) || 'audio/webm'
+    const makeFile = () => new File([buffer], fileName, { type: mimeType })
 
     const groq = new Groq({ apiKey })
+
+    const basePayload: any = {
+      file: makeFile(),
+      model,
+      response_format: responseFormat,
+      temperature,
+    }
+
+    if (language) basePayload.language = language
+    if (prompt) basePayload.prompt = prompt
+    if (timestampGranularities?.length && responseFormat === 'verbose_json') {
+      basePayload.timestamp_granularities = timestampGranularities
+    }
+
     let transcription: any
+    const shouldTryTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
+
     try {
-      // Prefer English translation if available
-      transcription = await (groq as any).audio.translations.create({
-        file: makeFile(),
-        model: 'whisper-large-v3',
-        response_format: 'verbose_json',
-      })
+      if (shouldTryTranslation) {
+        transcription = await (groq as any).audio.translations.create(basePayload)
+      } else {
+        throw new Error('Skip translation')
+      }
     } catch {
-      // Fallback to transcription
-      transcription = await groq.audio.transcriptions.create({
-        file: makeFile(),
-        model: 'whisper-large-v3',
-        response_format: 'verbose_json',
-      })
+      transcription = await groq.audio.transcriptions.create(basePayload)
     }
 
     return NextResponse.json({
       text: (transcription as any)?.text || '',
       raw: transcription,
+      meta: {
+        sessionId,
+        chunkIndex,
+        isLastChunk,
+        model,
+        responseFormat,
+        durationMs: Date.now() - startedAt,
+      },
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
