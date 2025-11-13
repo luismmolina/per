@@ -98,8 +98,8 @@ interface DishesData {
 }
 
 // Memoized Markdown component to prevent unnecessary re-renders
-const Markdown = React.memo(
-  ({ children }: { children: string }) => (
+const Markdown = React.memo(function Markdown({ children }: { children: string }) {
+  return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
@@ -190,9 +190,8 @@ const Markdown = React.memo(
     >
       {children}
     </ReactMarkdown>
-  ),
-  (prev, next) => prev.children === next.children
-)
+  )
+}, (prev, next) => prev.children === next.children)
 
 // Memoized Message Component for better performance
 const MessageComponent = memo(({
@@ -1274,8 +1273,8 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
               const data = JSON.parse(line.slice(6))
 
               if (data.type === 'thought') {
-                thoughts.push(data.content);
-                setCurrentThoughts([...thoughts]); // Direct state update for immediate feedback
+                thoughts.push(data.content)
+                updateThoughtsThrottled([...thoughts]) // Batch updates to reduce renders
                 hasReceivedThoughts = true;
                 console.log('ðŸ§  Real-time thought received:', {
                   thoughtNumber: thoughts.length,
