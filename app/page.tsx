@@ -1383,10 +1383,19 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
   // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
   const handleVoiceTranscriptionReady = useCallback(
     (text: string) => {
-      if (!text?.trim()) return
-      void askAI(text)
+      const trimmed = text?.trim()
+      if (!trimmed) return
+
+      const voiceNote: Message = {
+        id: Date.now().toString(),
+        content: trimmed,
+        type: 'note',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, voiceNote])
+      setTimeout(() => scrollToBottom(), 200)
     },
-    [askAI]
+    [setMessages, scrollToBottom]
   )
 
   const { voiceSession, isRecording, isTranscribing, toggleRecording, retryFailedChunk } = useVoiceRecorder({
