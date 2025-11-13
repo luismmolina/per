@@ -1,10 +1,12 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useRef, useEffect, memo, useCallback, useMemo, useImperativeHandle } from 'react'
 import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { VoiceSessionPanel } from '../components/voice-session-panel'
+import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 
 interface Message {
   id: string
@@ -81,57 +83,6 @@ interface DishesData {
   }
 }
 
-const MAX_VOICE_DURATION_MS = 20 * 60 * 1000 // 20 minutes
-const CHUNK_TIMESLICE_MS = 60_000 // capture a chunk roughly every minute
-const MAX_CHUNK_BYTES = 22 * 1024 * 1024 // stay under Groq's 25 MB free-tier cap
-
-type ChunkStatus = 'queued' | 'uploading' | 'success' | 'error'
-
-interface VoiceChunk {
-  id: string
-  index: number
-  status: ChunkStatus
-  isLast: boolean
-  attempt: number
-  error?: string
-}
-
-interface VoiceSessionState {
-  id: string
-  startedAt: number
-  elapsedMs: number
-  previewText: string
-  isRecording: boolean
-  isProcessing: boolean
-  status: 'idle' | 'recording' | 'processing' | 'complete' | 'error'
-  chunks: VoiceChunk[]
-  lastError?: string
-}
-
-interface ChunkJob {
-  id: string
-  blob: Blob
-  chunkIndex: number
-  sessionId: string
-  isLast: boolean
-  attempt: number
-}
-
-const safeId = () => {
-  const cryptoObj = typeof globalThis !== 'undefined' ? (globalThis.crypto as Crypto | undefined) : undefined
-  return cryptoObj && typeof cryptoObj.randomUUID === 'function'
-    ? cryptoObj.randomUUID()
-    : `voice-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`
-}
-
-const formatDuration = (ms: number) => {
-  if (!ms || ms < 0) return '00:00'
-  const totalSeconds = Math.floor(ms / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
-
 // Memoized Markdown component to prevent unnecessary re-renders
 const Markdown = React.memo(
   ({ children }: { children: string }) => (
@@ -174,13 +125,13 @@ const Markdown = React.memo(
                 <details className="group">
                   <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                   <span className="text-yellow-400 text-sm font-medium">
-                    📄 {language.toUpperCase()} Code
+                    ðŸ“„ {language.toUpperCase()} Code
                   </span>
                     <span className="text-gray-400 text-xs group-open:hidden">
-                      ▶️ Expand
+                      â–¶ï¸ Expand
                   </span>
                     <span className="text-gray-400 text-xs hidden group-open:inline">
-                      🔽 Collapse
+                      ðŸ”½ Collapse
                     </span>
                   </summary>
                   <pre className="p-3 text-green-400 font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">
@@ -205,13 +156,13 @@ const Markdown = React.memo(
               <details className="group">
                 <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                 <span className="text-yellow-400 text-sm font-medium">
-                  📄 Code Block
+                  ðŸ“„ Code Block
                 </span>
                   <span className="text-gray-400 text-xs group-open:hidden">
-                    ▶️ Expand
+                    â–¶ï¸ Expand
                 </span>
                   <span className="text-gray-400 text-xs hidden group-open:inline">
-                    🔽 Collapse
+                    ðŸ”½ Collapse
                   </span>
                 </summary>
                 <div className="p-3 text-green-400 font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">
@@ -465,7 +416,7 @@ export default function Home() {
   useEffect(() => {
     if (currentThoughts.length > 0) {
       const latestThought = currentThoughts[currentThoughts.length - 1]
-      console.log('🧠 Showing thought', currentThoughts.length, ':', latestThought.substring(0, 100) + '...')
+      console.log('ðŸ§  Showing thought', currentThoughts.length, ':', latestThought.substring(0, 100) + '...')
     }
   }, [currentThoughts])
 
@@ -804,353 +755,6 @@ export default function Home() {
     setTimeout(() => scrollToBottom(), 200)
   }, [inputText, scrollToBottom])
 
-  // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
-  const [isRecording, setIsRecording] = useState(false)
-  const [isTranscribing, setIsTranscribing] = useState(false)
-  const [voiceSession, setVoiceSession] = useState<VoiceSessionState | null>(null)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const chunkQueueRef = useRef<ChunkJob[]>([])
-  const chunkCounterRef = useRef(0)
-  const activeSessionIdRef = useRef<string | null>(null)
-  const pendingStopRef = useRef(false)
-  const isProcessingChunkRef = useRef(false)
-  const failedChunkRef = useRef<ChunkJob | null>(null)
-  const voiceChunkTotals = useMemo(() => {
-    if (!voiceSession) return { completed: 0, total: 0, percent: 0 }
-    const completed = voiceSession.chunks.filter((chunk) => chunk.status === 'success').length
-    const total = voiceSession.chunks.length
-    const percent = total ? Math.round((completed / total) * 100) : 0
-    return { completed, total, percent }
-  }, [voiceSession])
-
-  const finalizeVoiceSession = useCallback(
-    (sessionId: string, textContent: string) => {
-      const cleaned = textContent?.trim()
-      if (!cleaned) {
-        showError('Transcription completed but returned no text. Please try again.')
-        setVoiceSession((prev) =>
-          prev && prev.id === sessionId ? { ...prev, status: 'error', lastError: 'Empty transcription' } : prev
-        )
-        return
-      }
-
-      const newNote: Message = {
-        id: Date.now().toString(),
-        content: cleaned,
-        type: 'note',
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, newNote])
-      setVoiceSession((prev) =>
-        prev && prev.id === sessionId ? { ...prev, status: 'complete', previewText: cleaned } : prev
-      )
-      setTimeout(() => scrollToBottom(), 200)
-      if (activeSessionIdRef.current === sessionId) {
-        activeSessionIdRef.current = null
-      }
-    },
-    [setMessages, scrollToBottom, showError]
-  )
-
-  const sendChunkForTranscription = useCallback(async (job: ChunkJob) => {
-    const form = new FormData()
-    const type = job.blob.type || mediaRecorderRef.current?.mimeType || 'audio/webm'
-    form.append('audio', new File([job.blob], `voice_${job.sessionId}_${job.chunkIndex}.webm`, { type }))
-    form.append('sessionId', job.sessionId)
-    form.append('chunkIndex', job.chunkIndex.toString())
-    form.append('isLast', job.isLast ? 'true' : 'false')
-    form.append('response_format', 'verbose_json')
-    form.append('timestampGranularities', 'word,segment')
-    form.append('mode', 'transcribe')
-
-    const res = await fetch('/api/transcribe', { method: 'POST', body: form })
-    const payload = await res.json().catch(() => null)
-    if (!res.ok) {
-      throw new Error(payload?.error || `Transcription failed (${res.status})`)
-    }
-    return payload
-  }, [])
-
-  const handleChunkSuccess = useCallback(
-    (job: ChunkJob, payload: any) => {
-      let combinedPreview = ''
-      setVoiceSession((prev) => {
-        if (!prev || prev.id !== job.sessionId) return prev
-        const chunkText = (payload?.text || '').trim()
-        combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
-        const updated: VoiceSessionState = {
-          ...prev,
-          previewText: combinedPreview,
-          chunks: prev.chunks.map((chunk) =>
-            chunk.id === job.id ? { ...chunk, status: 'success', error: undefined } : chunk
-          ),
-          isProcessing: chunkQueueRef.current.length > 0,
-          lastError: undefined,
-          status: job.isLast ? 'complete' : 'processing',
-          isRecording: job.isLast ? false : prev.isRecording,
-        }
-        if (job.isLast) {
-          updated.isProcessing = false
-        }
-        return updated
-      })
-
-      if (job.isLast) {
-        finalizeVoiceSession(job.sessionId, combinedPreview)
-        setIsTranscribing(false)
-      }
-    },
-    [finalizeVoiceSession]
-  )
-
-  const handleChunkFailure = useCallback(
-    (job: ChunkJob, error: Error) => {
-      failedChunkRef.current = job
-      setVoiceSession((prev) => {
-        if (!prev || prev.id !== job.sessionId) return prev
-        return {
-          ...prev,
-          status: 'error',
-          isProcessing: false,
-          chunks: prev.chunks.map((chunk) =>
-            chunk.id === job.id ? { ...chunk, status: 'error', error: error.message } : chunk
-          ),
-          lastError: error.message,
-          isRecording: false,
-        }
-      })
-      setIsTranscribing(false)
-      showError(`Chunk ${job.chunkIndex + 1} failed: ${error.message}`)
-    },
-    [showError]
-  )
-
-  const processChunkQueue = useCallback(() => {
-    if (isProcessingChunkRef.current) return
-    const job = chunkQueueRef.current.shift()
-
-    if (!job) {
-      setIsTranscribing(false)
-      setVoiceSession((prev) => {
-        if (!prev || prev.id !== activeSessionIdRef.current) return prev
-        return { ...prev, isProcessing: false }
-      })
-      return
-    }
-
-    isProcessingChunkRef.current = true
-    setIsTranscribing(true)
-    setVoiceSession((prev) => {
-      if (!prev || prev.id !== job.sessionId) return prev
-      return {
-        ...prev,
-        chunks: prev.chunks.map((chunk) =>
-          chunk.id === job.id ? { ...chunk, status: 'uploading', error: undefined } : chunk
-        ),
-        status: 'processing',
-        isProcessing: true,
-      }
-    })
-
-    sendChunkForTranscription(job)
-      .then((payload) => handleChunkSuccess(job, payload))
-      .catch((error) => handleChunkFailure(job, error instanceof Error ? error : new Error(String(error))))
-      .finally(() => {
-        isProcessingChunkRef.current = false
-        processChunkQueue()
-      })
-  }, [handleChunkFailure, handleChunkSuccess, sendChunkForTranscription])
-
-  const enqueueChunk = useCallback(
-    (blob: Blob, isLast: boolean) => {
-      const sessionId = activeSessionIdRef.current
-      if (!sessionId) return
-
-      const job: ChunkJob = {
-        id: `${sessionId}-${chunkCounterRef.current}`,
-        blob,
-        chunkIndex: chunkCounterRef.current,
-        sessionId,
-        isLast,
-        attempt: 1,
-      }
-      chunkCounterRef.current += 1
-      chunkQueueRef.current.push(job)
-      setVoiceSession((prev) => {
-        if (!prev || prev.id !== sessionId) return prev
-        return {
-          ...prev,
-          chunks: [
-            ...prev.chunks,
-            {
-              id: job.id,
-              index: job.chunkIndex,
-              status: 'queued',
-              isLast: job.isLast,
-              attempt: job.attempt,
-            },
-          ],
-          status: 'processing',
-          isProcessing: true,
-          lastError: undefined,
-        }
-      })
-      processChunkQueue()
-    },
-    [processChunkQueue]
-  )
-
-  const retryLastFailedChunk = useCallback(() => {
-    const failed = failedChunkRef.current
-    if (!failed) return
-
-    const retryJob: ChunkJob = { ...failed, attempt: failed.attempt + 1 }
-    failedChunkRef.current = retryJob
-    chunkQueueRef.current.unshift(retryJob)
-    setVoiceSession((prev) => {
-      if (!prev || prev.id !== retryJob.sessionId) return prev
-      return {
-        ...prev,
-        status: 'processing',
-        isProcessing: true,
-        lastError: undefined,
-        chunks: prev.chunks.map((chunk) =>
-          chunk.id === retryJob.id ? { ...chunk, status: 'queued', attempt: retryJob.attempt, error: undefined } : chunk
-        ),
-      }
-    })
-    processChunkQueue()
-  }, [processChunkQueue])
-
-  const startVoiceRecording = useCallback(async () => {
-    if (typeof window === 'undefined' || typeof MediaRecorder === 'undefined' || !navigator?.mediaDevices?.getUserMedia) {
-      showError('Voice capture is not supported in this browser/environment.')
-      return
-    }
-
-    const sessionId = safeId()
-    activeSessionIdRef.current = sessionId
-    chunkQueueRef.current = []
-    chunkCounterRef.current = 0
-    failedChunkRef.current = null
-    pendingStopRef.current = false
-    isProcessingChunkRef.current = false
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const preferredMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((candidate) =>
-        MediaRecorder.isTypeSupported(candidate)
-      )
-      const mr = new MediaRecorder(stream, preferredMime ? { mimeType: preferredMime } : undefined)
-      mediaRecorderRef.current = mr
-
-      setVoiceSession({
-        id: sessionId,
-        startedAt: Date.now(),
-        elapsedMs: 0,
-        previewText: '',
-        isRecording: true,
-        isProcessing: false,
-        status: 'recording',
-        chunks: [],
-        lastError: undefined,
-      })
-
-      mr.ondataavailable = (event) => {
-        if (!event.data || event.data.size === 0) return
-        if (event.data.size > MAX_CHUNK_BYTES) {
-          showError('Captured audio chunk is too large; stopping recording to protect the session. Please try shorter segments.')
-          pendingStopRef.current = true
-          mr.stop()
-          return
-        }
-        const isLastChunk = pendingStopRef.current && mr.state === 'inactive'
-        enqueueChunk(event.data, isLastChunk)
-      }
-
-      mr.onerror = (event) => {
-        const errMessage =
-          (event as unknown as { error?: { message?: string } }).error?.message || 'Unknown recorder issue'
-        showError(`Recorder error: ${errMessage}`)
-        pendingStopRef.current = true
-        try {
-          mr.stop()
-        } catch (err) {
-          console.warn('Failed to stop recorder after error', err)
-        }
-      }
-
-      mr.onstop = () => {
-        stream.getTracks().forEach((track) => track.stop())
-        setVoiceSession((prev) => {
-          if (!prev || prev.id !== sessionId) return prev
-          if (chunkCounterRef.current === 0) {
-            return {
-              ...prev,
-              isRecording: false,
-              status: 'error',
-              lastError: 'No audio detected. Please try recording again.',
-            }
-          }
-          return { ...prev, isRecording: false }
-        })
-        if (chunkCounterRef.current === 0) {
-          showError('No audio captured. Please speak for a couple of seconds and try again.')
-        }
-        setIsRecording(false)
-        pendingStopRef.current = false
-      }
-
-      mr.start(CHUNK_TIMESLICE_MS)
-      setIsRecording(true)
-    } catch (e) {
-      activeSessionIdRef.current = null
-      const msg = e instanceof Error ? e.message : String(e)
-      showError(`Mic permission or recording failed: ${msg}`)
-      throw e
-    }
-  }, [enqueueChunk, showError])
-
-  const stopVoiceRecording = useCallback(() => {
-    pendingStopRef.current = true
-    try {
-      mediaRecorderRef.current?.stop()
-    } catch (err) {
-      console.warn('Failed to stop recorder', err)
-    }
-    setIsRecording(false)
-  }, [])
-
-  const toggleRecording = useCallback(async () => {
-    if (isRecording) {
-      stopVoiceRecording()
-      return
-    }
-    try {
-      await startVoiceRecording()
-    } catch {
-      // startVoiceRecording already surfaced the error
-    }
-  }, [isRecording, startVoiceRecording, stopVoiceRecording])
-
-  useEffect(() => {
-    if (!voiceSession?.isRecording) return
-    const interval = setInterval(() => {
-      setVoiceSession((prev) => {
-        if (!prev || !prev.isRecording) return prev
-        return { ...prev, elapsedMs: Date.now() - prev.startedAt }
-      })
-    }, 500)
-    return () => clearInterval(interval)
-  }, [voiceSession?.isRecording])
-
-  useEffect(() => {
-    if (!voiceSession?.isRecording) return
-    if (voiceSession.elapsedMs < MAX_VOICE_DURATION_MS) return
-    showError('Reached the 20 minute limit. Finishing your recording…')
-    stopVoiceRecording()
-  }, [voiceSession?.elapsedMs, voiceSession?.isRecording, showError, stopVoiceRecording])
-
   const deleteNote = (id: string) => {
     if (!confirm('Delete this note?')) return
     setMessages(prev => prev.filter(m => m.id !== id))
@@ -1283,7 +887,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
 
         if (prunedMessages.length < messages.length) {
           setMessages(prunedMessages)
-          console.log(`Pruned conversation: ${messages.length} → ${prunedMessages.length} messages`)
+          console.log(`Pruned conversation: ${messages.length} â†’ ${prunedMessages.length} messages`)
         } else {
           console.log('No messages were pruned - all deemed valuable')
         }
@@ -1333,10 +937,10 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
 Use the provided context. Do not restate it. Extract only binding constraints.
 
 Core question
-- What ONE Leverage Move can I ship in ≤40 minutes today that creates irreversible external feedback and maximizes expected value toward the weekly North Star, given today's constraints and resources?
+- What ONE Leverage Move can I ship in â‰¤40 minutes today that creates irreversible external feedback and maximizes expected value toward the weekly North Star, given today's constraints and resources?
 
 Rules
-- Short sentences. Define terms ≤12 words.
+- Short sentences. Define terms â‰¤12 words.
 - Pick one action. No lists of options.
 - Must start within 3 minutes using tools I already have.
 - Output a public, trackable artifact today.
@@ -1354,7 +958,7 @@ Objective
 - One sentence naming the move and today's expected payoff.
 
 Inputs
-- 5–7 constraints as [Fact] or [Assumption].
+- 5â€“7 constraints as [Fact] or [Assumption].
 - Name the scarcest resource today.
 
 Principles
@@ -1363,12 +967,12 @@ Principles
 Derivation
 - Why this move dominates today.
 - One-line math with units:
-  EV = p(success) × payoff (MXN or clients) − cost (MXN·min).
+  EV = p(success) Ã— payoff (MXN or clients) âˆ’ cost (MXNÂ·min).
 
-Plan (T−3 to T+40)
+Plan (Tâˆ’3 to T+40)
 - Two-minute starter to defeat inertia.
-- 5–7 concrete steps with verbs and tools.
-- Fallback micro-step (≤8 min) that still ships.
+- 5â€“7 concrete steps with verbs and tools.
+- Fallback micro-step (â‰¤8 min) that still ships.
 - First keystrokes to begin.
 
 Definition of Done
@@ -1504,15 +1108,15 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         if (cachedData) {
           const { data, timestamp } = JSON.parse(cachedData);
           if (Date.now() - timestamp < CACHE_EXPIRATION_MS) {
-            console.log('🍽️ Loading dishes data from cache.');
+            console.log('ðŸ½ï¸ Loading dishes data from cache.');
             return data;
           } else {
-            console.log('🍽️ Cached dishes data expired. Fetching new data.');
+            console.log('ðŸ½ï¸ Cached dishes data expired. Fetching new data.');
           }
         }
       }
 
-      console.log('🍽️ Fetching dishes data from proxy API...');
+      console.log('ðŸ½ï¸ Fetching dishes data from proxy API...');
       const response = await fetch('/api/dishes-proxy', {
         method: 'GET',
       });
@@ -1530,7 +1134,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         return null;
       }
       
-      console.log('🍽️ Successfully fetched production cost data:', {
+      console.log('ðŸ½ï¸ Successfully fetched production cost data:', {
         totalDishes: data.totalDishes,
         lastUpdated: data.lastUpdated,
         sampleDishes: data.dishes.slice(0, 3).map((d: Dish) => `${d.name}: ${d.cost.amount} ${d.cost.unit} to produce`),
@@ -1555,13 +1159,14 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     }
   }
 
-  const askAI = useCallback(async () => {
-    if (!inputText.trim()) return
+  const askAI = useCallback(async (overrideText?: string) => {
+    const prompt = (overrideText ?? inputText).trim()
+    if (!prompt) return
 
     // Add user question first (as 'question' type, not 'note')
     const userQuestion: Message = {
       id: Date.now().toString(),
-      content: inputText.trim(),
+      content: prompt,
       type: 'question',
       timestamp: new Date()
     }
@@ -1572,8 +1177,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     setCurrentResponse('')
     setCurrentCodeBlocks([])
     setCurrentThoughts([])
-    const currentQuestion = inputText.trim()
-    setInputText('')
+    const currentQuestion = prompt
+    if (!overrideText) {
+      setInputText('')
+    }
 
     try {
       // Get all previous notes for context (ONLY notes, not questions or AI responses) with timestamps
@@ -1602,7 +1209,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
 
       // Get user's timezone for proper timestamp handling
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('🌍 User timezone detected:', userTimezone);
+      console.log('ðŸŒ User timezone detected:', userTimezone);
 
       // Use enhanced multi-step workflow
       setCurrentStep('Enhanced Analysis...')
@@ -1656,7 +1263,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 thoughts.push(data.content);
                 setCurrentThoughts([...thoughts]); // Direct state update for immediate feedback
                 hasReceivedThoughts = true;
-                console.log('🧠 Real-time thought received:', {
+                console.log('ðŸ§  Real-time thought received:', {
                   thoughtNumber: thoughts.length,
                   contentLength: data.content?.length || 0,
                   contentPreview: data.content?.substring(0, 150) + '...'
@@ -1684,7 +1291,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
 
       // Thoughts are ephemeral - no need to log final summary
       if (hasReceivedThoughts) {
-        console.log('✅ Thinking process completed, showing final response')
+        console.log('âœ… Thinking process completed, showing final response')
       }
 
       // Add complete assistant message (thoughts were already shown during streaming)
@@ -1713,9 +1320,9 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
       
       // Keep thoughts visible for 3 seconds after response completes
       if (thoughts.length > 0) {
-        console.log('✅ Keeping thoughts visible for 3 more seconds')
+        console.log('âœ… Keeping thoughts visible for 3 more seconds')
         setTimeout(() => {
-          console.log('🧹 Clearing thoughts after delay')
+          console.log('ðŸ§¹ Clearing thoughts after delay')
       setCurrentThoughts([])
         }, 3000)
       } else {
@@ -1773,6 +1380,20 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     }
   }, [inputText, messages, scrollToBottom, setCurrentThoughts, updateThoughtsThrottled, showError])
 
+  // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
+  const handleVoiceTranscriptionReady = useCallback(
+    (text: string) => {
+      if (!text?.trim()) return
+      void askAI(text)
+    },
+    [askAI]
+  )
+
+  const { voiceSession, isRecording, isTranscribing, toggleRecording, retryFailedChunk } = useVoiceRecorder({
+    onTranscriptionReady: handleVoiceTranscriptionReady,
+    onError: showError,
+  })
+
   // Optimized keyboard handler with useCallback
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1813,7 +1434,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         aria-label="Open menu"
         style={{ marginTop: 'env(safe-area-inset-top)' }}
       >
-        <span className="text-lg leading-none text-white/90" aria-hidden="true">⋮</span>
+        <span className="text-lg leading-none text-white/90" aria-hidden="true">â‹®</span>
       </button>
       {/* Messages Area */}
       <div
@@ -1904,13 +1525,13 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                                   <details className="group">
                                     <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                                       <span className="text-yellow-400 text-sm font-medium">
-                                        🔧 {block.language.toUpperCase()} Execution
+                                        ðŸ”§ {block.language.toUpperCase()} Execution
                                       </span>
                                       <span className="text-gray-400 text-xs group-open:hidden">
-                                        ▶️ Expand
+                                        â–¶ï¸ Expand
                                       </span>
                                       <span className="text-gray-400 text-xs hidden group-open:inline">
-                                        🔽 Collapse
+                                        ðŸ”½ Collapse
                                       </span>
                                     </summary>
                                       <div className="p-3">
@@ -1936,7 +1557,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                       ) : currentThoughts.length > 0 ? (
                         <div className="text-sm leading-relaxed">
                           <div className="flex items-center space-x-2 mb-2 bg-purple-800/30 px-2 py-1 rounded-full">
-                            <div className="animate-pulse text-purple-400">🧠</div>
+                            <div className="animate-pulse text-purple-400">ðŸ§ </div>
                             <div className="text-xs text-purple-300 font-medium">
                               Thinking... ({currentThoughts.length})
                             </div>
@@ -2020,7 +1641,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           style={{ bottom: bottomBarHeight + 12 }}
           aria-label="Scroll to latest"
         >
-          <span className="text-xl text-white leading-none" aria-hidden="true">↓</span>
+          <span className="text-xl text-white leading-none" aria-hidden="true">â†“</span>
         </button>
       )}
 
@@ -2032,7 +1653,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
             <div className="px-6 pt-4 pb-2 flex items-center justify-between">
               <h3 className="text-white font-semibold text-lg">Quick actions</h3>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl hover:bg-amoled-lightGray focus-ring" aria-label="Close menu">
-                <span className="text-lg leading-none text-white/80" aria-hidden="true">✕</span>
+                <span className="text-lg leading-none text-white/80" aria-hidden="true">âœ•</span>
               </button>
             </div>
             <div className="divide-y divide-amoled-border">
@@ -2083,82 +1704,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-3 pb-8 safe-area-inset-bottom"
       >
         <div className="max-w-4xl mx-auto space-y-3">
-          {voiceSession && (
-            <div className="bg-amoled-lightGray/50 border border-amoled-border rounded-2xl p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-semibold text-white">Voice session</p>
-                  <p className="text-xs text-amoled-textMuted">
-                    {voiceSession.status === 'recording'
-                      ? 'Recording…'
-                      : voiceSession.status === 'processing'
-                        ? 'Transcribing…'
-                        : voiceSession.status === 'complete'
-                          ? 'Saved to notes'
-                          : voiceSession.status === 'error'
-                            ? 'Needs attention'
-                            : 'Idle'}
-                  </p>
-                </div>
-                <span className="font-mono text-lg text-accent-purple">{formatDuration(voiceSession.elapsedMs)}</span>
-              </div>
-
-              {voiceSession.isRecording && (
-                <div className="flex items-end space-x-1 h-10">
-                  {[...Array(12)].map((_, idx) => (
-                    <div
-                      key={`bar-${idx}`}
-                      className="flex-1 bg-accent-purple/40 rounded-full animate-pulse"
-                      style={{ animationDelay: `${idx * 80}ms`, height: `${20 + ((idx * 37) % 60)}%` }}
-                    ></div>
-                  ))}
-                </div>
-              )}
-
-              <div className="bg-amoled-dark/60 rounded-xl p-3 min-h-[72px] text-sm text-white/90 border border-amoled-border">
-                {voiceSession.previewText ? (
-                  <p className="whitespace-pre-line">{voiceSession.previewText}</p>
-                ) : (
-                  <p className="text-amoled-textMuted text-sm">
-                    {voiceSession.status === 'recording'
-                      ? 'Listening… live transcript will appear here.'
-                      : 'No transcript yet.'}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] uppercase tracking-wide text-amoled-textMuted">
-                  <span>
-                    Chunks {voiceChunkTotals.completed}/{voiceChunkTotals.total}
-                  </span>
-                  <span>{voiceChunkTotals.percent}%</span>
-                </div>
-                <div className="h-2 bg-amoled-dark rounded-full overflow-hidden mt-1">
-                  <div
-                    className="h-full bg-gradient-to-r from-accent-purple to-accent-pink transition-all duration-500"
-                    style={{
-                      width: `${voiceChunkTotals.percent}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-
-              {voiceSession.lastError && (
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-accent-amber">
-                  <span>{voiceSession.lastError}</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={retryLastFailedChunk}
-                      className="px-3 py-1 rounded-lg bg-accent-purple/20 text-white text-xs font-semibold hover:bg-accent-purple/30 transition-colors"
-                    >
-                      Retry chunk
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+          {voiceSession && voiceSession.status !== 'complete' && voiceSession.status !== 'idle' && (
+            <VoiceSessionPanel session={voiceSession} onRetry={retryFailedChunk} />
           )}
+
           <div className="relative">
                           <OptimizedTextarea
                 value={inputText}
@@ -2208,7 +1757,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Coach</span>
               </button>
               <button
-                onClick={askAI}
+                onClick={() => void askAI()}
                 disabled={isAskAIDisabled}
                 className="btn-primary flex-1 min-w-0 h-12 sm:h-12 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
