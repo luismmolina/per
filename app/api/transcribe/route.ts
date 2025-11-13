@@ -45,16 +45,21 @@ export async function POST(req: NextRequest) {
     const model = (form.get('model') as string) || DEFAULT_MODEL
     const temperature = Number(form.get('temperature') ?? '0')
 
-    const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-    if (!buffer || buffer.length === 0) {
+    let fileBuffer: ArrayBuffer | null = null
+    let fileSize = typeof file.size === 'number' ? file.size : undefined
+    if (fileSize === undefined) {
+      fileBuffer = await file.arrayBuffer()
+      fileSize = fileBuffer.byteLength
+    }
+
+    if (!fileSize || fileSize <= 0) {
       return NextResponse.json({ error: 'Uploaded audio is empty' }, { status: 400 })
     }
 
-    if (buffer.length > byteLimit) {
+    if (fileSize > byteLimit) {
       return NextResponse.json(
         {
-          error: `Audio chunk is too large (${(buffer.length / (1024 * 1024)).toFixed(2)} MB). Max allowed is ${
+          error: `Audio chunk is too large (${(fileSize / (1024 * 1024)).toFixed(2)} MB). Max allowed is ${
             byteLimit / (1024 * 1024)
           } MB for the current plan.`,
         },
@@ -64,12 +69,15 @@ export async function POST(req: NextRequest) {
 
     const fileName = ((file as any).name as string) || `voice_chunk_${chunkIndex}.webm`
     const mimeType = ((file as any).type as string) || 'audio/webm'
-    const makeFile = () => new File([buffer], fileName, { type: mimeType })
+    const normalizedFile =
+      typeof (file as any).name === 'string' && typeof (file as any).stream === 'function'
+        ? file
+        : new File([fileBuffer ?? (await file.arrayBuffer())], fileName, { type: mimeType })
 
     const groq = new Groq({ apiKey })
 
     const basePayload: any = {
-      file: makeFile(),
+      file: normalizedFile,
       model,
       response_format: responseFormat,
       temperature,
