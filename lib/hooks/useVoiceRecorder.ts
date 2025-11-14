@@ -83,6 +83,13 @@ export function useVoiceRecorder({
   const pendingStopRef = useRef(false)
   const isProcessingChunkRef = useRef(false)
   const failedChunkRef = useRef<ChunkJob | null>(null)
+  const pendingFinalizationSessionRef = useRef<string | null>(null)
+
+  const captureSessionForFinalization = () => {
+    if (activeSessionIdRef.current) {
+      pendingFinalizationSessionRef.current = activeSessionIdRef.current
+    }
+  }
 
   const notifyError = useCallback(
     (message: string) => {
@@ -136,28 +143,40 @@ export function useVoiceRecorder({
   const handleChunkSuccess = useCallback(
     (job: ChunkJob, payload: any) => {
       let combinedPreview = ''
+      const shouldFinalizeByDrain =
+        pendingFinalizationSessionRef.current === job.sessionId && chunkQueueRef.current.length === 0
+      const shouldFinalize = job.isLast || shouldFinalizeByDrain
+
       setVoiceSession((prev) => {
         if (!prev || prev.id !== job.sessionId) return prev
         const chunkText = (payload?.text || '').trim()
         combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
-        const updated: VoiceSessionState = {
+
+        let updatedChunks = prev.chunks.map((chunk) =>
+          chunk.id === job.id
+            ? { ...chunk, status: 'success', error: undefined, isLast: chunk.isLast || shouldFinalize }
+            : chunk
+        )
+
+        if (shouldFinalize && updatedChunks.length > 0) {
+          updatedChunks = updatedChunks.map((chunk, index, array) =>
+            index === array.length - 1 ? { ...chunk, isLast: true } : chunk
+          )
+        }
+
+        return {
           ...prev,
           previewText: combinedPreview,
-          chunks: prev.chunks.map((chunk) =>
-            chunk.id === job.id ? { ...chunk, status: 'success', error: undefined } : chunk
-          ),
-          isProcessing: chunkQueueRef.current.length > 0,
+          chunks: updatedChunks,
+          isProcessing: shouldFinalize ? false : chunkQueueRef.current.length > 0,
           lastError: undefined,
-          status: job.isLast ? 'complete' : 'processing',
-          isRecording: job.isLast ? false : prev.isRecording,
+          status: shouldFinalize ? 'complete' : 'processing',
+          isRecording: shouldFinalize ? false : prev.isRecording,
         }
-        if (job.isLast) {
-          updated.isProcessing = false
-        }
-        return updated
       })
 
-      if (job.isLast) {
+      if (shouldFinalize) {
+        pendingFinalizationSessionRef.current = null
         finalizeVoiceSession(job.sessionId, combinedPreview)
         setIsTranscribing(false)
       }
@@ -286,6 +305,7 @@ export function useVoiceRecorder({
 
   const stopVoiceRecording = useCallback(() => {
     pendingStopRef.current = true
+    captureSessionForFinalization()
     try {
       mediaRecorderRef.current?.stop()
     } catch (error) {
@@ -311,6 +331,7 @@ export function useVoiceRecorder({
     failedChunkRef.current = null
     pendingStopRef.current = false
     isProcessingChunkRef.current = false
+    pendingFinalizationSessionRef.current = null
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -337,6 +358,7 @@ export function useVoiceRecorder({
         if (event.data.size > MAX_CHUNK_BYTES) {
           notifyError('Captured audio chunk is too large; stopping recording to protect the session.')
           pendingStopRef.current = true
+          captureSessionForFinalization()
           mediaRecorder.stop()
           return
         }
@@ -349,6 +371,7 @@ export function useVoiceRecorder({
           (event as unknown as { error?: { message?: string } }).error?.message || 'Unknown recorder issue'
         notifyError(`Recorder error: ${errMessage}`)
         pendingStopRef.current = true
+        captureSessionForFinalization()
         try {
           mediaRecorder.stop()
         } catch (error) {
