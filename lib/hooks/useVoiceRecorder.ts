@@ -152,17 +152,22 @@ export function useVoiceRecorder({
         const chunkText = (payload?.text || '').trim()
         combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
 
-        let updatedChunks = prev.chunks.map((chunk) =>
-          chunk.id === job.id
-            ? { ...chunk, status: 'success', error: undefined, isLast: chunk.isLast || shouldFinalize }
+        const updatedChunks = prev.chunks.map<VoiceChunk>((chunk, index, array) => {
+          const patched = chunk.id === job.id
+            ? {
+                ...chunk,
+                status: 'success' as ChunkStatus,
+                error: undefined,
+                isLast: chunk.isLast || shouldFinalize,
+              }
             : chunk
-        )
 
-        if (shouldFinalize && updatedChunks.length > 0) {
-          updatedChunks = updatedChunks.map((chunk, index, array) =>
-            index === array.length - 1 ? { ...chunk, isLast: true } : chunk
-          )
-        }
+          if (shouldFinalize && index === array.length - 1) {
+            return { ...patched, isLast: true }
+          }
+
+          return patched
+        })
 
         return {
           ...prev,
