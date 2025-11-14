@@ -150,7 +150,6 @@ export function useVoiceRecorder({
     form.append('response_format', 'verbose_json')
     form.append('timestampGranularities', 'word,segment')
     form.append('mode', 'translate')
-    form.append('language', 'en')
 
     const res = await fetch('/api/transcribe', { method: 'POST', body: form })
     const payload = await res.json().catch(() => null)

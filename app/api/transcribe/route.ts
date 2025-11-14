@@ -108,16 +108,34 @@ export async function POST(req: NextRequest) {
     const wantsTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
     const modelSupportsTranslation = TRANSLATION_SUPPORTED_MODELS.has(model)
     const shouldTryTranslation = wantsTranslation && modelSupportsTranslation
+    let translationAttempted = false
+    let translationSkippedReason: string | undefined
 
-    try {
-      if (shouldTryTranslation) {
-        transcription = await (groq as any).audio.translations.create(translationPayload)
-      } else {
-        throw new Error('Skip translation')
-      }
-    } catch (error) {
-      if (shouldTryTranslation) {
+    if (shouldTryTranslation) {
+      translationAttempted = true
+      try {
+        const translationResult = await (groq as any).audio.translations.create(translationPayload)
+        const translationText = typeof translationResult?.text === 'string' ? translationResult.text.trim() : ''
+        if (translationText) {
+          transcription = translationResult
+        } else {
+          translationSkippedReason = 'translation_empty'
+          console.warn('Groq translation returned empty text; falling back to transcription', {
+            sessionId,
+            chunkIndex,
+          })
+          transcription = await groq.audio.transcriptions.create(transcriptionPayload)
+        }
+      } catch (error) {
+        translationSkippedReason = 'translation_failed'
         console.warn('Groq translation failed, retrying as transcription', error)
+        transcription = await groq.audio.transcriptions.create(transcriptionPayload)
+      }
+    } else {
+      if (wantsTranslation && !modelSupportsTranslation) {
+        translationSkippedReason = 'model_not_supported'
+      } else if (wantsTranslation) {
+        translationSkippedReason = 'translation_disabled'
       }
       transcription = await groq.audio.transcriptions.create(transcriptionPayload)
     }
@@ -131,8 +149,8 @@ export async function POST(req: NextRequest) {
         isLastChunk,
         model,
         responseFormat,
-        translationAttempted: shouldTryTranslation,
-        translationSkippedReason: wantsTranslation && !modelSupportsTranslation ? 'model_not_supported' : undefined,
+        translationAttempted,
+        translationSkippedReason,
         durationMs: Date.now() - startedAt,
       },
     })
