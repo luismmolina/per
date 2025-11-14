@@ -67,6 +67,26 @@ export const formatDuration = (ms: number) => {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
+const extractChunkText = (payload: any): string => {
+  const direct = (typeof payload?.text === 'string' ? payload.text : '').trim()
+  if (direct) return direct
+
+  const rawText = (typeof payload?.raw?.text === 'string' ? payload.raw.text : '').trim()
+  if (rawText) return rawText
+
+  const segments = Array.isArray(payload?.raw?.segments) ? payload.raw.segments : undefined
+  if (segments?.length) {
+    const joined = segments
+      .map((segment: any) => (typeof segment?.text === 'string' ? segment.text.trim() : ''))
+      .filter(Boolean)
+      .join(' ')
+      .trim()
+    if (joined) return joined
+  }
+
+  return ''
+}
+
 export function useVoiceRecorder({
   onTranscriptionReady,
   onError,
@@ -149,7 +169,7 @@ export function useVoiceRecorder({
 
       setVoiceSession((prev) => {
         if (!prev || prev.id !== job.sessionId) return prev
-        const chunkText = (payload?.text || '').trim()
+        const chunkText = extractChunkText(payload)
         combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
 
         const updatedChunks = prev.chunks.map<VoiceChunk>((chunk, index, array) => {
