@@ -1,10 +1,26 @@
-'use client'
+﻿'use client'
 
 import React, { useState, useRef, useEffect, memo, useCallback, useMemo, useImperativeHandle } from 'react'
-import { Plus, Send, Bot, User, Scissors, Search, Copy, Check, Download, Trash } from 'lucide-react'
+import {
+  Plus,
+  Send,
+  Bot,
+  User,
+  Scissors,
+  Search,
+  Copy,
+  Check,
+  Download,
+  Trash,
+  ArrowDown,
+  MoreVertical,
+  X,
+} from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { VoiceSessionPanel } from '../components/voice-session-panel'
+import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 
 interface Message {
   id: string
@@ -82,8 +98,8 @@ interface DishesData {
 }
 
 // Memoized Markdown component to prevent unnecessary re-renders
-const Markdown = React.memo(
-  ({ children }: { children: string }) => (
+const Markdown = React.memo(function Markdown({ children }: { children: string }) {
+  return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
       components={{
@@ -123,13 +139,13 @@ const Markdown = React.memo(
                 <details className="group">
                   <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                   <span className="text-yellow-400 text-sm font-medium">
-                    📄 {language.toUpperCase()} Code
+                    ðŸ“„ {language.toUpperCase()} Code
                   </span>
                     <span className="text-gray-400 text-xs group-open:hidden">
-                      ▶️ Expand
+                      â–¶ï¸ Expand
                   </span>
                     <span className="text-gray-400 text-xs hidden group-open:inline">
-                      🔽 Collapse
+                      ðŸ”½ Collapse
                     </span>
                   </summary>
                   <pre className="p-3 text-green-400 font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">
@@ -154,13 +170,13 @@ const Markdown = React.memo(
               <details className="group">
                 <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                 <span className="text-yellow-400 text-sm font-medium">
-                  📄 Code Block
+                  ðŸ“„ Code Block
                 </span>
                   <span className="text-gray-400 text-xs group-open:hidden">
-                    ▶️ Expand
+                    â–¶ï¸ Expand
                 </span>
                   <span className="text-gray-400 text-xs hidden group-open:inline">
-                    🔽 Collapse
+                    ðŸ”½ Collapse
                   </span>
                 </summary>
                 <div className="p-3 text-green-400 font-mono text-xs leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-w-full">
@@ -174,9 +190,8 @@ const Markdown = React.memo(
     >
       {children}
     </ReactMarkdown>
-  ),
-  (prev, next) => prev.children === next.children
-)
+  )
+}, (prev, next) => prev.children === next.children)
 
 // Memoized Message Component for better performance
 const MessageComponent = memo(({
@@ -414,7 +429,7 @@ export default function Home() {
   useEffect(() => {
     if (currentThoughts.length > 0) {
       const latestThought = currentThoughts[currentThoughts.length - 1]
-      console.log('🧠 Showing thought', currentThoughts.length, ':', latestThought.substring(0, 100) + '...')
+      console.log('ðŸ§  Showing thought', currentThoughts.length, ':', latestThought.substring(0, 100) + '...')
     }
   }, [currentThoughts])
 
@@ -753,82 +768,6 @@ export default function Home() {
     setTimeout(() => scrollToBottom(), 200)
   }, [inputText, scrollToBottom])
 
-  // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
-  const [isRecording, setIsRecording] = useState(false)
-  const [isTranscribing, setIsTranscribing] = useState(false)
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const recordedChunksRef = useRef<Blob[]>([])
-
-  const transcribeBlob = useCallback(async (blob: Blob) => {
-    try {
-      setIsTranscribing(true)
-      const form = new FormData()
-      form.append('audio', new File([blob], 'voice_note.webm', { type: blob.type || 'audio/webm' }))
-      const res = await fetch('/api/transcribe', { method: 'POST', body: form })
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}))
-        throw new Error(err?.error || `Transcription failed (${res.status})`)
-      }
-      const data = await res.json()
-      const text = (data?.text || '').trim()
-      if (!text) throw new Error('Empty transcription')
-
-      const newNote: Message = {
-        id: Date.now().toString(),
-        content: text,
-        type: 'note',
-        timestamp: new Date()
-      }
-      setMessages(prev => [...prev, newNote])
-      setTimeout(() => scrollToBottom(), 200)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      showError(`Voice note error: ${msg}`)
-    } finally {
-      setIsTranscribing(false)
-    }
-  }, [setMessages, scrollToBottom, showError])
-
-  const toggleRecording = useCallback(async () => {
-    try {
-      if (!isRecording) {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-        const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : undefined
-        const mr = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
-        recordedChunksRef.current = []
-        mr.ondataavailable = (e) => {
-          if (e.data && e.data.size > 0) recordedChunksRef.current.push(e.data)
-        }
-        mr.onstop = async () => {
-          try {
-            const blob = new Blob(recordedChunksRef.current, { type: mr.mimeType || 'audio/webm' })
-            stream.getTracks().forEach(t => t.stop())
-            if (!blob || blob.size === 0) {
-              showError('No audio captured. Please speak for at least 1–2 seconds and try again.')
-            } else {
-              await transcribeBlob(blob)
-            }
-          } catch (e) {
-            const msg = e instanceof Error ? e.message : String(e)
-            showError(`Recording error: ${msg}`)
-          }
-        }
-        mediaRecorderRef.current = mr
-        // Use a timeslice to ensure chunks are emitted while recording
-        mr.start(400)
-        setIsRecording(true)
-      } else {
-        // Flush any pending data before stopping
-        try { mediaRecorderRef.current?.requestData() } catch {}
-        mediaRecorderRef.current?.stop()
-        setIsRecording(false)
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      showError(`Mic permission or recording failed: ${msg}`)
-    }
-  }, [isRecording, transcribeBlob, showError])
-
   const deleteNote = (id: string) => {
     if (!confirm('Delete this note?')) return
     setMessages(prev => prev.filter(m => m.id !== id))
@@ -961,7 +900,7 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
 
         if (prunedMessages.length < messages.length) {
           setMessages(prunedMessages)
-          console.log(`Pruned conversation: ${messages.length} → ${prunedMessages.length} messages`)
+          console.log(`Pruned conversation: ${messages.length} â†’ ${prunedMessages.length} messages`)
         } else {
           console.log('No messages were pruned - all deemed valuable')
         }
@@ -1011,10 +950,10 @@ Respond with ONLY a JSON array of the message numbers (1-${messages.length}) tha
 Use the provided context. Do not restate it. Extract only binding constraints.
 
 Core question
-- What ONE Leverage Move can I ship in ≤40 minutes today that creates irreversible external feedback and maximizes expected value toward the weekly North Star, given today's constraints and resources?
+- What ONE Leverage Move can I ship in â‰¤40 minutes today that creates irreversible external feedback and maximizes expected value toward the weekly North Star, given today's constraints and resources?
 
 Rules
-- Short sentences. Define terms ≤12 words.
+- Short sentences. Define terms â‰¤12 words.
 - Pick one action. No lists of options.
 - Must start within 3 minutes using tools I already have.
 - Output a public, trackable artifact today.
@@ -1032,7 +971,7 @@ Objective
 - One sentence naming the move and today's expected payoff.
 
 Inputs
-- 5–7 constraints as [Fact] or [Assumption].
+- 5â€“7 constraints as [Fact] or [Assumption].
 - Name the scarcest resource today.
 
 Principles
@@ -1041,12 +980,12 @@ Principles
 Derivation
 - Why this move dominates today.
 - One-line math with units:
-  EV = p(success) × payoff (MXN or clients) − cost (MXN·min).
+  EV = p(success) Ã— payoff (MXN or clients) âˆ’ cost (MXNÂ·min).
 
-Plan (T−3 to T+40)
+Plan (Tâˆ’3 to T+40)
 - Two-minute starter to defeat inertia.
-- 5–7 concrete steps with verbs and tools.
-- Fallback micro-step (≤8 min) that still ships.
+- 5â€“7 concrete steps with verbs and tools.
+- Fallback micro-step (â‰¤8 min) that still ships.
 - First keystrokes to begin.
 
 Definition of Done
@@ -1182,15 +1121,15 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         if (cachedData) {
           const { data, timestamp } = JSON.parse(cachedData);
           if (Date.now() - timestamp < CACHE_EXPIRATION_MS) {
-            console.log('🍽️ Loading dishes data from cache.');
+            console.log('ðŸ½ï¸ Loading dishes data from cache.');
             return data;
           } else {
-            console.log('🍽️ Cached dishes data expired. Fetching new data.');
+            console.log('ðŸ½ï¸ Cached dishes data expired. Fetching new data.');
           }
         }
       }
 
-      console.log('🍽️ Fetching dishes data from proxy API...');
+      console.log('ðŸ½ï¸ Fetching dishes data from proxy API...');
       const response = await fetch('/api/dishes-proxy', {
         method: 'GET',
       });
@@ -1208,7 +1147,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         return null;
       }
       
-      console.log('🍽️ Successfully fetched production cost data:', {
+      console.log('ðŸ½ï¸ Successfully fetched production cost data:', {
         totalDishes: data.totalDishes,
         lastUpdated: data.lastUpdated,
         sampleDishes: data.dishes.slice(0, 3).map((d: Dish) => `${d.name}: ${d.cost.amount} ${d.cost.unit} to produce`),
@@ -1233,13 +1172,14 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     }
   }
 
-  const askAI = useCallback(async () => {
-    if (!inputText.trim()) return
+  const askAI = useCallback(async (overrideText?: string) => {
+    const prompt = (overrideText ?? inputText).trim()
+    if (!prompt) return
 
     // Add user question first (as 'question' type, not 'note')
     const userQuestion: Message = {
       id: Date.now().toString(),
-      content: inputText.trim(),
+      content: prompt,
       type: 'question',
       timestamp: new Date()
     }
@@ -1250,8 +1190,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     setCurrentResponse('')
     setCurrentCodeBlocks([])
     setCurrentThoughts([])
-    const currentQuestion = inputText.trim()
-    setInputText('')
+    const currentQuestion = prompt
+    if (!overrideText) {
+      setInputText('')
+    }
 
     try {
       // Get all previous notes for context (ONLY notes, not questions or AI responses) with timestamps
@@ -1280,7 +1222,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
 
       // Get user's timezone for proper timestamp handling
       const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      console.log('🌍 User timezone detected:', userTimezone);
+      console.log('ðŸŒ User timezone detected:', userTimezone);
 
       // Use enhanced multi-step workflow
       setCurrentStep('Enhanced Analysis...')
@@ -1331,10 +1273,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
               const data = JSON.parse(line.slice(6))
 
               if (data.type === 'thought') {
-                thoughts.push(data.content);
-                setCurrentThoughts([...thoughts]); // Direct state update for immediate feedback
+                thoughts.push(data.content)
+                updateThoughtsThrottled([...thoughts]) // Batch updates to reduce renders
                 hasReceivedThoughts = true;
-                console.log('🧠 Real-time thought received:', {
+                console.log('ðŸ§  Real-time thought received:', {
                   thoughtNumber: thoughts.length,
                   contentLength: data.content?.length || 0,
                   contentPreview: data.content?.substring(0, 150) + '...'
@@ -1362,7 +1304,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
 
       // Thoughts are ephemeral - no need to log final summary
       if (hasReceivedThoughts) {
-        console.log('✅ Thinking process completed, showing final response')
+        console.log('âœ… Thinking process completed, showing final response')
       }
 
       // Add complete assistant message (thoughts were already shown during streaming)
@@ -1391,9 +1333,9 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
       
       // Keep thoughts visible for 3 seconds after response completes
       if (thoughts.length > 0) {
-        console.log('✅ Keeping thoughts visible for 3 more seconds')
+        console.log('âœ… Keeping thoughts visible for 3 more seconds')
         setTimeout(() => {
-          console.log('🧹 Clearing thoughts after delay')
+          console.log('ðŸ§¹ Clearing thoughts after delay')
       setCurrentThoughts([])
         }, 3000)
       } else {
@@ -1451,6 +1393,29 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
     }
   }, [inputText, messages, scrollToBottom, setCurrentThoughts, updateThoughtsThrottled, showError])
 
+  // Voice notes: recording + transcription via /api/transcribe (Groq Whisper)
+  const handleVoiceTranscriptionReady = useCallback(
+    (text: string) => {
+      const trimmed = text?.trim()
+      if (!trimmed) return
+
+      const voiceNote: Message = {
+        id: Date.now().toString(),
+        content: trimmed,
+        type: 'note',
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, voiceNote])
+      setTimeout(() => scrollToBottom(), 200)
+    },
+    [setMessages, scrollToBottom]
+  )
+
+  const { voiceSession, isRecording, isTranscribing, toggleRecording, retryFailedChunk } = useVoiceRecorder({
+    onTranscriptionReady: handleVoiceTranscriptionReady,
+    onError: showError,
+  })
+
   // Optimized keyboard handler with useCallback
   const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -1491,7 +1456,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         aria-label="Open menu"
         style={{ marginTop: 'env(safe-area-inset-top)' }}
       >
-        <span className="text-lg leading-none text-white/90" aria-hidden="true">⋮</span>
+        <MoreVertical className="h-5 w-5 text-white/90" aria-hidden="true" />
       </button>
       {/* Messages Area */}
       <div
@@ -1582,13 +1547,13 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                                   <details className="group">
                                     <summary className="w-full flex items-center justify-between p-3 bg-gray-700 hover:bg-gray-600 transition-colors cursor-pointer list-none">
                                       <span className="text-yellow-400 text-sm font-medium">
-                                        🔧 {block.language.toUpperCase()} Execution
+                                        ðŸ”§ {block.language.toUpperCase()} Execution
                                       </span>
                                       <span className="text-gray-400 text-xs group-open:hidden">
-                                        ▶️ Expand
+                                        â–¶ï¸ Expand
                                       </span>
                                       <span className="text-gray-400 text-xs hidden group-open:inline">
-                                        🔽 Collapse
+                                        ðŸ”½ Collapse
                                       </span>
                                     </summary>
                                       <div className="p-3">
@@ -1614,7 +1579,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                       ) : currentThoughts.length > 0 ? (
                         <div className="text-sm leading-relaxed">
                           <div className="flex items-center space-x-2 mb-2 bg-purple-800/30 px-2 py-1 rounded-full">
-                            <div className="animate-pulse text-purple-400">🧠</div>
+                            <div className="animate-pulse text-purple-400">ðŸ§ </div>
                             <div className="text-xs text-purple-300 font-medium">
                               Thinking... ({currentThoughts.length})
                             </div>
@@ -1696,10 +1661,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           onClick={scrollToBottom}
           className="fixed right-4 z-40 rounded-full bg-amoled-gray border border-amoled-border shadow-amoled touch-target flex items-center justify-center w-12 h-12 hover:bg-amoled-lightGray active:scale-95 transition-all"
           style={{ bottom: bottomBarHeight + 12 }}
-          aria-label="Scroll to latest"
-        >
-          <span className="text-xl text-white leading-none" aria-hidden="true">↓</span>
-        </button>
+        aria-label="Scroll to latest"
+      >
+        <ArrowDown className="h-5 w-5 text-white" aria-hidden="true" />
+      </button>
       )}
 
       {/* Bottom Sheet Menu (Android style) */}
@@ -1710,7 +1675,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
             <div className="px-6 pt-4 pb-2 flex items-center justify-between">
               <h3 className="text-white font-semibold text-lg">Quick actions</h3>
               <button onClick={() => setIsMenuOpen(false)} className="p-2 rounded-xl hover:bg-amoled-lightGray focus-ring" aria-label="Close menu">
-                <span className="text-lg leading-none text-white/80" aria-hidden="true">✕</span>
+                <X className="h-5 w-5 text-white/80" aria-hidden="true" />
               </button>
             </div>
             <div className="divide-y divide-amoled-border">
@@ -1761,6 +1726,10 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
         className="keyboard-aware-bottom bg-amoled-dark border-t border-amoled-border p-3 pb-8 safe-area-inset-bottom"
       >
         <div className="max-w-4xl mx-auto space-y-3">
+          {voiceSession && voiceSession.status !== 'complete' && voiceSession.status !== 'idle' && (
+            <VoiceSessionPanel session={voiceSession} onRetry={retryFailedChunk} />
+          )}
+
           <div className="relative">
                           <OptimizedTextarea
                 value={inputText}
@@ -1775,7 +1744,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
           <div className="flex items-center space-x-2 sm:space-x-3">
             <button
               onClick={toggleRecording}
-              disabled={isTranscribing}
+              disabled={isTranscribing && !isRecording}
               className="btn-secondary w-12 h-12 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl touch-target shadow-lg active:scale-95 transition-transform"
               aria-label={isRecording ? 'Stop recording' : 'Start voice note'}
               title={isRecording ? 'Stop recording' : 'Start voice note'}
@@ -1810,7 +1779,7 @@ ${allNotes.length > 0 ? allNotes.map((note, index) => {
                 <span className="text-xs sm:text-sm font-semibold truncate hidden sm:inline">Coach</span>
               </button>
               <button
-                onClick={askAI}
+                onClick={() => void askAI()}
                 disabled={isAskAIDisabled}
                 className="btn-primary flex-1 min-w-0 h-12 sm:h-12 flex items-center justify-center space-x-1 sm:space-x-2 px-2 sm:px-3 touch-target"
               >
