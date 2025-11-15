@@ -2,34 +2,26 @@ import { NextRequest, NextResponse } from 'next/server'
 import Groq from 'groq-sdk'
 import { spawn } from 'child_process'
 import ffmpegPath from 'ffmpeg-static'
-import type { TranscriptionCreateParams } from 'groq-sdk/resources/audio/transcriptions'
-import type { TranslationCreateParams } from 'groq-sdk/resources/audio/translations'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
-const DEFAULT_MODEL = process.env.GROQ_TRANSCRIBE_MODEL || 'whisper-large-v3'
-const TRANSLATION_SUPPORTED_MODELS = new Set(['whisper-large-v3'])
 const FFMPEG_BINARY = ffmpegPath || 'ffmpeg'
-
-type TranscriptResponseFormat = 'json' | 'text' | 'verbose_json'
 
 type AudioPreprocessResult = {
   file: File
   applied: boolean
-  originalSize: number
-  processedSize: number
+  originalBytes: number
+  processedBytes: number
   error?: string
 }
 
-const parseGranularities = (value: string | null) => {
-  if (!value) return undefined
-  return value
-    .split(',')
-    .map((token) => token.trim())
-    .filter((token) => token === 'word' || token === 'segment')
+const ensureFile = async (file: File, fallbackName: string, fallbackType: string) => {
+  if (typeof (file as any).stream === 'function') return file
+  const buffer = await file.arrayBuffer()
+  return new File([buffer], fallbackName, { type: fallbackType })
 }
 
 const getFileSize = async (file: File) => {
@@ -37,7 +29,7 @@ const getFileSize = async (file: File) => {
   return (await file.arrayBuffer()).byteLength
 }
 
-const toFlacFileName = (name: string) => {
+const toFlacName = (name: string) => {
   if (!name) return 'voice_note.flac'
   const dotIndex = name.lastIndexOf('.')
   const base = dotIndex > 0 ? name.slice(0, dotIndex) : name
@@ -78,9 +70,9 @@ async function transcodeToFlacMono16k(file: File): Promise<File> {
     ffmpeg.on('error', (error) => reject(error))
     ffmpeg.on('close', (code) => {
       if (code === 0) {
-        const convertedBuffer = Buffer.concat(stdoutChunks)
-        const outputName = toFlacFileName(((file as any).name as string) || 'voice_note')
-        resolve(new File([convertedBuffer], outputName, { type: 'audio/flac' }))
+        const converted = Buffer.concat(stdoutChunks)
+        const outputName = toFlacName(((file as any).name as string) || 'voice_note')
+        resolve(new File([converted], outputName, { type: 'audio/flac' }))
       } else {
         const stderr = Buffer.concat(stderrChunks).toString() || 'Unknown FFmpeg error'
         reject(new Error(`FFmpeg exited with code ${code}: ${stderr}`))
@@ -92,51 +84,41 @@ async function transcodeToFlacMono16k(file: File): Promise<File> {
   })
 }
 
-async function preprocessAudioForTranscription(file: File, byteLimit: number): Promise<AudioPreprocessResult> {
-  const originalSize = await getFileSize(file)
-  const normalizedName = ((file as any).name as string) || 'voice_note.webm'
-  const normalizedType = ((file as any).type as string) || 'audio/webm'
-  const normalizedFile =
-    typeof (file as any).stream === 'function'
-      ? file
-      : new File([await file.arrayBuffer()], normalizedName, { type: normalizedType })
+async function preprocessAudio(file: File, byteLimit: number): Promise<AudioPreprocessResult> {
+  const fallbackName = ((file as any).name as string) || 'voice_note.webm'
+  const fallbackType = ((file as any).type as string) || 'audio/webm'
+  const normalizedFile = await ensureFile(file, fallbackName, fallbackType)
+  const originalBytes = await getFileSize(normalizedFile)
 
-  const alreadyFlac = normalizedType === 'audio/flac'
-  const shouldForceTranscode = originalSize > byteLimit
+  const alreadyFlac = ((normalizedFile as any).type as string) === 'audio/flac'
+  const mustTranscode = originalBytes > byteLimit || !alreadyFlac
 
-  if (!shouldForceTranscode && alreadyFlac) {
-    return {
-      file: normalizedFile,
-      applied: false,
-      originalSize,
-      processedSize: originalSize,
-    }
+  if (!mustTranscode) {
+    return { file: normalizedFile, applied: false, originalBytes, processedBytes: originalBytes }
   }
 
   try {
     const converted = await transcodeToFlacMono16k(normalizedFile)
-    const processedSize = await getFileSize(converted)
+    const processedBytes = await getFileSize(converted)
     return {
       file: converted,
       applied: true,
-      originalSize,
-      processedSize,
+      originalBytes,
+      processedBytes,
     }
   } catch (error) {
-    console.warn('Audio preprocessing failed; using original upload', error)
+    console.warn('Audio preprocessing failed; using original file', error)
     return {
       file: normalizedFile,
       applied: false,
-      originalSize,
-      processedSize: originalSize,
+      originalBytes,
+      processedBytes: originalBytes,
       error: error instanceof Error ? error.message : String(error),
     }
   }
 }
 
 export async function POST(req: NextRequest) {
-  const startedAt = Date.now()
-
   try {
     const apiKey = process.env.GROQ_API_KEY
     if (!apiKey) {
@@ -152,126 +134,55 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No audio file provided (field name: audio)' }, { status: 400 })
     }
 
-    const sessionId = (form.get('sessionId') as string) || undefined
-    const chunkIndex = Number(form.get('chunkIndex') ?? '0')
-    const isLastChunk = (form.get('isLast') as string) === 'true'
-    const language = (form.get('language') as string) || undefined
-    const prompt = (form.get('prompt') as string) || undefined
-    const requestedFormat = ((form.get('response_format') as string | null) ?? '').toLowerCase()
-    const responseFormat: TranscriptResponseFormat =
-      requestedFormat === 'text' || requestedFormat === 'json' ? (requestedFormat as TranscriptResponseFormat) : 'verbose_json'
-    const mode = ((form.get('mode') as string) || 'auto').toLowerCase()
-    const timestampGranularities = parseGranularities(form.get('timestampGranularities') as string | null)
-    const model = (form.get('model') as string) || DEFAULT_MODEL
-    const parsedTemperature = Number(form.get('temperature') ?? '0')
-    const temperature = Number.isFinite(parsedTemperature) ? parsedTemperature : 0
-
-    const preprocessing = await preprocessAudioForTranscription(file, byteLimit)
-    const processedFile = preprocessing.file
-    const processedSize = preprocessing.processedSize
-
-    if (!processedSize || processedSize <= 0) {
+    const preprocessing = await preprocessAudio(file, byteLimit)
+    const processedBytes = preprocessing.processedBytes
+    if (!processedBytes || processedBytes <= 0) {
       return NextResponse.json({ error: 'Uploaded audio is empty' }, { status: 400 })
     }
 
-    if (processedSize > byteLimit) {
+    if (processedBytes > byteLimit) {
       return NextResponse.json(
         {
-          error: `Audio is too large even after preprocessing (${(processedSize / (1024 * 1024)).toFixed(
+          error: `Audio is too large even after preprocessing (${(processedBytes / (1024 * 1024)).toFixed(
             2
-          )} MB). Limit for the current tier is ${(byteLimit / (1024 * 1024)).toFixed(2)} MB.`,
-          originalSizeBytes: preprocessing.originalSize,
-          processedSizeBytes: processedSize,
+          )} MB). Limit for this tier is ${(byteLimit / (1024 * 1024)).toFixed(2)} MB.`,
+          preprocessing,
         },
         { status: 413 }
       )
     }
 
-    const normalizedFile =
-      typeof (processedFile as any).name === 'string' && typeof (processedFile as any).stream === 'function'
-        ? processedFile
-        : new File([await processedFile.arrayBuffer()], ((processedFile as any).name as string) || 'voice_note.flac', {
-            type: ((processedFile as any).type as string) || 'audio/flac',
-          })
+    const processedBuffer = await preprocessing.file.arrayBuffer()
+    if (!processedBuffer || processedBuffer.byteLength === 0) {
+      return NextResponse.json({ error: 'Preprocessed audio is empty' }, { status: 400 })
+    }
+
+    const name = ((preprocessing.file as any).name as string) || 'voice_note.flac'
+    const type = ((preprocessing.file as any).type as string) || 'audio/flac'
+    const makeFile = () => new File([processedBuffer], name, { type })
 
     const groq = new Groq({ apiKey })
-
-    const basePayload = {
-      file: normalizedFile,
-      model,
-      temperature,
-      ...(prompt ? { prompt } : {}),
-    }
-
-    const transcriptionPayload: TranscriptionCreateParams = {
-      ...basePayload,
-      response_format: responseFormat,
-      ...(language ? { language } : {}),
-      ...(timestampGranularities?.length && responseFormat === 'verbose_json'
-        ? { timestamp_granularities: timestampGranularities }
-        : {}),
-    }
-
-    const translationPayload: TranslationCreateParams = {
-      ...basePayload,
-      response_format: responseFormat === 'verbose_json' ? 'json' : responseFormat,
-    }
-
     let transcription: any
-    const wantsTranslation = mode === 'translate' || (mode === 'auto' && (!language || language === 'en'))
-    const modelSupportsTranslation = TRANSLATION_SUPPORTED_MODELS.has(model)
-    const shouldTryTranslation = wantsTranslation && modelSupportsTranslation
-    let translationAttempted = false
-    let translationSkippedReason: string | undefined
-
-    if (shouldTryTranslation) {
-      translationAttempted = true
-      try {
-        const translationResult = await (groq as any).audio.translations.create(translationPayload)
-        const translationText = typeof translationResult?.text === 'string' ? translationResult.text.trim() : ''
-        if (translationText) {
-          transcription = translationResult
-        } else {
-          translationSkippedReason = 'translation_empty'
-          console.warn('Groq translation returned empty text; falling back to transcription', {
-            sessionId,
-            chunkIndex,
-          })
-          transcription = await groq.audio.transcriptions.create(transcriptionPayload)
-        }
-      } catch (error) {
-        translationSkippedReason = 'translation_failed'
-        console.warn('Groq translation failed, retrying as transcription', error)
-        transcription = await groq.audio.transcriptions.create(transcriptionPayload)
-      }
-    } else {
-      if (wantsTranslation && !modelSupportsTranslation) {
-        translationSkippedReason = 'model_not_supported'
-      } else if (wantsTranslation) {
-        translationSkippedReason = 'translation_disabled'
-      }
-      transcription = await groq.audio.transcriptions.create(transcriptionPayload)
+    try {
+      transcription = await (groq as any).audio.translations.create({
+        file: makeFile(),
+        model: 'whisper-large-v3',
+        response_format: 'verbose_json',
+      })
+    } catch {
+      transcription = await groq.audio.transcriptions.create({
+        file: makeFile(),
+        model: 'whisper-large-v3',
+        response_format: 'verbose_json',
+      })
     }
 
     return NextResponse.json({
       text: (transcription as any)?.text || '',
       raw: transcription,
       meta: {
-        sessionId,
-        chunkIndex,
-        isLastChunk,
-        model,
-        responseFormat,
-        translationAttempted,
-        translationSkippedReason,
-        preprocessing: {
-          applied: preprocessing.applied,
-          originalSizeBytes: preprocessing.originalSize,
-          processedSizeBytes: preprocessing.processedSize,
-          error: preprocessing.error,
-        },
+        preprocessing,
         tier,
-        durationMs: Date.now() - startedAt,
       },
     })
   } catch (e) {
