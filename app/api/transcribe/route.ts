@@ -130,6 +130,8 @@ export async function POST(req: NextRequest) {
 
     const form = await req.formData()
     const file = form.get('audio') as File | null
+    const mode = (form.get('mode') as string) || 'transcribe' // Default to transcribe if not specified
+
     if (!file) {
       return NextResponse.json({ error: 'No audio file provided (field name: audio)' }, { status: 400 })
     }
@@ -162,31 +164,54 @@ export async function POST(req: NextRequest) {
     const makeFile = () => new File([processedBuffer], name, { type })
 
     const groq = new Groq({ apiKey })
-    let transcription: any
+    let result: any
+
+    console.log(`[Transcribe API] Processing mode: ${mode}, file size: ${processedBytes} bytes`)
+
     try {
-      transcription = await (groq as any).audio.translations.create({
-        file: makeFile(),
-        model: 'whisper-large-v3',
-        response_format: 'verbose_json',
-      })
-    } catch {
-      transcription = await groq.audio.transcriptions.create({
-        file: makeFile(),
-        model: 'whisper-large-v3',
-        response_format: 'verbose_json',
-      })
+      if (mode === 'translate') {
+        // Translation requires whisper-large-v3 (turbo doesn't support translation)
+        result = await groq.audio.translations.create({
+          file: makeFile(),
+          model: 'whisper-large-v3',
+          response_format: 'verbose_json',
+        })
+      } else {
+        // Transcription defaults to turbo for speed/cost
+        result = await groq.audio.transcriptions.create({
+          file: makeFile(),
+          model: 'whisper-large-v3-turbo',
+          response_format: 'verbose_json',
+          language: 'en', // Optional: hint language if known, or remove to auto-detect
+        })
+      }
+
+      console.log('[Transcribe API] Groq response:', JSON.stringify(result, null, 2))
+
+    } catch (apiError) {
+      console.error('[Transcribe API] Groq API error:', apiError)
+      throw apiError
+    }
+
+    const text = (result as any)?.text || ''
+
+    if (!text) {
+      console.warn('[Transcribe API] Received empty text from Groq')
     }
 
     return NextResponse.json({
-      text: (transcription as any)?.text || '',
-      raw: transcription,
+      text,
+      raw: result,
       meta: {
         preprocessing,
         tier,
+        mode,
+        model: mode === 'translate' ? 'whisper-large-v3' : 'whisper-large-v3-turbo'
       },
     })
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e)
+    console.error('[Transcribe API] Handler error:', message)
     return NextResponse.json({ error: message }, { status: 500 })
   }
 }
