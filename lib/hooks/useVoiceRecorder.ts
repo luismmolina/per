@@ -103,11 +103,12 @@ export function useVoiceRecorder({
   const pendingStopRef = useRef(false)
   const isProcessingChunkRef = useRef(false)
   const failedChunkRef = useRef<ChunkJob | null>(null)
+  const pendingFinalizationSessionIdRef = useRef<string | null>(null)
   const previewTextRef = useRef('')
 
   const captureSessionForFinalization = () => {
     if (activeSessionIdRef.current) {
-      pendingFinalizationSessionRef.current = activeSessionIdRef.current
+      pendingFinalizationSessionIdRef.current = activeSessionIdRef.current
     }
   }
 
@@ -167,7 +168,7 @@ export function useVoiceRecorder({
   const handleChunkSuccess = useCallback(
     (job: ChunkJob, payload: any) => {
       const shouldFinalizeByDrain =
-        pendingFinalizationSessionRef.current === job.sessionId && chunkQueueRef.current.length === 0
+        pendingFinalizationSessionIdRef.current === job.sessionId && chunkQueueRef.current.length === 0
       const shouldFinalize = job.isLast || shouldFinalizeByDrain
 
       const chunkText = extractChunkText(payload)
@@ -211,7 +212,7 @@ export function useVoiceRecorder({
       })
 
       if (shouldFinalize) {
-        pendingFinalizationSessionRef.current = null
+        pendingFinalizationSessionIdRef.current = null
         finalizeVoiceSession(job.sessionId, currentFullText)
         setIsTranscribing(false)
       }
@@ -366,7 +367,7 @@ export function useVoiceRecorder({
     failedChunkRef.current = null
     pendingStopRef.current = false
     isProcessingChunkRef.current = false
-    pendingFinalizationSessionRef.current = null
+    pendingFinalizationSessionIdRef.current = null
     previewTextRef.current = ''
 
     try {
