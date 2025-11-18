@@ -106,6 +106,8 @@ export function useVoiceRecorder({
   const isProcessingChunkRef = useRef(false)
   const failedChunkRef = useRef<ChunkJob | null>(null)
   const pendingFinalizationSessionIdRef = useRef<string | null>(null)
+  // Temporary alias to keep older builds that still reference the previous name from breaking.
+  const pendingFinalizationSessionRef = pendingFinalizationSessionIdRef
   const previewTextRef = useRef('')
 
   const captureSessionForFinalization = () => {
