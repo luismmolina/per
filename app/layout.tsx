@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Contextual Assistant',
   description: 'A smart journal that combines note-taking with AI-powered insights',
-  viewport: 'width=device-width, initial-scale=1, viewport-fit=cover',
+
   other: {
     'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'black-translucent',
