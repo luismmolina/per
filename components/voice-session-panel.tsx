@@ -23,13 +23,12 @@ export function VoiceSessionPanel({ session, onRetry }: VoiceSessionPanelProps) 
         : ''
 
   return (
-    <div className="bg-amoled-lightGray/50 border border-amoled-border rounded-2xl p-4 space-y-3">
+    <div className="bg-neutral-900 border border-amoled-border rounded-2xl p-4 space-y-3 shadow-xl relative z-50">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${
-              isRecording ? 'bg-accent-red animate-pulse' : isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
-            }`}
+            className={`inline-flex h-2.5 w-2.5 rounded-full ${isRecording ? 'bg-accent-red animate-pulse' : isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
+              }`}
           ></span>
           <div>
             <p className="text-sm font-semibold text-white">Voice capture</p>

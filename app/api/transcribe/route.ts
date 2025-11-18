@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
-const FFMPEG_BINARY = ffmpegPath || 'ffmpeg'
+const FFMPEG_BINARY = ffmpegPath || null
 
 type AudioPreprocessResult = {
   file: File
@@ -107,7 +107,7 @@ async function preprocessAudio(file: File, byteLimit: number): Promise<AudioPrep
       processedBytes,
     }
   } catch (error) {
-    console.warn('Audio preprocessing failed; using original file', error)
+    console.info('Audio preprocessing skipped (FFmpeg not found or failed); using original file')
     return {
       file: normalizedFile,
       applied: false,
