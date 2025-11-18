@@ -1,4 +1,3 @@
-
 'use client'
 
 import React, { useRef, useEffect, useState } from 'react'
@@ -140,8 +139,23 @@ export const ChatInterface = ({
                         onClick={() => scrollToBottom()}
                         className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors"
                     >
-                        {inputChildren}
-                    </InputArea>
+                        <ArrowDown className="w-5 h-5" />
+                    </motion.button>
+                )}
+            </AnimatePresence>
+
+            {/* Input Area */}
+            <InputArea
+                value={inputValue}
+                onChange={onInputChange}
+                onSend={onSendMessage}
+                isLoading={isLoading}
+                isListening={isListening}
+                onVoiceStart={onVoiceStart}
+                onVoiceStop={onVoiceStop}
+            >
+                {inputChildren}
+            </InputArea>
         </div>
     )
 }
