@@ -189,25 +189,28 @@ export default function Home() {
   }
 
   return (
-    <main className="h-full w-full bg-background text-text-primary aurora-bg">
-      <ChatInterface
-        messages={messages}
-        onSendMessage={handleSendMessage}
-        onCopyMessage={handleCopyMessage}
-        onDeleteMessage={handleDeleteMessage}
-        copiedMessageId={copiedMessageId}
-        isLoading={isLoading}
-        isListening={isRecording}
-        onVoiceStart={toggleRecording}
-        onVoiceStop={toggleRecording}
-        inputChildren={
-          voiceSession && voiceSession.status !== 'idle' && (
-            <div className="mb-2">
-              <VoiceSessionPanel session={voiceSession} onRetry={retryFailedChunk} />
-            </div>
-          )
-        }
-      />
+    <main className="relative h-full w-full text-text-primary overflow-hidden">
+      <div className="aurora-bg" />
+      <div className="relative z-10 h-full flex flex-col">
+        <ChatInterface
+          messages={messages}
+          onSendMessage={handleSendMessage}
+          onCopyMessage={handleCopyMessage}
+          onDeleteMessage={handleDeleteMessage}
+          copiedMessageId={copiedMessageId}
+          isLoading={isLoading}
+          isListening={isRecording}
+          onVoiceStart={toggleRecording}
+          onVoiceStop={toggleRecording}
+          inputChildren={
+            voiceSession && voiceSession.status !== 'idle' && (
+              <div className="mb-2">
+                <VoiceSessionPanel session={voiceSession} onRetry={retryFailedChunk} />
+              </div>
+            )
+          }
+        />
+      </div>
     </main>
   )
 }
