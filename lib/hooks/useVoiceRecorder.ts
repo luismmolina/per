@@ -103,7 +103,7 @@ export function useVoiceRecorder({
   const pendingStopRef = useRef(false)
   const isProcessingChunkRef = useRef(false)
   const failedChunkRef = useRef<ChunkJob | null>(null)
-  const pendingFinalizationSessionRef = useRef<string | null>(null)
+  const previewTextRef = useRef('')
 
   const captureSessionForFinalization = () => {
     if (activeSessionIdRef.current) {
@@ -149,6 +149,11 @@ export function useVoiceRecorder({
     form.append('isLast', job.isLast ? 'true' : 'false')
     form.append('response_format', 'verbose_json')
     form.append('timestampGranularities', 'word,segment')
+    // Default to transcribe, but let the API decide based on its default or if we add a prop later
+    // The user wants translation for Spanish -> English, so we should probably allow configuring this.
+    // For now, the API defaults to 'transcribe' if not sent, but we want 'translate' for this user.
+    // We'll hardcode 'translate' here as per user requirement, or ideally make it a prop.
+    // Given the previous context, the user wants Spanish -> English.
     form.append('mode', 'translate')
 
     const res = await fetch('/api/transcribe', { method: 'POST', body: form })
@@ -161,24 +166,30 @@ export function useVoiceRecorder({
 
   const handleChunkSuccess = useCallback(
     (job: ChunkJob, payload: any) => {
-      let combinedPreview = ''
       const shouldFinalizeByDrain =
         pendingFinalizationSessionRef.current === job.sessionId && chunkQueueRef.current.length === 0
       const shouldFinalize = job.isLast || shouldFinalizeByDrain
 
+      const chunkText = extractChunkText(payload)
+      if (chunkText) {
+        previewTextRef.current = previewTextRef.current
+          ? `${previewTextRef.current} ${chunkText}`
+          : chunkText
+      }
+
+      const currentFullText = previewTextRef.current
+
       setVoiceSession((prev) => {
         if (!prev || prev.id !== job.sessionId) return prev
-        const chunkText = extractChunkText(payload)
-        combinedPreview = chunkText ? (prev.previewText ? `${prev.previewText}\n\n${chunkText}` : chunkText) : prev.previewText
 
         const updatedChunks = prev.chunks.map<VoiceChunk>((chunk, index, array) => {
           const patched = chunk.id === job.id
             ? {
-                ...chunk,
-                status: 'success' as ChunkStatus,
-                error: undefined,
-                isLast: chunk.isLast || shouldFinalize,
-              }
+              ...chunk,
+              status: 'success' as ChunkStatus,
+              error: undefined,
+              isLast: chunk.isLast || shouldFinalize,
+            }
             : chunk
 
           if (shouldFinalize && index === array.length - 1) {
@@ -190,7 +201,7 @@ export function useVoiceRecorder({
 
         return {
           ...prev,
-          previewText: combinedPreview,
+          previewText: currentFullText,
           chunks: updatedChunks,
           isProcessing: shouldFinalize ? false : chunkQueueRef.current.length > 0,
           lastError: undefined,
@@ -201,7 +212,7 @@ export function useVoiceRecorder({
 
       if (shouldFinalize) {
         pendingFinalizationSessionRef.current = null
-        finalizeVoiceSession(job.sessionId, combinedPreview)
+        finalizeVoiceSession(job.sessionId, currentFullText)
         setIsTranscribing(false)
       }
     },
@@ -356,6 +367,7 @@ export function useVoiceRecorder({
     pendingStopRef.current = false
     isProcessingChunkRef.current = false
     pendingFinalizationSessionRef.current = null
+    previewTextRef.current = ''
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })

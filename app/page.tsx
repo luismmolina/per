@@ -34,10 +34,13 @@ export default function Home() {
     retryFailedChunk
   } = useVoiceRecorder({
     onTranscriptionReady: (text) => {
-      setInputValue(prev => {
-        const newText = prev ? `${prev} ${text}` : text
-        return newText
-      })
+      const newMessage: Message = {
+        id: Date.now().toString(),
+        content: text,
+        type: 'note',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, newMessage])
     },
     onError: (error) => {
       console.error('Voice error:', error)
