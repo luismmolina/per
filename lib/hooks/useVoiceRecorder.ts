@@ -49,7 +49,9 @@ export interface UseVoiceRecorderResult {
 }
 
 export const MAX_VOICE_DURATION_MS = 20 * 60 * 1000 // 20 minutes
-const CHUNK_TIMESLICE_MS = 60_000
+// Single-chunk uploads avoid malformed container errors emitted by Groq once MediaRecorder slices blobs mid-session.
+// Keep the constant for future reinstatement, but default to `null` so only the final stop event flushes audio.
+const CHUNK_TIMESLICE_MS: number | null = null
 const MAX_CHUNK_BYTES = 22 * 1024 * 1024 // stay safely under the 25 MB Groq free-tier cap
 
 const safeId = () => {
@@ -437,7 +439,11 @@ export function useVoiceRecorder({
         pendingStopRef.current = false
       }
 
-      mediaRecorder.start(CHUNK_TIMESLICE_MS)
+      if (CHUNK_TIMESLICE_MS && CHUNK_TIMESLICE_MS > 0) {
+        mediaRecorder.start(CHUNK_TIMESLICE_MS)
+      } else {
+        mediaRecorder.start()
+      }
       setIsRecording(true)
     } catch (error) {
       activeSessionIdRef.current = null
