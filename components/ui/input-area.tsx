@@ -76,7 +76,7 @@ export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, 
                         onKeyDown={handleKeyDown}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
-                        placeholder="Type a note or ask a question..."
+                        placeholder="Type or ask..."
                         rows={1}
                         className="flex-1 bg-transparent text-text-primary placeholder-text-muted text-base py-3 px-2 focus:outline-none resize-none max-h-[150px] custom-scrollbar"
                         style={{ minHeight: '48px' }}
