@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
           response_format: 'verbose_json',
         })
       } else {
-        // Transcription defaults to turbo for speed/cost
+        // Transcription defaults to turbo for cost
         result = await groq.audio.transcriptions.create({
           file: makeFile(),
           model: 'whisper-large-v3-turbo',
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
       console.log('[Transcribe API] Groq response:', JSON.stringify(result, null, 2))
 
     } catch (apiError) {
-      console.error('[Transcribe API] Groq API error:', apiError)
+      console.error('[Transcribe API] Groq API error :', apiError)
       throw apiError
     }
 
