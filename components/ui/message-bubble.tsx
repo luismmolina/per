@@ -82,39 +82,52 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     </div>
 
                     {/* Content */}
-                    <div className={cn(
-                        "prose prose-invert prose-sm max-w-none leading-relaxed",
-                        "prose-p:my-1 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl"
-                    )}>
+                    <div className="space-y-3">
                         {isAI ? (
-                            <ReactMarkdown
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                    code: ({ node, className, children, ...props }) => {
-                                        const match = /language-(\w+)/.exec(className || '')
-                                        return match ? (
-                                            <div className="relative group rounded-xl overflow-hidden my-2 border border-white/10 bg-black/50">
-                                                <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
-                                                    <span className="text-xs text-text-muted font-mono">{match[1]}</span>
+                            <div className="rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)]">
+                                <div className="text-[11px] uppercase tracking-[0.08em] text-accent-cyan/85 mb-2 font-semibold">
+                                    Final answer
+                                </div>
+                                <ReactMarkdown
+                                    remarkPlugins={[remarkGfm]}
+                                    components={{
+                                        p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95">{children}</p>,
+                                        ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95">{children}</ul>,
+                                        ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95">{children}</ol>,
+                                        li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                        strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
+                                        em: ({ children }) => <em className="text-text-secondary">{children}</em>,
+                                        code: ({ node, className, children, ...props }) => {
+                                            const match = /language-(\w+)/.exec(className || '')
+                                            return match ? (
+                                                <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50">
+                                                    <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
+                                                        <span className="text-xs text-text-muted font-mono">{match[1]}</span>
+                                                    </div>
+                                                    <pre className="p-3 overflow-x-auto">
+                                                        <code className={className} {...props}>
+                                                            {children}
+                                                        </code>
+                                                    </pre>
                                                 </div>
-                                                <pre className="p-3 overflow-x-auto">
-                                                    <code className={className} {...props}>
-                                                        {children}
-                                                    </code>
-                                                </pre>
-                                            </div>
-                                        ) : (
-                                            <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs" {...props}>
-                                                {children}
-                                            </code>
-                                        )
-                                    }
-                                }}
-                            >
-                                {message.content}
-                            </ReactMarkdown>
+                                            ) : (
+                                                <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs" {...props}>
+                                                    {children}
+                                                </code>
+                                            )
+                                        }
+                                    }}
+                                >
+                                    {message.content}
+                                </ReactMarkdown>
+                            </div>
                         ) : (
-                            <p className="whitespace-pre-wrap text-text-primary">{message.content}</p>
+                            <div className={cn(
+                                "prose prose-invert prose-sm max-w-none leading-relaxed",
+                                "prose-p:my-1 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl"
+                            )}>
+                                <p className="whitespace-pre-wrap text-text-primary">{message.content}</p>
+                            </div>
                         )}
                     </div>
 
