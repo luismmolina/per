@@ -12,6 +12,7 @@ interface Message {
     content: string
     type: 'note' | 'question' | 'ai-response'
     timestamp: Date
+    currentThought?: string | null
     codeBlocks?: Array<{
         code: string
         language: string
@@ -30,6 +31,10 @@ interface MessageBubbleProps {
 export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }: MessageBubbleProps) => {
     const isAI = message.type === 'ai-response'
     const isNote = message.type === 'note'
+    const thinkingLine = message.currentThought ?? (message.thoughts && message.thoughts.length > 0
+        ? message.thoughts[message.thoughts.length - 1]
+        : undefined)
+    const showThinking = isAI && !!thinkingLine && !message.content
 
     return (
         <motion.div
@@ -113,13 +118,13 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                         )}
                     </div>
 
-                    {isAI && message.thoughts && message.thoughts.length > 0 && (
+                    {showThinking && (
                         <div className="mt-3 p-3 rounded-2xl bg-white/5 border border-white/10">
-                            <p className="text-xs uppercase tracking-wide text-text-muted mb-2">AI thinking</p>
-                            <div className="space-y-1 text-sm text-text-secondary">
-                                {message.thoughts.map((thought, idx) => (
-                                    <p key={`${message.id}-thought-${idx}`}>{thought}</p>
-                                ))}
+                            <p className="text-xs tracking-wide text-text-muted mb-2">
+                                <span className="font-semibold text-text-primary">Thought summary</span>
+                            </p>
+                            <div className="text-sm text-text-secondary">
+                                <p>{thinkingLine}</p>
                             </div>
                         </div>
                     )}

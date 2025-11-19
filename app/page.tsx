@@ -10,6 +10,8 @@ interface Message {
   content: string
   type: 'note' | 'question' | 'ai-response'
   timestamp: Date
+  // Latest "thinking" summary from the model while it reasons.
+  currentThought?: string | null
   codeBlocks?: Array<{
     code: string
     language: string
@@ -121,6 +123,7 @@ export default function Home() {
             content: '',
             type: 'ai-response',
             timestamp: new Date(),
+            currentThought: null,
             thoughts: [],
             codeBlocks: []
           }
@@ -178,12 +181,16 @@ export default function Home() {
               if (message.id !== aiMessageId) return message
 
               if (data.type === 'text') {
-                return { ...message, content: (message.content || '') + data.content }
+                return {
+                  ...message,
+                  content: (message.content || '') + data.content,
+                  currentThought: null
+                }
               }
 
               if (data.type === 'thought') {
                 const thoughts = [...(message.thoughts ?? []), data.content]
-                return { ...message, thoughts }
+                return { ...message, thoughts, currentThought: data.content }
               }
 
               if (data.type === 'code') {

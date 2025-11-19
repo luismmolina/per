@@ -11,6 +11,7 @@ interface Message {
     content: string
     type: 'note' | 'question' | 'ai-response'
     timestamp: Date
+    currentThought?: string | null
     codeBlocks?: Array<{
         code: string
         language: string
