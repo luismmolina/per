@@ -119,12 +119,14 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     </div>
 
                     {showThinking && (
-                        <div className="mt-3 p-3 rounded-2xl bg-white/5 border border-white/10">
-                            <p className="text-xs tracking-wide text-text-muted mb-2">
-                                <span className="font-semibold text-text-primary">Thought summary</span>
+                        <div className="mt-3 p-3 rounded-2xl bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-400/40 shadow-[0_0_0_1px_rgba(251,191,36,0.25)] backdrop-blur-sm">
+                            <p className="text-[11px] uppercase tracking-[0.08em] text-amber-200/90 mb-2 font-semibold">
+                                Thought summary — not final answer
                             </p>
-                            <div className="text-sm text-text-secondary">
-                                <p>{thinkingLine}</p>
+                            <div className="text-sm text-amber-50/90 italic">
+                                <p style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                                    {thinkingLine}
+                                </p>
                             </div>
                         </div>
                     )}
