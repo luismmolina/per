@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Copy, Check, Trash, Bot, User, MoreVertical } from 'lucide-react'
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Copy, Check, Trash, Bot } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { cn } from '@/lib/utils'
@@ -17,6 +17,7 @@ interface Message {
         language: string
         result?: string
     }>
+    thoughts?: string[]
 }
 
 interface MessageBubbleProps {
@@ -111,6 +112,38 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                             <p className="whitespace-pre-wrap text-text-primary">{message.content}</p>
                         )}
                     </div>
+
+                    {isAI && message.thoughts && message.thoughts.length > 0 && (
+                        <div className="mt-3 p-3 rounded-2xl bg-white/5 border border-white/10">
+                            <p className="text-xs uppercase tracking-wide text-text-muted mb-2">AI thinking</p>
+                            <div className="space-y-1 text-sm text-text-secondary">
+                                {message.thoughts.map((thought, idx) => (
+                                    <p key={`${message.id}-thought-${idx}`}>{thought}</p>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {isAI && message.codeBlocks && message.codeBlocks.length > 0 && (
+                        <div className="mt-4 space-y-3">
+                            {message.codeBlocks.map((block, idx) => (
+                                <div key={`${message.id}-code-${idx}`} className="border border-white/10 rounded-2xl overflow-hidden bg-black/50">
+                                    <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-white/5">
+                                        <span className="text-xs font-mono text-text-muted">{block.language}</span>
+                                        <span className="text-[10px] text-text-muted">code #{idx + 1}</span>
+                                    </div>
+                                    <pre className="p-4 overflow-x-auto text-sm">
+                                        <code>{block.code}</code>
+                                    </pre>
+                                    {block.result && (
+                                        <div className="px-4 py-2 border-t border-white/5 bg-black/60 text-xs text-text-secondary whitespace-pre-wrap">
+                                            {block.result}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     {/* Actions */}
                     <div className="flex items-center justify-end gap-2 mt-3 pt-2 border-t border-white/5">

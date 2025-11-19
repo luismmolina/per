@@ -20,7 +20,6 @@ interface Message {
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([])
-  const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
@@ -90,94 +89,143 @@ export default function Home() {
   }, [messages, debouncedSave])
 
   // Handlers
+  const buildConversationHistory = useCallback((history: Message[]) => {
+    return history
+      .filter((msg) => msg.type !== 'question')
+      .map((msg) => ({
+        role: msg.type === 'ai-response' ? 'model' : 'user',
+        parts: [{ text: `[${msg.timestamp.toISOString()}] ${msg.content}` }]
+      }))
+  }, [])
+
   const handleSendMessage = async (text: string, type: 'note' | 'question') => {
-    const newMessage: Message = {
+    const trimmed = text.trim()
+    if (!trimmed) return
+
+    const baseMessage: Message = {
       id: Date.now().toString(),
-      content: text,
-      type: type,
+      content: trimmed,
+      type,
       timestamp: new Date()
     }
 
-    setMessages(prev => [...prev, newMessage])
-    setInputValue('')
+    const aiMessageId = type === 'question' ? `${Date.now()}-ai` : null
 
-    if (type === 'question') {
-      setIsLoading(true)
-      try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: text,
-            history: messages // Send history context
-          })
-        })
-
-        if (!response.ok) throw new Error('Failed to get response')
-
-        // Stream handling would go here. For now, assuming simple response or adapting to stream.
-        // The original code had complex stream handling. I'll implement a simplified version or 
-        // if the backend supports it, just wait for response. 
-        // Given the original code had SSE/streaming, I should probably try to support it or 
-        // at least handle the response correctly.
-
-        // NOTE: To keep this refactor safe, I'm simplifying the fetch. 
-        // If the original used `fetch` with `ReadableStream`, I should replicate that.
-        // I'll assume standard fetch for now to get the UI working, but I'll add a TODO.
-
-        // Re-implementing the streaming logic from the original file roughly:
-        const reader = response.body?.getReader()
-        const decoder = new TextDecoder()
-        let aiResponseText = ''
-
-        if (reader) {
-          const aiMessageId = (Date.now() + 1).toString()
-          // Add placeholder AI message
-          setMessages(prev => [...prev, {
+    setMessages(prev => {
+      const updated = [...prev, baseMessage]
+      if (type === 'question' && aiMessageId) {
+        return [
+          ...updated,
+          {
             id: aiMessageId,
             content: '',
             type: 'ai-response',
-            timestamp: new Date()
-          }])
+            timestamp: new Date(),
+            thoughts: [],
+            codeBlocks: []
+          }
+        ]
+      }
+      return updated
+    })
 
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
+    if (type !== 'question' || !aiMessageId) {
+      return
+    }
 
-            const chunk = decoder.decode(value)
-            // Parse SSE format if needed, or just append if raw text
-            // Original code parsed `data: {...}`
+    setIsLoading(true)
 
-            const lines = chunk.split('\n')
-            for (const line of lines) {
-              if (line.startsWith('data: ')) {
-                try {
-                  const data = JSON.parse(line.slice(6))
-                  if (data.type === 'text') {
-                    aiResponseText += data.content
-                    setMessages(prev => prev.map(m =>
-                      m.id === aiMessageId ? { ...m, content: aiResponseText } : m
-                    ))
-                  }
-                } catch (e) {
-                  // ignore parse errors for partial chunks
-                }
+    const historyPayload = buildConversationHistory([...messages, baseMessage])
+
+    try {
+      const response = await fetch('/api/chat-enhanced', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: trimmed,
+          conversationHistory: historyPayload,
+          currentDate: new Date().toISOString(),
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
+      })
+
+      if (!response.ok || !response.body) {
+        throw new Error('Failed to get AI response')
+      }
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let buffer = ''
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const events = buffer.split('\n\n')
+        buffer = events.pop() ?? ''
+
+        for (const event of events) {
+          const line = event.trim()
+          if (!line.startsWith('data:')) continue
+
+          const payload = line.replace(/^data:\s*/, '')
+          if (!payload || payload === '[DONE]') continue
+
+          try {
+            const data = JSON.parse(payload)
+            setMessages(prev => prev.map(message => {
+              if (message.id !== aiMessageId) return message
+
+              if (data.type === 'text') {
+                return { ...message, content: (message.content || '') + data.content }
               }
-            }
+
+              if (data.type === 'thought') {
+                const thoughts = [...(message.thoughts ?? []), data.content]
+                return { ...message, thoughts }
+              }
+
+              if (data.type === 'code') {
+                const codeBlocks = [
+                  ...(message.codeBlocks ?? []),
+                  { code: data.content.code, language: data.content.language }
+                ]
+                return { ...message, codeBlocks }
+              }
+
+              if (data.type === 'code_result') {
+                const codeBlocks = [...(message.codeBlocks ?? [])]
+                if (codeBlocks.length > 0) {
+                  const lastBlock = codeBlocks[codeBlocks.length - 1]
+                  codeBlocks[codeBlocks.length - 1] = {
+                    ...lastBlock,
+                    result: data.content.error ? `Error: ${data.content.error}` : data.content.output
+                  }
+                }
+                return { ...message, codeBlocks }
+              }
+
+              if (data.type === 'error') {
+                return { ...message, content: data.content }
+              }
+
+              return message
+            }))
+          } catch (err) {
+            console.error('Failed to parse stream chunk', err)
           }
         }
-
-      } catch (error) {
-        console.error('Chat error:', error)
-        setMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          content: "Sorry, I encountered an error processing your request.",
-          type: 'ai-response',
-          timestamp: new Date()
-        }])
-      } finally {
-        setIsLoading(false)
       }
+    } catch (error) {
+      console.error('Chat error:', error)
+      setMessages(prev => prev.map(message =>
+        message.id === aiMessageId
+          ? { ...message, content: 'Sorry, I encountered an error processing your request.' }
+          : message
+      ))
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -224,8 +272,6 @@ export default function Home() {
           isListening={isRecording}
           onVoiceStart={toggleRecording}
           onVoiceStop={toggleRecording}
-          inputValue={inputValue}
-          onInputChange={setInputValue}
           onDownloadNotes={handleDownloadNotes}
           inputChildren={
             voiceSession && voiceSession.status !== 'idle' && (

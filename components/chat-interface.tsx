@@ -16,6 +16,7 @@ interface Message {
         language: string
         result?: string
     }>
+    thoughts?: string[]
 }
 
 interface ChatInterfaceProps {
@@ -29,8 +30,6 @@ interface ChatInterfaceProps {
     isListening?: boolean
     onVoiceStart?: () => void
     onVoiceStop?: () => void
-    inputValue: string
-    onInputChange: (value: string) => void
     onDownloadNotes?: () => void
 }
 
@@ -45,8 +44,6 @@ export const ChatInterface = ({
     isListening,
     onVoiceStart,
     onVoiceStop,
-    inputValue,
-    onInputChange,
     onDownloadNotes
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -146,8 +143,6 @@ export const ChatInterface = ({
 
             {/* Input Area */}
             <InputArea
-                value={inputValue}
-                onChange={onInputChange}
                 onSend={onSendMessage}
                 isLoading={isLoading}
                 isListening={isListening}

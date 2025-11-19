@@ -6,8 +6,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface InputAreaProps {
-    value: string
-    onChange: (value: string) => void
     onSend: (text: string, type: 'note' | 'question') => void
     onVoiceStart?: () => void
     onVoiceStop?: () => void
@@ -16,9 +14,10 @@ interface InputAreaProps {
     children?: React.ReactNode
 }
 
-export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, isListening, isLoading, children }: InputAreaProps) => {
+export const InputArea = ({ onSend, onVoiceStart, onVoiceStop, isListening, isLoading, children }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const [isFocused, setIsFocused] = useState(false)
+    const [value, setValue] = useState('')
 
     // Auto-resize textarea
     useEffect(() => {
@@ -31,6 +30,7 @@ export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, 
     const handleSend = (type: 'note' | 'question') => {
         if (!value.trim()) return
         onSend(value, type)
+        setValue('')
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto'
             textareaRef.current.focus()
@@ -72,7 +72,7 @@ export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, 
                     <textarea
                         ref={textareaRef}
                         value={value}
-                        onChange={(e) => onChange(e.target.value)}
+                        onChange={(e) => setValue(e.target.value)}
                         onKeyDown={handleKeyDown}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
@@ -96,6 +96,7 @@ export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, 
                                         onClick={() => handleSend('note')}
                                         className="p-3 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors"
                                         title="Add Note"
+                                        disabled={isLoading}
                                     >
                                         <Plus className="w-5 h-5" />
                                     </button>
@@ -103,6 +104,7 @@ export const InputArea = ({ value, onChange, onSend, onVoiceStart, onVoiceStop, 
                                         onClick={() => handleSend('question')}
                                         className="p-3 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
                                         title="Ask AI"
+                                        disabled={isLoading}
                                     >
                                         <Send className="w-5 h-5" />
                                     </button>
