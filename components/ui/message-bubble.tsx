@@ -44,12 +44,12 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className={cn(
-                "flex w-full mb-6",
+                "flex w-full mb-6 px-1 sm:px-2",
                 isAI ? "justify-start" : "justify-end"
             )}
         >
             <div className={cn(
-                "relative max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1 min-w-0",
+                "relative w-full max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1 min-w-0 overflow-hidden",
                 isAI ? "bg-glass border border-glass-border" :
                     isNote ? "bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30" :
                         "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
@@ -84,17 +84,17 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     {/* Content */}
                     <div className="space-y-3">
                         {isAI ? (
-                            <div className="rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden">
+                            <div className="rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden" style={{ overflowWrap: 'anywhere' }}>
                                 <div className="text-[11px] uppercase tracking-[0.08em] text-accent-cyan/85 mb-2 font-semibold">
                                     Final answer
                                 </div>
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words">{children}</p>,
-                                        ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words">{children}</ul>,
-                                        ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words">{children}</ol>,
-                                        li: ({ children }) => <li className="leading-relaxed break-words">{children}</li>,
+                                        p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</p>,
+                                        ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</ul>,
+                                        ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</ol>,
+                                        li: ({ children }) => <li className="leading-relaxed break-words" style={{ overflowWrap: 'anywhere' }}>{children}</li>,
                                         strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                                         em: ({ children }) => <em className="text-text-secondary">{children}</em>,
                                         code: ({ node, className, children, ...props }) => {
@@ -111,7 +111,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                                     </pre>
                                                 </div>
                                             ) : (
-                                                <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words" {...props}>
+                                                <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words" style={{ overflowWrap: 'anywhere' }} {...props}>
                                                     {children}
                                                 </code>
                                             )
@@ -125,7 +125,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                             <div className={cn(
                                 "prose prose-invert prose-sm max-w-none leading-relaxed break-words",
                                 "prose-p:my-1 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl"
-                            )}>
+                            )} style={{ overflowWrap: 'anywhere' }}>
                                 <p className="whitespace-pre-wrap break-words text-text-primary">{message.content}</p>
                             </div>
                         )}

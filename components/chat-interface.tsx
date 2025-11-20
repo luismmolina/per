@@ -127,7 +127,7 @@ export const ChatInterface = ({
             {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pt-20 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20 scroll-smooth"
                 style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
