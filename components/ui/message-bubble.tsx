@@ -49,7 +49,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1",
+                "relative max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1 min-w-0",
                 isAI ? "bg-glass border border-glass-border" :
                     isNote ? "bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30" :
                         "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
@@ -84,17 +84,17 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     {/* Content */}
                     <div className="space-y-3">
                         {isAI ? (
-                            <div className="rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)]">
+                            <div className="rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden">
                                 <div className="text-[11px] uppercase tracking-[0.08em] text-accent-cyan/85 mb-2 font-semibold">
                                     Final answer
                                 </div>
                                 <ReactMarkdown
                                     remarkPlugins={[remarkGfm]}
                                     components={{
-                                        p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95">{children}</p>,
-                                        ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95">{children}</ul>,
-                                        ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95">{children}</ol>,
-                                        li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+                                        p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words">{children}</p>,
+                                        ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words">{children}</ul>,
+                                        ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words">{children}</ol>,
+                                        li: ({ children }) => <li className="leading-relaxed break-words">{children}</li>,
                                         strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                                         em: ({ children }) => <em className="text-text-secondary">{children}</em>,
                                         code: ({ node, className, children, ...props }) => {
@@ -111,7 +111,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                                     </pre>
                                                 </div>
                                             ) : (
-                                                <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs" {...props}>
+                                                <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words" {...props}>
                                                     {children}
                                                 </code>
                                             )
@@ -123,10 +123,10 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                             </div>
                         ) : (
                             <div className={cn(
-                                "prose prose-invert prose-sm max-w-none leading-relaxed",
+                                "prose prose-invert prose-sm max-w-none leading-relaxed break-words",
                                 "prose-p:my-1 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl"
                             )}>
-                                <p className="whitespace-pre-wrap text-text-primary">{message.content}</p>
+                                <p className="whitespace-pre-wrap break-words text-text-primary">{message.content}</p>
                             </div>
                         )}
                     </div>

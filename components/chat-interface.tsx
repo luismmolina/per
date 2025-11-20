@@ -98,10 +98,14 @@ export const ChatInterface = ({
 
     // Keep the latest messages visible when the keyboard opens.
     useEffect(() => {
-        if (!showScrollButton) {
+        const container = containerRef.current
+        if (!container) return
+        const { scrollTop, scrollHeight, clientHeight } = container
+        const isNearBottom = scrollHeight - scrollTop - clientHeight < 140
+        if (isNearBottom) {
             scrollToBottom('auto')
         }
-    }, [keyboardInset, showScrollButton])
+    }, [keyboardInset])
 
     const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 24)
 
@@ -123,7 +127,7 @@ export const ChatInterface = ({
             {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 overflow-y-auto custom-scrollbar px-4 pt-20 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto custom-scrollbar px-4 pt-20 scroll-smooth"
                 style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
