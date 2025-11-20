@@ -266,9 +266,12 @@ export default function Home() {
   }
 
   return (
-    <main className="relative h-full w-full text-text-primary overflow-hidden">
+    <main
+      className="relative flex min-h-screen w-full text-text-primary overflow-hidden"
+      style={{ minHeight: '100dvh' }}
+    >
       <div className="aurora-bg" />
-      <div className="relative z-10 h-full flex flex-col">
+      <div className="relative z-10 flex flex-1 flex-col">
         <ChatInterface
           messages={messages}
           onSendMessage={handleSendMessage}

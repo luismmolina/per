@@ -50,6 +50,8 @@ export const ChatInterface = ({
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [showScrollButton, setShowScrollButton] = useState(false)
+    const [inputHeight, setInputHeight] = useState(140)
+    const [keyboardInset, setKeyboardInset] = useState(0)
 
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
         messagesEndRef.current?.scrollIntoView({ behavior })
@@ -75,6 +77,34 @@ export const ChatInterface = ({
         return () => container.removeEventListener('scroll', handleScroll)
     }, [])
 
+    // Track keyboard inset so the input hugs the top of the keyboard on mobile.
+    useEffect(() => {
+        const viewport = window.visualViewport
+        if (!viewport) return
+
+        const updateInset = () => {
+            const inset = Math.max(0, window.innerHeight - (viewport.height + viewport.offsetTop))
+            setKeyboardInset(inset)
+        }
+
+        updateInset()
+        viewport.addEventListener('resize', updateInset)
+        viewport.addEventListener('scroll', updateInset)
+        return () => {
+            viewport.removeEventListener('resize', updateInset)
+            viewport.removeEventListener('scroll', updateInset)
+        }
+    }, [])
+
+    // Keep the latest messages visible when the keyboard opens.
+    useEffect(() => {
+        if (!showScrollButton) {
+            scrollToBottom('auto')
+        }
+    }, [keyboardInset, showScrollButton])
+
+    const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 24)
+
     return (
         <div className="relative h-full flex flex-col">
             {/* Header Actions */}
@@ -93,7 +123,8 @@ export const ChatInterface = ({
             {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 overflow-y-auto custom-scrollbar px-4 pt-20 pb-32 scroll-smooth"
+                className="flex-1 overflow-y-auto custom-scrollbar px-4 pt-20 scroll-smooth"
+                style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
                     <AnimatePresence initial={false}>
@@ -149,6 +180,8 @@ export const ChatInterface = ({
                 isListening={isListening}
                 onVoiceStart={onVoiceStart}
                 onVoiceStop={onVoiceStop}
+                keyboardOffset={keyboardInset}
+                onHeightChange={setInputHeight}
             >
                 {inputChildren}
             </InputArea>

@@ -12,10 +12,22 @@ interface InputAreaProps {
     isListening?: boolean
     isLoading?: boolean
     children?: React.ReactNode
+    keyboardOffset?: number
+    onHeightChange?: (height: number) => void
 }
 
-export const InputArea = ({ onSend, onVoiceStart, onVoiceStop, isListening, isLoading, children }: InputAreaProps) => {
+export const InputArea = ({
+    onSend,
+    onVoiceStart,
+    onVoiceStop,
+    isListening,
+    isLoading,
+    children,
+    keyboardOffset = 0,
+    onHeightChange
+}: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
     const [isFocused, setIsFocused] = useState(false)
     const [value, setValue] = useState('')
 
@@ -44,11 +56,32 @@ export const InputArea = ({ onSend, onVoiceStart, onVoiceStop, isListening, isLo
         }
     }
 
+    // Report the current height so the message list can keep clear space.
+    useEffect(() => {
+        if (!containerRef.current || !onHeightChange) return
+        const element = containerRef.current
+
+        const notifyHeight = () => onHeightChange(Math.round(element.getBoundingClientRect().height))
+        const observer = new ResizeObserver(() => notifyHeight())
+
+        notifyHeight()
+        observer.observe(element)
+
+        return () => observer.disconnect()
+    }, [onHeightChange])
+
+    const bottomOffset = Math.max(0, keyboardOffset)
+
     return (
         <motion.div
             initial={{ y: 100 }}
             animate={{ y: 0 }}
-            className="fixed bottom-0 left-0 right-0 z-50 px-4 pb-4 pt-2 bg-gradient-to-t from-black via-black/90 to-transparent"
+            ref={containerRef}
+            className="fixed left-0 right-0 z-50 px-4 pt-2 bg-gradient-to-t from-black via-black/90 to-transparent"
+            style={{
+                bottom: bottomOffset,
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)'
+            }}
         >
             <div className={cn(
                 "max-w-3xl mx-auto rounded-[2rem] p-1.5 transition-all duration-300",
