@@ -46,7 +46,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[80%] sm:max-w-[70%] w-fit flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
+                "relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
                 isAI ? "bg-gradient-to-br from-white/10 to-white/5" :
                     "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
             )}>
@@ -101,11 +101,11 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                             code: ({ node, className, children, ...props }) => {
                                                 const match = /language-(\w+)/.exec(className || '')
                                                 return match ? (
-                                                    <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50 max-w-full">
+                                                    <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50 w-full max-w-full">
                                                         <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
                                                             <span className="text-xs text-text-muted font-mono">{match[1]}</span>
                                                         </div>
-                                                        <pre className="p-3 overflow-x-auto max-w-full">
+                                                        <pre className="p-3 overflow-x-auto w-full max-w-full">
                                                             <code className={className} {...props}>
                                                                 {children}
                                                             </code>
