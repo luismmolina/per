@@ -92,27 +92,27 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{
-                                            p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</p>,
-                                            ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</ul>,
-                                            ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere' }}>{children}</ol>,
-                                            li: ({ children }) => <li className="leading-relaxed break-words" style={{ overflowWrap: 'anywhere' }}>{children}</li>,
+                                            p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words whitespace-normal" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</p>,
+                                            ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ul>,
+                                            ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ol>,
+                                            li: ({ children }) => <li className="leading-relaxed break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</li>,
                                             strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
                                             em: ({ children }) => <em className="text-text-secondary">{children}</em>,
                                             code: ({ node, className, children, ...props }) => {
                                                 const match = /language-(\w+)/.exec(className || '')
                                                 return match ? (
-                                                    <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50">
+                                                    <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50 max-w-full">
                                                         <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
                                                             <span className="text-xs text-text-muted font-mono">{match[1]}</span>
                                                         </div>
-                                                        <pre className="p-3 overflow-x-auto">
+                                                        <pre className="p-3 overflow-x-auto max-w-full">
                                                             <code className={className} {...props}>
                                                                 {children}
                                                             </code>
                                                         </pre>
                                                     </div>
                                                 ) : (
-                                                    <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words" style={{ overflowWrap: 'anywhere' }} {...props}>
+                                                    <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }} {...props}>
                                                         {children}
                                                     </code>
                                                 )
