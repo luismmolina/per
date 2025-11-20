@@ -326,12 +326,28 @@ export default function Home() {
         })
       })
 
-      const payload = await response.json()
-      if (!response.ok || !payload?.text) {
-        throw new Error(payload?.error || 'Failed to generate.')
+      let payload: any = null
+      let raw = ''
+      const contentType = response.headers.get('content-type') || ''
+
+      try {
+        if (contentType.includes('application/json')) {
+          payload = await response.json()
+        } else {
+          raw = await response.text()
+        }
+      } catch (parseErr) {
+        raw = raw || 'Unable to parse response.'
       }
 
-      setLongformText(payload.text)
+      if (!response.ok) {
+        throw new Error(payload?.error || raw || 'Failed to generate.')
+      }
+
+      const text = payload?.text || raw
+      if (!text) throw new Error('No text returned from generator.')
+
+      setLongformText(text)
       setLastGeneratedAt(new Date())
     } catch (error) {
       console.error('Longform error:', error)

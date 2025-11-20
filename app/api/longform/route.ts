@@ -57,13 +57,26 @@ CONSTRAINTS
       },
     } as any)
 
-    const responseText =
-      (result as any)?.response?.text?.() ??
-      (result as any)?.response?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('') ??
-      ''
+    const responseObj: any = (result as any)?.response
+    let responseText = ''
+
+    // Prefer .text() helper if present and returning a string
+    if (responseObj?.text) {
+      const maybe = responseObj.text()
+      responseText = typeof maybe === 'string' ? maybe : String(maybe ?? '')
+    }
+
+    // Fallback to parts stitching
+    if (!responseText) {
+      responseText =
+        responseObj?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('') ?? ''
+    }
 
     if (!responseText) {
-      return new Response(JSON.stringify({ error: 'The model returned an empty response.' }), { status: 500 })
+      return new Response(JSON.stringify({ error: 'The model returned an empty response.' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      })
     }
 
     return new Response(JSON.stringify({ text: responseText }), {
@@ -73,7 +86,10 @@ CONSTRAINTS
   } catch (error) {
     console.error('Longform generation error:', error)
     const message = error instanceof Error ? error.message : 'Unknown error'
-    return new Response(JSON.stringify({ error: message }), { status: 500 })
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' }
+    })
   }
 }
 
