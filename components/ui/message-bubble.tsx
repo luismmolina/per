@@ -46,14 +46,14 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[85%] sm:max-w-[75%] w-fit min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
+                "relative max-w-[85%] sm:max-w-[75%] flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
                 isAI ? "bg-gradient-to-br from-white/10 to-white/5" :
                     "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
             )}>
                 {/* Inner Glow/Glass Container */}
                 <div className={
                     cn(
-                        "relative overflow-hidden rounded-[1.3rem] px-4 sm:px-5 py-4",
+                        "relative w-full overflow-hidden rounded-[1.3rem] px-4 sm:px-5 py-4",
                         isAI ? "bg-black/40 backdrop-blur-md" : "backdrop-blur-sm"
                     )
                 } >
@@ -85,7 +85,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     <div className="space-y-3">
                         {
                             isAI ? (
-                                <div className="w-full rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden" style={{ overflowWrap: 'anywhere' }} >
+                                <div className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden" style={{ overflowWrap: 'anywhere' }} >
                                     <div className="text-[11px] uppercase tracking-[0.08em] text-accent-cyan/85 mb-2 font-semibold">
                                         Final answer
                                     </div>
