@@ -60,8 +60,16 @@ export const InputArea = ({
     useEffect(() => {
         if (!containerRef.current || !onHeightChange) return
         const element = containerRef.current
+        let lastHeight = 0
 
-        const notifyHeight = () => onHeightChange(Math.round(element.getBoundingClientRect().height))
+        const notifyHeight = () => {
+            const currentHeight = Math.round(element.getBoundingClientRect().height)
+            if (currentHeight !== lastHeight) {
+                lastHeight = currentHeight
+                onHeightChange(currentHeight)
+            }
+        }
+
         const observer = new ResizeObserver(() => notifyHeight())
 
         notifyHeight()
