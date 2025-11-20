@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
-import { ArrowDown, Download } from 'lucide-react'
+import { ArrowDown, Download, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
@@ -52,6 +52,7 @@ export const ChatInterface = ({
     const [showScrollButton, setShowScrollButton] = useState(false)
     const [inputHeight, setInputHeight] = useState(140)
     const [keyboardInset, setKeyboardInset] = useState(0)
+    const [visibleCount, setVisibleCount] = useState(8)
 
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
         messagesEndRef.current?.scrollIntoView({ behavior })
@@ -59,8 +60,16 @@ export const ChatInterface = ({
 
     // Auto-scroll on new messages
     useEffect(() => {
+        // Only scroll to bottom if we are showing the latest messages or if it's a new message
         scrollToBottom()
     }, [messages, isLoading])
+
+    const visibleMessages = messages.slice(-visibleCount)
+    const hasMoreMessages = messages.length > visibleCount
+
+    const handleLoadMore = () => {
+        setVisibleCount(prev => prev + 8)
+    }
 
     // Scroll button visibility
     useEffect(() => {
@@ -131,8 +140,20 @@ export const ChatInterface = ({
                 style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
+                    {hasMoreMessages && (
+                        <div className="flex justify-center mb-6">
+                            <button
+                                onClick={handleLoadMore}
+                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-text-muted hover:bg-white/10 hover:text-primary transition-all text-xs font-medium"
+                            >
+                                <ChevronUp className="w-3 h-3" />
+                                Load older messages
+                            </button>
+                        </div>
+                    )}
+
                     <AnimatePresence initial={false}>
-                        {messages.map((msg) => (
+                        {visibleMessages.map((msg) => (
                             <MessageBubble
                                 key={msg.id}
                                 message={msg}
