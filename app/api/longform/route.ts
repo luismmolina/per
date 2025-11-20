@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: 'Notes are required to generate the long-form text.' }), { status: 400 })
     }
 
-    const model = (globalThis as any).process?.env?.GEMINI_MODEL || 'gemini-2.5-pro'
+    const model = (globalThis as any).process?.env?.GEMINI_MODEL || 'gemini-flash-latest'
     const genAI = new GoogleGenAI({ apiKey })
     const todayLine = currentDate ? String(currentDate) : new Date().toString()
     const tzLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
@@ -54,6 +54,9 @@ CONSTRAINTS
       ],
       config: {
         temperature: 0.7,
+        thinkingConfig: {
+          thinkingBudget: -1,
+        },
       },
     } as any)
 

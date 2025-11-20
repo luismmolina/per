@@ -49,14 +49,14 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative w-full max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1 min-w-0 overflow-hidden",
+                "relative max-w-[90%] sm:max-w-[85%] md:max-w-[75%] rounded-3xl p-1 min-w-0 overflow-hidden",
                 isAI ? "bg-glass border border-glass-border" :
                     isNote ? "bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30" :
                         "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
             )}>
                 {/* Inner Glow/Glass Container */}
                 <div className={cn(
-                    "relative overflow-hidden rounded-[1.3rem] px-5 py-4",
+                    "relative overflow-hidden rounded-[1.3rem] px-4 sm:px-5 py-4",
                     isAI ? "bg-black/40 backdrop-blur-md" : "backdrop-blur-sm"
                 )}>
 

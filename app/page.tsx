@@ -491,6 +491,16 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Quick access to Deep Read from anywhere */}
+        {activeTab === 'chat' && (
+          <button
+            onClick={() => setActiveTab('deepread')}
+            className="fixed right-4 bottom-28 md:bottom-32 px-4 py-2 rounded-full bg-white text-black text-sm font-semibold shadow-lg hover:shadow-xl transition-all z-50"
+          >
+            Deep Read
+          </button>
+        )}
       </div>
     </main>
   )
