@@ -69,10 +69,17 @@ CONSTRAINTS
       responseText = typeof maybe === 'string' ? maybe : String(maybe ?? '')
     }
 
-    // Fallback to parts stitching
+    const pickFromParts = (obj: any) =>
+      obj?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') || ''
+
+    // Fallback to parts stitching from .response
     if (!responseText) {
-      responseText =
-        responseObj?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('') ?? ''
+      responseText = pickFromParts(responseObj)
+    }
+
+    // Final fallback: some SDK shapes put candidates at the top level
+    if (!responseText) {
+      responseText = pickFromParts(result as any)
     }
 
     if (!responseText) {
