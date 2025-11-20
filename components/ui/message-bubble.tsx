@@ -46,7 +46,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[85%] sm:max-w-[75%] flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
+                "relative max-w-[80%] sm:max-w-[70%] w-fit flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
                 isAI ? "bg-gradient-to-br from-white/10 to-white/5" :
                     "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
             )}>
@@ -127,7 +127,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                     "prose prose-invert prose-sm max-w-none leading-relaxed break-words",
                                     "prose-p:my-1 prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/10 prose-pre:rounded-xl"
                                 )} style={{ overflowWrap: 'anywhere' }}>
-                                    <p className="whitespace-pre-wrap break-words text-text-primary" style={{ overflowWrap: 'anywhere' }}>{message.content}</p>
+                                    <p className="whitespace-pre-wrap break-words text-text-primary" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{message.content}</p>
                                 </div>
                             )}
                     </div>
