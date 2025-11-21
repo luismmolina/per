@@ -93,10 +93,10 @@ export const InputArea = ({
         >
             <div className={cn(
                 "w-full max-w-2xl pointer-events-auto transition-all duration-300",
-                "glass-pill rounded-[2rem] p-2"
+                "glass-pill rounded-[2.5rem] p-2.5"
             )}>
                 {children}
-                <div className="flex items-end gap-2 relative">
+                <div className="flex items-end gap-3 relative">
 
                     {/* Voice Button */}
                     <button

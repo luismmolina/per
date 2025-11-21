@@ -46,13 +46,13 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "group relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 overflow-hidden",
+                "group relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 overflow-hidden shadow-2xl",
                 isAI ? "rounded-[2rem] rounded-tl-none" : "rounded-[2rem] rounded-tr-none"
             )}>
                 <div className={
                     cn(
                         "relative w-full px-6 py-5 text-premium",
-                        isAI ? "card-fluid text-gray-100" : "card-solid text-white border-accent-gold"
+                        isAI ? "card-fluid text-gray-100" : "card-solid text-white"
                     )
                 } >
 
