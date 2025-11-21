@@ -23,31 +23,31 @@ export function VoiceSessionPanel({ session, onRetry }: VoiceSessionPanelProps) 
         : ''
 
   return (
-    <div className="card-solid rounded-2xl p-4 space-y-3 relative z-50">
+    <div className="bg-neutral-900 border border-amoled-border rounded-2xl p-4 space-y-3 shadow-xl relative z-50">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${isRecording ? 'bg-red-500 animate-pulse shadow-[0_0_10px_rgba(239,68,68,0.5)]' : isProcessing ? 'bg-purple-500 animate-pulse' : 'bg-amber-500'
+            className={`inline-flex h-2.5 w-2.5 rounded-full ${isRecording ? 'bg-accent-red animate-pulse' : isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
               }`}
           ></span>
           <div>
-            <p className="text-sm font-semibold text-white tracking-wide">Voice Capture</p>
-            <p className="text-xs text-gray-400">{statusText}</p>
+            <p className="text-sm font-semibold text-white">Voice capture</p>
+            <p className="text-xs text-amoled-textMuted">{statusText}</p>
           </div>
         </div>
-        <span className="font-mono text-lg text-white/90 tracking-wider">{formatDuration(session.elapsedMs)}</span>
+        <span className="font-mono text-lg text-accent-purple">{formatDuration(session.elapsedMs)}</span>
       </div>
 
-      {subText && <p className="text-sm text-gray-400">{subText}</p>}
+      {subText && <p className="text-sm text-amoled-textMuted">{subText}</p>}
 
       {isError && (
-        <div className="flex items-center justify-between pt-2 border-t border-white/10">
-          <span className="text-xs text-amber-400/80">Upload failed.</span>
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-accent-amber">Tap retry to upload the failed chunk.</span>
           <button
             onClick={onRetry}
-            className="px-3 py-1.5 rounded-lg bg-white/10 text-white text-xs font-semibold hover:bg-white/20 transition-colors"
+            className="px-3 py-1 rounded-lg bg-accent-purple/20 text-white text-xs font-semibold hover:bg-accent-purple/30 transition-colors"
           >
-            Retry
+            Retry upload
           </button>
         </div>
       )}

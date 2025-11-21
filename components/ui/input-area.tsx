@@ -85,28 +85,28 @@ export const InputArea = ({
             initial={{ y: 100 }}
             animate={{ y: 0 }}
             ref={containerRef}
-            className="fixed left-0 right-0 z-50 px-4 flex justify-center pointer-events-none"
+            className="fixed left-0 right-0 z-50 px-4 pt-2 bg-gradient-to-t from-black via-black/90 to-transparent"
             style={{
                 bottom: bottomOffset,
-                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1.5rem)'
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)'
             }}
         >
             <div className={cn(
-                "w-full max-w-2xl pointer-events-auto transition-all duration-300",
-                "glass-pill rounded-[2.5rem] p-2.5"
+                "max-w-3xl mx-auto rounded-[2rem] p-1.5 transition-all duration-300",
+                isFocused ? "bg-gradient-to-r from-primary/50 via-accent-purple/50 to-primary/50 shadow-[0_0_30px_-5px_rgba(59,130,246,0.3)]" : "bg-white/10 border border-white/10"
             )}>
                 {children}
-                <div className="flex items-end gap-3 relative">
+                <div className="bg-black/80 backdrop-blur-xl rounded-[1.7rem] flex items-end gap-2 p-2 relative overflow-hidden">
 
                     {/* Voice Button */}
                     <button
                         onClick={isListening ? onVoiceStop : onVoiceStart}
                         className={cn(
-                            "p-3.5 rounded-full transition-all duration-300 flex-shrink-0",
-                            isListening ? "bg-red-500/20 text-red-500 animate-pulse" : "hover:bg-white/10 text-gray-400 hover:text-white"
+                            "p-3 rounded-full transition-all duration-300 flex-shrink-0",
+                            isListening ? "bg-red-500/20 text-red-500 animate-pulse" : "hover:bg-white/10 text-text-secondary hover:text-text-primary"
                         )}
                     >
-                        {isListening ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                        {isListening ? <StopCircle className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
                     </button>
 
                     {/* Text Input */}
@@ -117,33 +117,33 @@ export const InputArea = ({
                         onKeyDown={handleKeyDown}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
-                        placeholder="Type a memory or ask a question..."
+                        placeholder="Type or ask..."
                         rows={1}
-                        className="flex-1 bg-transparent text-white placeholder-gray-500 text-[16px] py-3.5 px-2 focus:outline-none resize-none max-h-[150px] custom-scrollbar leading-relaxed"
-                        style={{ minHeight: '52px' }}
+                        className="flex-1 bg-transparent text-text-primary placeholder-text-muted text-base py-3 px-2 focus:outline-none resize-none max-h-[150px] custom-scrollbar"
+                        style={{ minHeight: '48px' }}
                     />
 
                     {/* Actions */}
-                    <div className="flex items-center gap-1 pb-1.5 pr-1.5">
+                    <div className="flex items-center gap-2 pb-1">
                         <AnimatePresence mode="wait">
                             {value.trim() ? (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, x: 10 }}
-                                    animate={{ opacity: 1, scale: 1, x: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, x: 10 }}
+                                    initial={{ opacity: 0, scale: 0.5 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.5 }}
                                     className="flex gap-2"
                                 >
                                     <button
                                         onClick={() => handleSend('note')}
-                                        className="p-3 rounded-full bg-white/5 hover:bg-white/10 text-emerald-400 border border-emerald-500/20 transition-all"
-                                        title="Save as Memory"
+                                        className="p-3 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors"
+                                        title="Add Note"
                                         disabled={isLoading}
                                     >
                                         <Plus className="w-5 h-5" />
                                     </button>
                                     <button
                                         onClick={() => handleSend('question')}
-                                        className="p-3 rounded-full bg-white text-black hover:bg-gray-200 shadow-[0_0_15px_rgba(255,255,255,0.3)] transition-all hover:scale-105 active:scale-95"
+                                        className="p-3 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all"
                                         title="Ask AI"
                                         disabled={isLoading}
                                     >
@@ -156,7 +156,7 @@ export const InputArea = ({
                                     animate={{ opacity: 1 }}
                                     exit={{ opacity: 0 }}
                                 >
-                                    {/* Empty state actions if needed */}
+                                    {/* Placeholder or alternative actions when empty could go here */}
                                 </motion.div>
                             )}
                         </AnimatePresence>
