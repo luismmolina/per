@@ -104,3 +104,43 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Premium UI Utilities */
+
+/* User Note: Solid, Permanent, High Contrast */
+.card-solid {
+  background: #111111;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* AI Response: Fluid, Dynamic, Glass */
+.card-fluid {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* Floating Input Pill */
+.glass-pill {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 10px 40px -10px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Golden Accent for Notes */
+.border-accent-gold {
+  border-color: rgba(251, 191, 36, 0.3);
+}
+
+/* Typography Polish */
+.text-premium {
+  letter-spacing: -0.01em;
+  line-height: 1.6;
+}

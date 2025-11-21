@@ -116,7 +116,7 @@ export const ChatInterface = ({
         }
     }, [keyboardInset])
 
-    const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 24)
+    const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 40)
 
     return (
         <div className="relative h-full flex flex-col">
@@ -125,7 +125,7 @@ export const ChatInterface = ({
                 <div className="absolute top-4 right-4 z-50">
                     <button
                         onClick={onDownloadNotes}
-                        className="p-2 rounded-full bg-glass backdrop-blur-md border border-glass-border text-text-secondary hover:text-primary hover:bg-glass-hover transition-colors"
+                        className="p-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
                         title="Download Notes"
                     >
                         <Download className="w-5 h-5" />
@@ -144,7 +144,7 @@ export const ChatInterface = ({
                         <div className="flex justify-center mb-6">
                             <button
                                 onClick={handleLoadMore}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-text-muted hover:bg-white/10 hover:text-primary transition-all text-xs font-medium"
+                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-500 hover:bg-white/10 hover:text-white transition-all text-xs font-medium"
                             >
                                 <ChevronUp className="w-3 h-3" />
                                 Load older messages
@@ -168,14 +168,14 @@ export const ChatInterface = ({
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-2 text-text-muted ml-4"
+                            className="flex items-center gap-2 text-gray-500 ml-4"
                         >
                             <div className="flex space-x-1">
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
+                                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
+                                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
+                                <div className="w-1.5 h-1.5 bg-white/40 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
                             </div>
-                            <span className="text-xs">AI is thinking...</span>
+                            <span className="text-xs font-medium tracking-wide uppercase">Thinking</span>
                         </motion.div>
                     )}
 
@@ -191,7 +191,7 @@ export const ChatInterface = ({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         onClick={() => scrollToBottom()}
-                        className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors"
+                        className="absolute bottom-32 right-6 p-3 rounded-full bg-white/10 backdrop-blur-md border border-white/10 text-white shadow-lg z-40 hover:bg-white/20 transition-colors"
                     >
                         <ArrowDown className="w-5 h-5" />
                     </motion.button>
