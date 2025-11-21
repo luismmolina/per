@@ -46,7 +46,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 overflow-hidden",
+                "group relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 overflow-hidden",
                 isAI ? "rounded-[2rem] rounded-tl-none" : "rounded-[2rem] rounded-tr-none"
             )}>
                 <div className={
