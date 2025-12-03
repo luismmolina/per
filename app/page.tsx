@@ -468,7 +468,7 @@ export default function Home() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6">
-              <div className="max-w-3xl mx-auto rounded-3xl border border-white/5 bg-[rgb(12,12,10)]/95 shadow-[0_30px_120px_-60px_rgba(0,0,0,0.8)] p-6 md:p-10 text-lg leading-[1.85] text-[#e8dfc8] font-serif">
+              <div className="max-w-2xl mx-auto py-8 md:py-12 text-lg md:text-xl leading-relaxed text-[#e8dfc8] font-serif">
                 {longformError && (
                   <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-200 p-4">
                     {longformError}
