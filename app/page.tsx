@@ -178,7 +178,8 @@ export default function Home() {
 
     setIsLoading(true)
 
-    const historyPayload = buildConversationHistory([...messages, baseMessage])
+    // Limit context to last 100 items to prevent timeouts with large history (90k+ tokens)
+    const historyPayload = buildConversationHistory([...messages, baseMessage]).slice(-100)
 
     try {
       const response = await fetch('/api/chat-enhanced', {
