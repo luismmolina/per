@@ -1,14 +1,14 @@
 import type { NextRequest } from 'next/server'
-import { GoogleGenAI } from '@google/genai'
+import OpenAI from 'openai'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = (globalThis as any).process?.env?.GEMINI_API_KEY || (globalThis as any).process?.env?.NEXT_PUBLIC_GEMINI_API_KEY
+    const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'GEMINI_API_KEY is not set.' }), { status: 500 })
+      return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not set.' }), { status: 500 })
     }
 
     const { notes, currentDate, userTimezone } = await req.json()
@@ -18,8 +18,11 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: 'Notes are required to generate the long-form text.' }), { status: 400 })
     }
 
-    const model = (globalThis as any).process?.env?.GEMINI_MODEL || 'gemini-flash-latest'
-    const genAI = new GoogleGenAI({ apiKey })
+    const openai = new OpenAI({
+      apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+    })
+
     const todayLine = currentDate ? String(currentDate) : new Date().toString()
     const tzLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
 
@@ -67,43 +70,17 @@ Tone Guidelines:
 Command:
 Analyze the notes. Map the neural architecture. Write the Daily Activation Manual.`
 
-    const result = await genAI.models.generateContent({
+    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast:free'
+
+    const completion = await openai.chat.completions.create({
       model,
-      contents: [
-        {
-          role: 'user',
-          parts: [{ text: prompt }],
-        },
+      messages: [
+        { role: 'user', content: prompt }
       ],
-      config: {
-        temperature: 0.7,
-        thinkingConfig: {
-          thinkingBudget: -1,
-        },
-      },
-    } as any)
+      temperature: 0.7,
+    })
 
-    const responseObj: any = (result as any)?.response
-    let responseText = ''
-
-    // Prefer .text() helper if present and returning a string
-    if (responseObj?.text) {
-      const maybe = responseObj.text()
-      responseText = typeof maybe === 'string' ? maybe : String(maybe ?? '')
-    }
-
-    const pickFromParts = (obj: any) =>
-      obj?.candidates?.[0]?.content?.parts?.map((p: any) => p?.text || '').join('') || ''
-
-    // Fallback to parts stitching from .response
-    if (!responseText) {
-      responseText = pickFromParts(responseObj)
-    }
-
-    // Final fallback: some SDK shapes put candidates at the top level
-    if (!responseText) {
-      responseText = pickFromParts(result as any)
-    }
+    const responseText = completion.choices[0]?.message?.content || ''
 
     if (!responseText) {
       return new Response(JSON.stringify({ error: 'The model returned an empty response.' }), {

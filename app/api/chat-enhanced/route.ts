@@ -1,18 +1,10 @@
 import type { NextRequest } from 'next/server'
+import OpenAI from 'openai'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
 
-import {
-  GoogleGenAI,
-  Content,
-  HarmCategory,
-  HarmBlockThreshold,
-} from '@google/genai'
-
-// Removed legacy dishes/COGS context: this endpoint focuses on personal notes only.
-
-function iteratorToStream(iterator: AsyncGenerator<any, any, undefined>): ReadableStream<any> {
+function iteratorToStream(iterator: AsyncIterable<any>): ReadableStream<any> {
   return new ReadableStream({
     async start(controller) {
       const encoder = new TextEncoder();
@@ -20,38 +12,10 @@ function iteratorToStream(iterator: AsyncGenerator<any, any, undefined>): Readab
       try {
         for await (const chunk of iterator) {
           try {
-            const candidates = (chunk as any)?.candidates
-            const content = candidates && candidates[0]?.content
-            const parts = content?.parts as any[] | undefined
-            if (parts) {
-              for (const part of parts) {
-                if (part?.text) {
-                  const dbg = (globalThis as any).process?.env?.DEBUG
-                  if (dbg) {
-                    console.log('Part received:', {
-                      hasThought: (part as any).thought === true,
-                      textPreview: (part.text as string)?.substring(0, 100) + '...'
-                    })
-                  }
-                  // If the part is marked as a thought, stream as a thought event
-                  if ((part as any).thought === true) {
-                    const data = { type: 'thought', content: part.text as string }
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-                  } else {
-                    const data = { type: 'text', content: part.text as string }
-                    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-                  }
-                } else if (part?.executableCode) {
-                  const data = { type: 'code', content: { code: part.executableCode.code, language: part.executableCode.language } }
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-                } else if ((part as any)?.codeExecutionResult) {
-                  const cer: any = (part as any).codeExecutionResult
-                  const output = cer?.output ?? cer?.out ?? ''
-                  const error = cer?.error ?? cer?.err ?? ''
-                  const data = { type: 'code_result', content: { output, error } }
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-                }
-              }
+            const content = chunk.choices[0]?.delta?.content
+            if (content) {
+              const data = { type: 'text', content: content }
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
             }
           } catch (innerErr) {
             console.error('Error processing chunk part:', innerErr)
@@ -75,10 +39,10 @@ function iteratorToStream(iterator: AsyncGenerator<any, any, undefined>): Readab
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = (globalThis as any).process?.env?.GEMINI_API_KEY || (globalThis as any).process?.env?.NEXT_PUBLIC_GEMINI_API_KEY
+    const apiKey = process.env.OPENROUTER_API_KEY
     if (!apiKey) {
       console.error('API Key not found.')
-      return new Response('Error: GEMINI_API_KEY is not set.', { status: 500 })
+      return new Response('Error: OPENROUTER_API_KEY is not set.', { status: 500 })
     }
 
     const { message, conversationHistory = [], currentDate, userTimezone } = await req.json()
@@ -87,8 +51,10 @@ export async function POST(req: NextRequest) {
       return new Response('Error: Message is required.', { status: 400 })
     }
 
-    const genAI = new GoogleGenAI({ apiKey })
-    let result: any
+    const openai = new OpenAI({
+      apiKey,
+      baseURL: 'https://openrouter.ai/api/v1',
+    })
 
     // Personal assistant: focus on user notes only (no external domain filters)
 
@@ -106,8 +72,6 @@ export async function POST(req: NextRequest) {
         return ''
       })
       .join('\n')
-
-    const fullContext = context
 
     const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
 
@@ -155,47 +119,19 @@ CONSTRAINTS
 - Length: High density. No filler words.
 - If the notes do not answer the question, state clearly: "Insufficient data to derive a conclusion."`
 
-    const contents: Content[] = [
-      { role: 'user', parts: [{ text: systemInstruction }] },
-    ]
+    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast:free'
 
-    const model = (globalThis as any).process?.env?.GEMINI_MODEL || 'gemini-2.5-pro'
-    const tokenCount = await genAI.models.countTokens({ model, contents })
-    const inputTokens = (tokenCount as any).totalTokens || 0
-    const dbg = (globalThis as any).process?.env?.DEBUG
-    if (dbg) {
-      const inputCost = (inputTokens / 1_000_000) * 1.25
-      console.log(`Single-Model (Pro) - Input: ${inputTokens} tokens ($${inputCost.toFixed(4)})`)
-    }
-
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Single-model request timeout')), 30000)
+    const stream = await openai.chat.completions.create({
+      model,
+      messages: [
+        { role: 'system', content: systemInstruction },
+        { role: 'user', content: message } // Redundant but good for clarity if systemInstruction is treated as system
+      ],
+      stream: true,
     })
 
-    const streamPromise = genAI.models.generateContentStream({
-      model,
-      contents,
-      config: {
-        thinkingConfig: {
-          includeThoughts: true,
-          thinkingBudget: -1,
-        },
-        tools: [
-          { codeExecution: {} } as any,
-        ] as any,
-        safetySettings: [
-          { category: (HarmCategory as any).HARM_CATEGORY_HARASSMENT, threshold: (HarmBlockThreshold as any).BLOCK_MEDIUM_AND_ABOVE },
-          { category: (HarmCategory as any).HARM_CATEGORY_HATE_SPEECH, threshold: (HarmBlockThreshold as any).BLOCK_MEDIUM_AND_ABOVE },
-          { category: (HarmCategory as any).HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: (HarmBlockThreshold as any).BLOCK_MEDIUM_AND_ABOVE },
-          { category: (HarmCategory as any).HARM_CATEGORY_DANGEROUS_CONTENT, threshold: (HarmBlockThreshold as any).BLOCK_MEDIUM_AND_ABOVE },
-        ] as any,
-      },
-    }) as any
-
-    result = await Promise.race([streamPromise, timeoutPromise])
-
-    const stream = iteratorToStream(result)
-    return new Response(stream, {
+    const responseStream = iteratorToStream(stream)
+    return new Response(responseStream, {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
