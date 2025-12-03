@@ -1,9 +1,13 @@
 ﻿'use client'
+'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
+
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface Message {
   id: string
@@ -429,9 +433,7 @@ export default function Home() {
             <div className="sticky top-0 z-30 px-4 pt-4 pb-3 md:px-6 backdrop-blur-md bg-black/40 border-b border-white/5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-text-muted">Deep Read</p>
-                  <h2 className="text-2xl font-semibold text-white">Focused guidance built from your notes</h2>
-                  <p className="text-xs text-text-muted mt-1">Kindle-style, distraction-free. Stored locally until you regenerate.</p>
+                  {/* Text removed as requested */}
                 </div>
                 <div className="flex flex-col items-end gap-2 min-w-[160px]">
                   {lastGeneratedAt && (
@@ -478,13 +480,25 @@ export default function Home() {
                   <div className="text-base text-text-muted animate-pulse">Synthesizing your notes into a focused read…</div>
                 )}
 
-                {!isGeneratingLongform && longformParagraphs.length > 0 && (
-                  <div className="space-y-6 text-[18px] md:text-[19px]">
-                    {longformParagraphs.map((paragraph, idx) => (
-                      <p key={idx} className="text-[#f0e8d7]">
-                        {paragraph}
-                      </p>
-                    ))}
+                {!isGeneratingLongform && longformText && (
+                  <div className="text-[18px] md:text-[19px]">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        p: ({ node, ...props }) => <p className="mb-6 text-[#f0e8d7]" {...props} />,
+                        h1: ({ node, ...props }) => <h1 className="text-2xl font-bold mb-4 text-white mt-8" {...props} />,
+                        h2: ({ node, ...props }) => <h2 className="text-xl font-bold mb-3 text-white mt-6" {...props} />,
+                        h3: ({ node, ...props }) => <h3 className="text-lg font-bold mb-2 text-white mt-4" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="list-disc pl-5 mb-6 space-y-2 text-[#f0e8d7]" {...props} />,
+                        ol: ({ node, ...props }) => <ol className="list-decimal pl-5 mb-6 space-y-2 text-[#f0e8d7]" {...props} />,
+                        li: ({ node, ...props }) => <li className="pl-1" {...props} />,
+                        blockquote: ({ node, ...props }) => <blockquote className="border-l-4 border-white/20 pl-4 italic my-6 text-white/80" {...props} />,
+                        code: ({ node, ...props }) => <code className="bg-white/10 rounded px-1 py-0.5 text-sm font-mono text-white/90" {...props} />,
+                        pre: ({ node, ...props }) => <pre className="bg-black/30 rounded-lg p-4 mb-6 overflow-x-auto" {...props} />,
+                      }}
+                    >
+                      {longformText}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
