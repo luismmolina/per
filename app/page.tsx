@@ -309,6 +309,7 @@ export default function Home() {
   const handleGenerateLongform = async () => {
     const noteLines = messages
       .filter(m => m.type !== 'question')
+      .slice(-100) // Limit to last 100 notes to prevent timeouts (approx 10-15k tokens)
       .map(m => `[${m.timestamp.toISOString()}] (${m.type}) ${m.content}`)
       .join('\n')
 
