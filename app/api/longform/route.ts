@@ -80,11 +80,10 @@ Analyze the notes. Map the neural architecture. Write the Daily Activation Manua
       temperature: 0.7,
       max_tokens: 8000,
       stream: true,
-      // Optional: Default is false. All models support this.
-      exclude: false, // Set to true to exclude reasoning tokens from response
-      // Or enable reasoning with the default parameters:
-      enabled: true // Default: inferred from `effort` or `max_tokens`
-    })
+      reasoning: {
+        effort: 'high'
+      }
+    } as any) as any
 
     // Create a readable stream from the OpenAI stream
     const readableStream = new ReadableStream({
