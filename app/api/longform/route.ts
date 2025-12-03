@@ -72,26 +72,40 @@ Analyze the notes. Map the neural architecture. Write the Daily Activation Manua
 
     const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast:free'
 
-    const completion = await openai.chat.completions.create({
+    const stream = await openai.chat.completions.create({
       model,
       messages: [
         { role: 'user', content: prompt }
       ],
       temperature: 0.7,
+      max_tokens: 4000,
+      stream: true,
     })
 
-    const responseText = completion.choices[0]?.message?.content || ''
+    // Create a readable stream from the OpenAI stream
+    const readableStream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder()
+        try {
+          for await (const chunk of stream) {
+            const content = chunk.choices[0]?.delta?.content || ''
+            if (content) {
+              controller.enqueue(encoder.encode(content))
+            }
+          }
+          controller.close()
+        } catch (err) {
+          console.error('Streaming error:', err)
+          controller.error(err)
+        }
+      }
+    })
 
-    if (!responseText) {
-      return new Response(JSON.stringify({ error: 'The model returned an empty response.' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      })
-    }
-
-    return new Response(JSON.stringify({ text: responseText }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
+    return new Response(readableStream, {
+      headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Transfer-Encoding': 'chunked',
+      },
     })
   } catch (error) {
     console.error('Longform generation error:', error)

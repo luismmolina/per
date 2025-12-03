@@ -332,28 +332,33 @@ export default function Home() {
         })
       })
 
-      let payload: any = null
-      let raw = ''
-      const contentType = response.headers.get('content-type') || ''
-
-      try {
-        if (contentType.includes('application/json')) {
-          payload = await response.json()
-        } else {
-          raw = await response.text()
-        }
-      } catch (parseErr) {
-        raw = raw || 'Unable to parse response.'
-      }
-
       if (!response.ok) {
-        throw new Error(payload?.error || raw || 'Failed to generate.')
+        let errorMsg = 'Failed to generate.'
+        try {
+          const payload = await response.json()
+          errorMsg = payload.error || errorMsg
+        } catch (e) {
+          errorMsg = await response.text() || errorMsg
+        }
+        throw new Error(errorMsg)
       }
 
-      const text = payload?.text || raw
-      if (!text) throw new Error('No text returned from generator.')
+      if (!response.body) throw new Error('No response body')
 
-      setLongformText(text)
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      let accumulatedText = ''
+      setLongformText('') // Clear previous text
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        accumulatedText += chunk
+        setLongformText(prev => prev + chunk)
+      }
+
       setLastGeneratedAt(new Date())
     } catch (error) {
       console.error('Longform error:', error)
