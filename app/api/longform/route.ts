@@ -77,7 +77,7 @@ Analyze the notes. Map the neural architecture. Write the Daily Activation Manua
       messages: [
         { role: 'user', content: prompt }
       ],
-      temperature: 0.7,
+      temperature: 0.6,
       max_tokens: 8000,
       stream: true,
       reasoning: {

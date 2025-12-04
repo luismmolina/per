@@ -308,7 +308,7 @@ export default function Home() {
 
   const handleGenerateLongform = async () => {
     const noteLines = messages
-      .filter(m => m.type !== 'question')
+      .filter(m => m.type === 'note')
       .map(m => `[${m.timestamp.toISOString()}] (${m.type}) ${m.content}`)
       .join('\n')
 
