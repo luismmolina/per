@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
-import { ArrowDown, Download, ChevronUp } from 'lucide-react'
+import { ArrowDown, ChevronUp } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
@@ -120,19 +120,6 @@ export const ChatInterface = ({
 
     return (
         <div className="relative h-full flex flex-col">
-            {/* Header Actions */}
-            {onDownloadNotes && (
-                <div className="absolute top-4 right-4 z-50">
-                    <button
-                        onClick={onDownloadNotes}
-                        className="p-2 rounded-full bg-glass backdrop-blur-md border border-glass-border text-text-secondary hover:text-primary hover:bg-glass-hover transition-colors"
-                        title="Download Notes"
-                    >
-                        <Download className="w-5 h-5" />
-                    </button>
-                </div>
-            )}
-
             {/* Messages Area */}
             <div
                 ref={containerRef}

@@ -1,10 +1,10 @@
 ﻿'use client'
-'use client'
 
 import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
+import { Download } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -393,6 +393,7 @@ export default function Home() {
       <div className="relative z-10 flex flex-1 flex-col">
         <div className="px-4 pt-6 md:px-6 md:pt-8">
           <div className="flex items-center justify-between gap-3">
+            {/* Tab Switcher */}
             <div className="inline-flex rounded-full border border-white/10 bg-black/50 p-1 backdrop-blur-sm shadow-[0_10px_40px_-25px_rgba(0,0,0,0.9)]">
               <button
                 onClick={() => setActiveTab('chat')}
@@ -408,8 +409,18 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="text-xs text-text-muted hidden sm:block">
-              {messages.filter(m => m.type === 'note').length} notes stored
+            {/* Quick Actions */}
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-text-muted hidden sm:block mr-2">
+                {messages.filter(m => m.type === 'note').length} notes
+              </span>
+              <button
+                onClick={handleDownloadNotes}
+                className="p-2 rounded-full bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
+                title="Download Notes"
+              >
+                <Download className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
@@ -512,15 +523,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Quick access to Deep Read from anywhere */}
-        {activeTab === 'chat' && (
-          <button
-            onClick={() => setActiveTab('deepread')}
-            className="fixed right-4 bottom-28 md:bottom-32 px-4 py-2 rounded-full bg-white text-black text-sm font-semibold shadow-lg hover:shadow-xl transition-all z-50"
-          >
-            Deep Read
-          </button>
-        )}
+
       </div>
     </main>
   )
