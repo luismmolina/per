@@ -71,7 +71,7 @@ Tone Guidelines:
 Command:
 Perform the Strategic Audit. Construct the Deep Read. Write the Daily Manual.`
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast:free'
+    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
 
     const stream = await openai.chat.completions.create({
       model,
