@@ -119,7 +119,7 @@ CONSTRAINTS
 - Length: High density. No filler words.
 - If the notes do not answer the question, state clearly: "Insufficient data to derive a conclusion."`
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast:free'
+    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
 
     const stream = await openai.chat.completions.create({
       model,
