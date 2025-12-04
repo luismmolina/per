@@ -71,7 +71,7 @@ Tone Guidelines:
 Command:
 Perform the Strategic Audit. Construct the Deep Read. Write the Daily Manual.`
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 
     const stream = await openai.chat.completions.create({
       model,
@@ -79,7 +79,7 @@ Perform the Strategic Audit. Construct the Deep Read. Write the Daily Manual.`
         { role: 'user', content: prompt }
       ],
       temperature: 0.6,
-      max_tokens: 8000,
+      max_tokens: 12000,
       stream: true,
       reasoning: {
         effort: 'high'
