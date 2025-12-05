@@ -116,7 +116,7 @@ RULES
 - If notes contradict, acknowledge it and explain your reasoning
 - Never just say "I don't know" - show what IS known and what's missing`
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 
     const stream = await openai.chat.completions.create({
       model,
