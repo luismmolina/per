@@ -85,23 +85,23 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     <div className="space-y-3">
                         {
                             isAI ? (
-                                <div className="w-full min-w-0 rounded-2xl border border-white/10 bg-white/5/60 backdrop-blur-sm p-4 shadow-[0_10px_40px_-20px_rgba(0,0,0,0.6)] break-words overflow-hidden" style={{ overflowWrap: 'anywhere' }} >
-                                    <div className="text-[11px] uppercase tracking-[0.08em] text-accent-cyan/85 mb-2 font-semibold">
-                                        Final answer
-                                    </div>
+                                <div className="w-full min-w-0 rounded-2xl p-5 break-words overflow-hidden bg-gradient-to-br from-white/5 to-transparent" style={{ overflowWrap: 'anywhere' }} >
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{
-                                            p: ({ children }) => <p className="my-2 leading-relaxed text-text-primary/95 break-words whitespace-normal" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</p>,
-                                            ul: ({ children }) => <ul className="my-2 list-disc list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ul>,
-                                            ol: ({ children }) => <ol className="my-2 list-decimal list-outside pl-5 space-y-1 text-text-primary/95 break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ol>,
-                                            li: ({ children }) => <li className="leading-relaxed break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</li>,
-                                            strong: ({ children }) => <strong className="font-semibold text-text-primary">{children}</strong>,
-                                            em: ({ children }) => <em className="text-text-secondary">{children}</em>,
+                                            p: ({ children }) => <p className="mb-4 leading-[1.8] text-[#f0e8d7] text-[17px] font-serif break-words whitespace-normal" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</p>,
+                                            h2: ({ children }) => <h2 className="text-lg font-bold mb-3 text-white mt-6 font-sans tracking-tight">{children}</h2>,
+                                            h3: ({ children }) => <h3 className="text-base font-semibold mb-2 text-white/90 mt-4 font-sans">{children}</h3>,
+                                            ul: ({ children }) => <ul className="my-4 list-disc list-outside pl-5 space-y-2 text-[#f0e8d7] font-serif text-[17px] leading-[1.8] break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ul>,
+                                            ol: ({ children }) => <ol className="my-4 list-decimal list-outside pl-5 space-y-2 text-[#f0e8d7] font-serif text-[17px] leading-[1.8] break-words" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</ol>,
+                                            li: ({ children }) => <li className="leading-[1.7] break-words pl-1" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>{children}</li>,
+                                            strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                                            em: ({ children }) => <em className="text-[#e8dfc8]/80 italic">{children}</em>,
+                                            blockquote: ({ children }) => <blockquote className="border-l-3 border-white/20 pl-4 my-4 italic text-white/70 font-serif">{children}</blockquote>,
                                             code: ({ node, className, children, ...props }) => {
                                                 const match = /language-(\w+)/.exec(className || '')
                                                 return match ? (
-                                                    <div className="relative group rounded-xl overflow-hidden my-3 border border-white/10 bg-black/50 w-full max-w-full">
+                                                    <div className="relative group rounded-xl overflow-hidden my-4 border border-white/10 bg-black/50 w-full max-w-full">
                                                         <div className="flex items-center justify-between px-3 py-1.5 bg-white/5 border-b border-white/5">
                                                             <span className="text-xs text-text-muted font-mono">{match[1]}</span>
                                                         </div>
@@ -112,7 +112,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                                                         </pre>
                                                     </div>
                                                 ) : (
-                                                    <code className="bg-white/10 px-1.5 py-0.5 rounded text-accent-cyan font-mono text-xs break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }} {...props}>
+                                                    <code className="bg-white/10 px-1.5 py-0.5 rounded text-[#7dd3fc] font-mono text-sm break-words whitespace-pre-wrap" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }} {...props}>
                                                         {children}
                                                     </code>
                                                 )
