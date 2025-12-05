@@ -127,7 +127,7 @@ Tone: A world-class performance coach who has studied this specific athlete for 
 
 Command: Analyze. Extract patterns. Exploit them. Accelerate.`
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 
     const stream = await openai.chat.completions.create({
       model,
