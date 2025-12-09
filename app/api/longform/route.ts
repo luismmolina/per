@@ -170,7 +170,7 @@ Command: Excavate the fears. Trace the stories. Break the loops. Liberate.`
         { role: 'user', content: prompt }
       ],
       temperature: 0.6,
-      max_tokens: 12000,
+      max_tokens: 14000,
       stream: true,
       reasoning: {
         effort: 'high'
