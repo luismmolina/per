@@ -55,16 +55,34 @@ export const ChatInterface = ({
     const [inputHeight, setInputHeight] = useState(140)
     const [keyboardInset, setKeyboardInset] = useState(0)
     const [visibleCount, setVisibleCount] = useState(8)
+    const prevMessageCountRef = useRef(0)
+    const isStreamingRef = useRef(false)
 
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
         messagesEndRef.current?.scrollIntoView({ behavior })
     }
 
-    // Auto-scroll on new messages
+    // Auto-scroll on new messages - but smarter to avoid shaking during streaming
     useEffect(() => {
-        // Only scroll to bottom if we are showing the latest messages or if it's a new message
-        scrollToBottom()
-    }, [messages, isLoading])
+        const currentCount = messages.length
+        const isNewMessage = currentCount > prevMessageCountRef.current
+
+        // During streaming (isLoading), use instant scroll to avoid animation conflicts
+        // Only scroll on actual new messages, not content updates
+        if (isNewMessage) {
+            // Use 'auto' (instant) during loading to prevent animation stacking
+            scrollToBottom(isLoading ? 'auto' : 'smooth')
+            prevMessageCountRef.current = currentCount
+        } else if (isLoading && !isStreamingRef.current) {
+            // First time we start loading, scroll to bottom
+            isStreamingRef.current = true
+            scrollToBottom('auto')
+        } else if (!isLoading && isStreamingRef.current) {
+            // Streaming ended, do a final smooth scroll
+            isStreamingRef.current = false
+            scrollToBottom('smooth')
+        }
+    }, [messages.length, isLoading])
 
     const visibleMessages = messages.slice(-visibleCount)
     const hasMoreMessages = messages.length > visibleCount
@@ -125,7 +143,7 @@ export const ChatInterface = ({
             {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20"
                 style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
