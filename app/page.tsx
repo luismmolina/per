@@ -406,31 +406,6 @@ export default function Home() {
     >
       <div className="aurora-bg" />
       <div className="relative z-10 flex flex-1 flex-col">
-        {/* Floating Bottom Tab Navigation - Always Visible */}
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-          <div className="flex items-center gap-1 rounded-full border border-white/15 bg-black/70 backdrop-blur-xl p-1.5 shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-            <button
-              onClick={() => setActiveTab('chat')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${activeTab === 'chat'
-                ? 'bg-white text-black shadow-lg'
-                : 'text-text-muted hover:text-white hover:bg-white/10'
-                }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Chat</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('deepread')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${activeTab === 'deepread'
-                ? 'bg-white text-black shadow-lg'
-                : 'text-text-muted hover:text-white hover:bg-white/10'
-                }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span className="hidden sm:inline">Deep Read</span>
-            </button>
-          </div>
-        </div>
 
         {activeTab === 'chat' ? (
           <ChatInterface
@@ -444,6 +419,7 @@ export default function Home() {
             onVoiceStart={toggleRecording}
             onVoiceStop={toggleRecording}
             onDownloadNotes={handleDownloadNotes}
+            onSwitchToDeepRead={() => setActiveTab('deepread')}
             inputChildren={
               voiceSession && voiceSession.status !== 'idle' && (
                 <div className="mb-2">
@@ -457,8 +433,16 @@ export default function Home() {
             {/* Compact Deep Read Header */}
             <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
               <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-                {/* Left: Status indicator */}
+                {/* Left: Back button + Status indicator */}
                 <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-white hover:bg-white/10 border border-white/10 transition-all"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Chat</span>
+                  </button>
+                  <div className="w-px h-4 bg-white/10" />
                   {isGeneratingLongform ? (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
