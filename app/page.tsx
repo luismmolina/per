@@ -131,14 +131,29 @@ export default function Home() {
   }, [longformText, lastGeneratedAt])
 
   // Handlers
+  // Format timestamp with local time and timezone for AI context
+  const formatTimestampForAI = useCallback((date: Date) => {
+    const localTime = date.toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short'
+    })
+    return localTime
+  }, [])
+
   const buildConversationHistory = useCallback((history: Message[]) => {
     return history
       .filter((msg) => msg.type !== 'question')
       .map((msg) => ({
         role: msg.type === 'ai-response' ? 'model' : 'user',
-        parts: [{ text: `[${msg.timestamp.toISOString()}] ${msg.content}` }]
+        parts: [{ text: `[${formatTimestampForAI(msg.timestamp)}] ${msg.content}` }]
       }))
-  }, [])
+  }, [formatTimestampForAI])
 
   const handleSendMessage = async (text: string, type: 'note' | 'question') => {
     const trimmed = text.trim()
@@ -309,7 +324,7 @@ export default function Home() {
   const handleGenerateLongform = async () => {
     const noteLines = messages
       .filter(m => m.type === 'note')
-      .map(m => `[${m.timestamp.toISOString()}] (${m.type}) ${m.content}`)
+      .map(m => `[${formatTimestampForAI(m.timestamp)}] (${m.type}) ${m.content}`)
       .join('\n')
 
     if (!noteLines) {
