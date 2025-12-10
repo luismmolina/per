@@ -462,33 +462,42 @@ export default function Home() {
           />
         ) : (
           <div className="flex-1 flex flex-col">
-            <div className="sticky top-0 z-30 px-4 pt-4 pb-3 md:px-6 backdrop-blur-md bg-black/40 border-b border-white/5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  {/* Text removed as requested */}
-                </div>
-                <div className="flex flex-col items-end gap-2 min-w-[160px]">
-                  {lastGeneratedAt && (
-                    <span className="text-[10px] text-text-muted uppercase tracking-[0.12em]">
-                      Updated {lastGeneratedAt.toLocaleString()}
+            {/* Compact Deep Read Header */}
+            <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+              <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+                {/* Left: Status indicator */}
+                <div className="flex items-center gap-3">
+                  {isGeneratingLongform ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-xs text-amber-300/80 font-medium">Synthesizing...</span>
+                    </div>
+                  ) : lastGeneratedAt ? (
+                    <span className="text-[11px] text-text-muted">
+                      {lastGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </span>
+                  ) : (
+                    <span className="text-[11px] text-text-muted">Not generated yet</span>
                   )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleDownloadLongform}
-                      disabled={!longformText.trim()}
-                      className="px-3 py-2 rounded-full border border-white/10 text-xs text-text-primary hover:border-white/25 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed bg-white/5"
-                    >
-                      Download
-                    </button>
-                    <button
-                      onClick={handleGenerateLongform}
-                      disabled={isGeneratingLongform}
-                      className="px-3 py-2 rounded-full text-xs font-semibold bg-white text-black shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      {isGeneratingLongform ? 'Generating…' : 'Regenerate'}
-                    </button>
-                  </div>
+                </div>
+
+                {/* Right: Action buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handleDownloadLongform}
+                    disabled={!longformText.trim()}
+                    className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Download"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleGenerateLongform}
+                    disabled={isGeneratingLongform}
+                    className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    {longformText ? 'Regenerate' : 'Generate'}
+                  </button>
                 </div>
               </div>
             </div>
