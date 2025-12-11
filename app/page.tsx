@@ -305,32 +305,15 @@ export default function Home() {
   }
 
   const handleDownloadNotes = () => {
-    const notes = messages
-      .filter(m => m.type === 'note')
-      .map(m => `[${m.timestamp.toLocaleString()}] ${m.content}`)
-      .join('\n\n')
-
-    const blob = new Blob([notes], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `notes-${new Date().toISOString().split('T')[0]}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    // Redirect to server-side download to ensure all notes (even not loaded ones) are included
+    window.location.href = '/api/download-notes'
   }
 
   const handleGenerateLongform = async () => {
-    const noteLines = messages
-      .filter(m => m.type === 'note')
-      .map(m => `[${formatTimestampForAI(m.timestamp)}] (${m.type}) ${m.content}`)
-      .join('\n')
-
-    if (!noteLines) {
-      setLongformError('Add some notes first so I have something to synthesize.')
-      return
-    }
+    // If we have no local messages, it's possible they just haven't loaded,
+    // but the server logic (fetchAllNotes: true) handles the empty case too.
+    // However, for good UX, we might want to check if we have ANY notes ever.
+    // But since we rely on server now, we can just proceed.
 
     setIsGeneratingLongform(true)
     setLongformError(null)
@@ -340,7 +323,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          notes: noteLines,
+          fetchAllNotes: true, // Tell server to fetch from DB
           currentDate: new Date().toISOString(),
           userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         })
