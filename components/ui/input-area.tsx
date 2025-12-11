@@ -119,6 +119,7 @@ export const InputArea = ({
                         {/* Voice Button */}
                         <button
                             onClick={isListening ? onVoiceStop : onVoiceStart}
+                            aria-label={isListening ? 'Stop voice recording' : 'Start voice recording'}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium",
                                 isListening
@@ -134,6 +135,7 @@ export const InputArea = ({
                         {onSwitchToDeepRead && (
                             <button
                                 onClick={onSwitchToDeepRead}
+                                aria-label="Open Deep Read"
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
                                 title="Open Deep Read"
                             >
@@ -155,6 +157,7 @@ export const InputArea = ({
                                 >
                                     <button
                                         onClick={() => handleSend('note')}
+                                        aria-label="Save as note"
                                         className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20"
                                         title="Save as Note"
                                         disabled={isLoading}
@@ -164,6 +167,7 @@ export const InputArea = ({
                                     </button>
                                     <button
                                         onClick={() => handleSend('question')}
+                                        aria-label="Ask AI"
                                         className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium"
                                         title="Ask AI"
                                         disabled={isLoading}
