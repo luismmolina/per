@@ -52,7 +52,7 @@ export const MAX_VOICE_DURATION_MS = 20 * 60 * 1000 // 20 minutes
 // Single-chunk uploads avoid malformed container errors emitted by Groq once MediaRecorder slices blobs mid-session.
 // Keep the constant for future reinstatement, but default to `null` so only the final stop event flushes audio.
 const CHUNK_TIMESLICE_MS: number | null = null
-const MAX_CHUNK_BYTES = 22 * 1024 * 1024 // stay safely under the 25 MB Groq free-tier cap
+const MAX_CHUNK_BYTES = 95 * 1024 * 1024 // stay safely under the 100 MB Groq dev-tier cap
 
 const safeId = () => {
   const cryptoObj = typeof globalThis !== 'undefined' ? (globalThis.crypto as Crypto | undefined) : undefined
