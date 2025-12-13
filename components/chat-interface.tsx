@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
-import { ArrowDown, ChevronUp } from 'lucide-react'
+import { ArrowDown, ChevronUp, Download } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
@@ -32,6 +32,7 @@ interface ChatInterfaceProps {
     onVoiceStart?: () => void
     onVoiceStop?: () => void
     onDownloadNotes?: () => void
+    onSwitchToDeepRead?: () => void
 }
 
 export const ChatInterface = ({
@@ -45,7 +46,8 @@ export const ChatInterface = ({
     isListening,
     onVoiceStart,
     onVoiceStop,
-    onDownloadNotes
+    onDownloadNotes,
+    onSwitchToDeepRead
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -53,16 +55,34 @@ export const ChatInterface = ({
     const [inputHeight, setInputHeight] = useState(140)
     const [keyboardInset, setKeyboardInset] = useState(0)
     const [visibleCount, setVisibleCount] = useState(8)
+    const prevMessageCountRef = useRef(0)
+    const isStreamingRef = useRef(false)
 
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
         messagesEndRef.current?.scrollIntoView({ behavior })
     }
 
-    // Auto-scroll on new messages
+    // Auto-scroll on new messages - but smarter to avoid shaking during streaming
     useEffect(() => {
-        // Only scroll to bottom if we are showing the latest messages or if it's a new message
-        scrollToBottom()
-    }, [messages, isLoading])
+        const currentCount = messages.length
+        const isNewMessage = currentCount > prevMessageCountRef.current
+
+        // During streaming (isLoading), use instant scroll to avoid animation conflicts
+        // Only scroll on actual new messages, not content updates
+        if (isNewMessage) {
+            // Use 'auto' (instant) during loading to prevent animation stacking
+            scrollToBottom(isLoading ? 'auto' : 'smooth')
+            prevMessageCountRef.current = currentCount
+        } else if (isLoading && !isStreamingRef.current) {
+            // First time we start loading, scroll to bottom
+            isStreamingRef.current = true
+            scrollToBottom('auto')
+        } else if (!isLoading && isStreamingRef.current) {
+            // Streaming ended, do a final smooth scroll
+            isStreamingRef.current = false
+            scrollToBottom('smooth')
+        }
+    }, [messages.length, isLoading])
 
     const visibleMessages = messages.slice(-visibleCount)
     const hasMoreMessages = messages.length > visibleCount
@@ -120,10 +140,26 @@ export const ChatInterface = ({
 
     return (
         <div className="relative h-full flex flex-col">
+            {/* Header */}
+            <div className="absolute top-0 left-0 right-0 z-40 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+                <div className="max-w-3xl mx-auto flex items-center justify-between">
+                    <span className="text-sm font-medium text-text-muted">My Notes</span>
+                    {onDownloadNotes && (
+                        <button
+                            onClick={onDownloadNotes}
+                            className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
+                            title="Download Notes"
+                        >
+                            <Download className="w-4 h-4" />
+                        </button>
+                    )}
+                </div>
+            </div>
+
             {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20 scroll-smooth"
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20"
                 style={{ paddingBottom: contentBottomPadding }}
             >
                 <div className="max-w-3xl mx-auto">
@@ -194,6 +230,7 @@ export const ChatInterface = ({
                 onVoiceStop={onVoiceStop}
                 keyboardOffset={keyboardInset}
                 onHeightChange={setInputHeight}
+                onSwitchToDeepRead={onSwitchToDeepRead}
             >
                 {inputChildren}
             </InputArea>

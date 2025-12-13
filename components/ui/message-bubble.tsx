@@ -38,8 +38,10 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
 
     return (
         <motion.div
+            layout="position"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
             className={cn(
                 "flex w-full mb-4",
                 isAI ? "justify-start" : "justify-end"

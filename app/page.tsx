@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
-import { Download } from 'lucide-react'
+import { Download, MessageSquare, BookOpen } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -131,14 +131,29 @@ export default function Home() {
   }, [longformText, lastGeneratedAt])
 
   // Handlers
+  // Format timestamp with local time and timezone for AI context
+  const formatTimestampForAI = useCallback((date: Date) => {
+    const localTime = date.toLocaleString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZoneName: 'short'
+    })
+    return localTime
+  }, [])
+
   const buildConversationHistory = useCallback((history: Message[]) => {
     return history
       .filter((msg) => msg.type !== 'question')
       .map((msg) => ({
         role: msg.type === 'ai-response' ? 'model' : 'user',
-        parts: [{ text: `[${msg.timestamp.toISOString()}] ${msg.content}` }]
+        parts: [{ text: `[${formatTimestampForAI(msg.timestamp)}] ${msg.content}` }]
       }))
-  }, [])
+  }, [formatTimestampForAI])
 
   const handleSendMessage = async (text: string, type: 'note' | 'question') => {
     const trimmed = text.trim()
@@ -290,32 +305,15 @@ export default function Home() {
   }
 
   const handleDownloadNotes = () => {
-    const notes = messages
-      .filter(m => m.type === 'note')
-      .map(m => `[${m.timestamp.toLocaleString()}] ${m.content}`)
-      .join('\n\n')
-
-    const blob = new Blob([notes], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `notes-${new Date().toISOString().split('T')[0]}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    // Redirect to server-side download to ensure all notes (even not loaded ones) are included
+    window.location.href = '/api/download-notes'
   }
 
   const handleGenerateLongform = async () => {
-    const noteLines = messages
-      .filter(m => m.type === 'note')
-      .map(m => `[${m.timestamp.toISOString()}] (${m.type}) ${m.content}`)
-      .join('\n')
-
-    if (!noteLines) {
-      setLongformError('Add some notes first so I have something to synthesize.')
-      return
-    }
+    // If we have no local messages, it's possible they just haven't loaded,
+    // but the server logic (fetchAllNotes: true) handles the empty case too.
+    // However, for good UX, we might want to check if we have ANY notes ever.
+    // But since we rely on server now, we can just proceed.
 
     setIsGeneratingLongform(true)
     setLongformError(null)
@@ -325,7 +323,7 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          notes: noteLines,
+          fetchAllNotes: true, // Tell server to fetch from DB
           currentDate: new Date().toISOString(),
           userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
         })
@@ -391,39 +389,6 @@ export default function Home() {
     >
       <div className="aurora-bg" />
       <div className="relative z-10 flex flex-1 flex-col">
-        <div className="px-4 pt-6 md:px-6 md:pt-8">
-          <div className="flex items-center justify-between gap-3">
-            {/* Tab Switcher */}
-            <div className="inline-flex rounded-full border border-white/10 bg-black/50 p-1 backdrop-blur-sm shadow-[0_10px_40px_-25px_rgba(0,0,0,0.9)]">
-              <button
-                onClick={() => setActiveTab('chat')}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${activeTab === 'chat' ? 'bg-white text-black shadow' : 'text-text-muted hover:text-white'}`}
-              >
-                Chat
-              </button>
-              <button
-                onClick={() => setActiveTab('deepread')}
-                className={`px-4 py-2 rounded-full text-sm transition-all ${activeTab === 'deepread' ? 'bg-white text-black shadow' : 'text-text-muted hover:text-white'}`}
-              >
-                Deep Read
-              </button>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-muted hidden sm:block mr-2">
-                {messages.filter(m => m.type === 'note').length} notes
-              </span>
-              <button
-                onClick={handleDownloadNotes}
-                className="p-2 rounded-full bg-white/5 border border-white/10 text-text-secondary hover:text-white hover:bg-white/10 transition-colors"
-                title="Download Notes"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
 
         {activeTab === 'chat' ? (
           <ChatInterface
@@ -437,6 +402,7 @@ export default function Home() {
             onVoiceStart={toggleRecording}
             onVoiceStop={toggleRecording}
             onDownloadNotes={handleDownloadNotes}
+            onSwitchToDeepRead={() => setActiveTab('deepread')}
             inputChildren={
               voiceSession && voiceSession.status !== 'idle' && (
                 <div className="mb-2">
@@ -447,38 +413,55 @@ export default function Home() {
           />
         ) : (
           <div className="flex-1 flex flex-col">
-            <div className="sticky top-0 z-30 px-4 pt-4 pb-3 md:px-6 backdrop-blur-md bg-black/40 border-b border-white/5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  {/* Text removed as requested */}
-                </div>
-                <div className="flex flex-col items-end gap-2 min-w-[160px]">
-                  {lastGeneratedAt && (
-                    <span className="text-[10px] text-text-muted uppercase tracking-[0.12em]">
-                      Updated {lastGeneratedAt.toLocaleString()}
+            {/* Compact Deep Read Header */}
+            <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+              <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+                {/* Left: Back button + Status indicator */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-white hover:bg-white/10 border border-white/10 transition-all"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Chat</span>
+                  </button>
+                  <div className="w-px h-4 bg-white/10" />
+                  {isGeneratingLongform ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                      <span className="text-xs text-amber-300/80 font-medium">Synthesizing...</span>
+                    </div>
+                  ) : lastGeneratedAt ? (
+                    <span className="text-[11px] text-text-muted">
+                      {lastGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                     </span>
+                  ) : (
+                    <span className="text-[11px] text-text-muted">Not generated yet</span>
                   )}
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleDownloadLongform}
-                      disabled={!longformText.trim()}
-                      className="px-3 py-2 rounded-full border border-white/10 text-xs text-text-primary hover:border-white/25 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed bg-white/5"
-                    >
-                      Download
-                    </button>
-                    <button
-                      onClick={handleGenerateLongform}
-                      disabled={isGeneratingLongform}
-                      className="px-3 py-2 rounded-full text-xs font-semibold bg-white text-black shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                    >
-                      {isGeneratingLongform ? 'Generating…' : 'Regenerate'}
-                    </button>
-                  </div>
+                </div>
+
+                {/* Right: Action buttons */}
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={handleDownloadLongform}
+                    disabled={!longformText.trim()}
+                    className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                    title="Download"
+                  >
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={handleGenerateLongform}
+                    disabled={isGeneratingLongform}
+                    className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  >
+                    {longformText ? 'Regenerate' : 'Generate'}
+                  </button>
                 </div>
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto px-4 pb-24 pt-6 md:px-6">
+            <div className="flex-1 overflow-y-auto px-4 pb-32 pt-6 md:px-6">
               <div className="max-w-2xl mx-auto py-8 md:py-12 text-lg md:text-xl leading-relaxed text-[#e8dfc8] font-serif">
                 {longformError && (
                   <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-200 p-4">

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -14,6 +14,7 @@ interface InputAreaProps {
     children?: React.ReactNode
     keyboardOffset?: number
     onHeightChange?: (height: number) => void
+    onSwitchToDeepRead?: () => void
 }
 
 export const InputArea = ({
@@ -24,7 +25,8 @@ export const InputArea = ({
     isLoading,
     children,
     keyboardOffset = 0,
-    onHeightChange
+    onHeightChange,
+    onSwitchToDeepRead
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -127,6 +129,18 @@ export const InputArea = ({
                             {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                             <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
                         </button>
+
+                        {/* Deep Read Button */}
+                        {onSwitchToDeepRead && (
+                            <button
+                                onClick={onSwitchToDeepRead}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
+                                title="Open Deep Read"
+                            >
+                                <BookOpen className="w-4 h-4" />
+                                <span className="hidden sm:inline">Deep Read</span>
+                            </button>
+                        )}
 
                         <div className="flex-1" />
 
