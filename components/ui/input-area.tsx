@@ -119,6 +119,7 @@ export const InputArea = ({
                         {/* Voice Button */}
                         <button
                             onClick={isListening ? onVoiceStop : onVoiceStart}
+                            aria-label={isListening ? "Stop voice input" : "Start voice input"}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium",
                                 isListening
@@ -136,6 +137,7 @@ export const InputArea = ({
                                 onClick={onSwitchToDeepRead}
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
                                 title="Open Deep Read"
+                                aria-label="Open Deep Read"
                             >
                                 <BookOpen className="w-4 h-4" />
                                 <span className="hidden sm:inline">Deep Read</span>
@@ -157,6 +159,7 @@ export const InputArea = ({
                                         onClick={() => handleSend('note')}
                                         className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20"
                                         title="Save as Note"
+                                        aria-label="Save as Note"
                                         disabled={isLoading}
                                     >
                                         <Plus className="w-4 h-4" />
@@ -166,6 +169,7 @@ export const InputArea = ({
                                         onClick={() => handleSend('question')}
                                         className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium"
                                         title="Ask AI"
+                                        aria-label="Ask AI"
                                         disabled={isLoading}
                                     >
                                         <Send className="w-4 h-4" />
