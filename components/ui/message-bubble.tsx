@@ -176,6 +176,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                             <button
                                 onClick={() => onCopy(message.id, message.content)}
                                 className="p-1.5 rounded-lg hover:bg-white/10 text-text-muted hover:text-text-primary transition-colors"
+                                aria-label={isCopied ? "Copied" : "Copy message"}
                             >
                                 {isCopied ? <Check className="w-3.5 h-3.5 text-accent-green" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
@@ -184,6 +185,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                             <button
                                 onClick={() => onDelete(message.id)}
                                 className="p-1.5 rounded-lg hover:bg-red-500/20 text-text-muted hover:text-red-400 transition-colors"
+                                aria-label="Delete message"
                             >
                                 <Trash className="w-3.5 h-3.5" />
                             </button>
