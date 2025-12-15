@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import OpenAI from 'openai'
+import { loadConversations } from '../../../lib/storage'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
@@ -11,8 +12,44 @@ export async function POST(req: NextRequest) {
       return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not set.' }), { status: 500 })
     }
 
-    const { notes, currentDate, userTimezone } = await req.json()
-    const notesText = (notes ?? '').toString().trim()
+    const { notes, currentDate, userTimezone, fetchAllNotes } = await req.json()
+
+    let notesText = (notes ?? '').toString().trim()
+
+    // If configured to fetch from storage, retrieve all notes
+    if (fetchAllNotes) {
+      try {
+        const conversations = await loadConversations()
+        const messages = conversations?.messages || []
+
+        const fetchedNotes = messages
+          .filter((m: any) => m.type === 'note')
+          .map((m: any) => {
+            const date = new Date(m.timestamp).toLocaleString('en-US', {
+              weekday: 'short',
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true,
+              timeZoneName: 'short'
+            })
+            return `[${date}] (note) ${m.content}`
+          })
+          .join('\n')
+
+        if (fetchedNotes) {
+          notesText = fetchedNotes
+        }
+      } catch (storageError) {
+        console.error('Failed to fetch notes from storage:', storageError)
+        // Fall back to provided notes if any, otherwise fail
+        if (!notesText) {
+          return new Response(JSON.stringify({ error: 'Failed to retrieve notes from storage.' }), { status: 500 })
+        }
+      }
+    }
 
     if (!notesText) {
       return new Response(JSON.stringify({ error: 'Notes are required to generate the long-form text.' }), { status: 400 })

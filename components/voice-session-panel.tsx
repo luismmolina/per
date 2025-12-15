@@ -46,11 +46,21 @@ export function VoiceSessionPanel({ session, onRetry }: VoiceSessionPanelProps) 
         </div>
       )}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`inline-flex h-2.5 w-2.5 rounded-full ${isRecording ? 'bg-accent-red animate-pulse' : isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
-              }`}
-          ></span>
+
+        <div className="flex items-center gap-3">
+          {isRecording ? (
+            <div className="flex items-center gap-1 h-4 text-accent-red">
+              <div className="audio-bar" style={{ animationDelay: '0ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '200ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '400ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '100ms' }} />
+            </div>
+          ) : (
+            <span
+              className={`inline-flex h-2.5 w-2.5 rounded-full ${isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
+                }`}
+            ></span>
+          )}
           <div>
             <p className="text-sm font-semibold text-white">Voice capture</p>
             <p className="text-xs text-amoled-textMuted">{statusText}</p>
