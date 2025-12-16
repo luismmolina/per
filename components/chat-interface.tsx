@@ -147,6 +147,7 @@ export const ChatInterface = ({
                     {onDownloadNotes && (
                         <button
                             onClick={onDownloadNotes}
+                            aria-label="Download Notes"
                             className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
                             title="Download Notes"
                         >
@@ -214,6 +215,7 @@ export const ChatInterface = ({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         onClick={() => scrollToBottom()}
+                        aria-label="Scroll to bottom"
                         className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors"
                     >
                         <ArrowDown className="w-5 h-5" />
