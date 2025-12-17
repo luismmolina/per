@@ -109,6 +109,7 @@ export const InputArea = ({
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
                         placeholder="Type or ask..."
+                        aria-label="Message input"
                         rows={1}
                         className="w-full bg-transparent text-text-primary placeholder-text-muted text-base py-2 px-1 focus:outline-none resize-none max-h-[150px] custom-scrollbar"
                         style={{ minHeight: '44px' }}
@@ -125,6 +126,7 @@ export const InputArea = ({
                                     ? "bg-red-500/20 text-red-400 animate-pulse"
                                     : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10"
                             )}
+                            aria-label={isListening ? 'Stop recording' : 'Start voice recording'}
                         >
                             {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                             <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
@@ -136,6 +138,7 @@ export const InputArea = ({
                                 onClick={onSwitchToDeepRead}
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
                                 title="Open Deep Read"
+                                aria-label="Open Deep Read"
                             >
                                 <BookOpen className="w-4 h-4" />
                                 <span className="hidden sm:inline">Deep Read</span>
@@ -155,18 +158,20 @@ export const InputArea = ({
                                 >
                                     <button
                                         onClick={() => handleSend('note')}
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20"
+                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20 disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Save as Note"
                                         disabled={isLoading}
+                                        aria-label="Save as note"
                                     >
                                         <Plus className="w-4 h-4" />
                                         <span className="hidden sm:inline">Note</span>
                                     </button>
                                     <button
                                         onClick={() => handleSend('question')}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium"
+                                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                         title="Ask AI"
                                         disabled={isLoading}
+                                        aria-label="Ask AI"
                                     >
                                         <Send className="w-4 h-4" />
                                         <span className="hidden sm:inline">Ask</span>
