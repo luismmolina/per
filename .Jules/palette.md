@@ -1,0 +1,3 @@
+## 2025-05-23 - Focus Visible on Icon Buttons
+**Learning:** Adding `aria-label` to icon-only buttons is crucial, but without `focus-visible` styles, keyboard users cannot see which element is focused. This is especially important for floating buttons and buttons in glassmorphic interfaces where default focus rings might be obscured or invisible.
+**Action:** Always pair `aria-label` updates on icon buttons with `focus-visible:outline-none focus-visible:ring-2` to ensure both screen reader and keyboard accessibility.
