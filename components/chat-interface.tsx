@@ -147,8 +147,9 @@ export const ChatInterface = ({
                     {onDownloadNotes && (
                         <button
                             onClick={onDownloadNotes}
-                            className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
+                            className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                             title="Download Notes"
+                            aria-label="Download Notes"
                         >
                             <Download className="w-4 h-4" />
                         </button>
@@ -192,6 +193,8 @@ export const ChatInterface = ({
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             className="flex items-center gap-2 text-text-muted ml-4"
+                            role="status"
+                            aria-live="polite"
                         >
                             <div className="flex space-x-1">
                                 <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
@@ -214,7 +217,8 @@ export const ChatInterface = ({
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
                         onClick={() => scrollToBottom()}
-                        className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors"
+                        className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
+                        aria-label="Scroll to bottom"
                     >
                         <ArrowDown className="w-5 h-5" />
                     </motion.button>
