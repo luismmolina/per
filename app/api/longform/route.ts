@@ -238,7 +238,7 @@ Tone: A friend who reads your journal and says the thing you've been avoiding he
         { role: 'user', content: prompt }
       ],
       temperature: 0.6,
-      max_tokens: 14000,
+      max_tokens: 16000,
       stream: true,
       reasoning: {
         effort: 'high'
