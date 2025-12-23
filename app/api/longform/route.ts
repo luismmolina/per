@@ -237,7 +237,7 @@ Tone: A skilled therapist who has studied this mind deeply and now knows exactly
 
 Command: Excavate the ACTIVE fears. Celebrate the victories. Trace the stories. Break the loops. Liberate.`
 
-    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-flash-preview'
 
     const stream = await openai.chat.completions.create({
       model,
