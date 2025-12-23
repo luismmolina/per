@@ -230,7 +230,7 @@ RULES
 
 Tone: A friend who reads your journal and says the thing you've been avoiding hearing. Direct. Unflinching. Using your own words. No psychology. No theories. Just: "Here's what you wrote. Here's the pattern. Here's what you could do. Today."`
 
-    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-flash-preview'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 
     const stream = await openai.chat.completions.create({
       model,
