@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
-import { Download, MessageSquare, BookOpen, Copy, Check } from 'lucide-react'
+import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -487,9 +487,12 @@ export default function Home() {
                     <button
                       onClick={handleGenerateLongform}
                       disabled={isGeneratingLongform}
-                      className="px-4 py-1.5 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                      className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-full text-xs font-medium bg-white/10 text-white border border-white/20 hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                     >
-                      {longformText ? 'Regenerate' : 'Generate'}
+                      {longformText ? <RefreshCw className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      <span className={longformText ? "hidden sm:inline" : ""}>
+                        {longformText ? 'Regenerate' : 'Generate'}
+                      </span>
                     </button>
                   </div>
                 </div>
