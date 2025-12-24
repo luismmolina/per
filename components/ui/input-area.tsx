@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,7 @@ interface InputAreaProps {
     keyboardOffset?: number
     onHeightChange?: (height: number) => void
     onSwitchToDeepRead?: () => void
+    onSwitchToConsulting?: () => void
 }
 
 export const InputArea = ({
@@ -26,7 +27,8 @@ export const InputArea = ({
     children,
     keyboardOffset = 0,
     onHeightChange,
-    onSwitchToDeepRead
+    onSwitchToDeepRead,
+    onSwitchToConsulting
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -139,6 +141,18 @@ export const InputArea = ({
                             >
                                 <BookOpen className="w-4 h-4" />
                                 <span className="hidden sm:inline">Deep Read</span>
+                            </button>
+                        )}
+
+                        {/* A→B Advisor Button */}
+                        {onSwitchToConsulting && (
+                            <button
+                                onClick={onSwitchToConsulting}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 border border-teal-500/20 transition-all text-sm font-medium"
+                                title="Open A→B Advisor"
+                            >
+                                <Compass className="w-4 h-4" />
+                                <span className="hidden sm:inline">A→B</span>
                             </button>
                         )}
 

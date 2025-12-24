@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
-import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw } from 'lucide-react'
+import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Compass } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -30,13 +30,21 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
-  const [activeTab, setActiveTab] = useState<'chat' | 'deepread'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'deepread' | 'consulting'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
   const [longformError, setLongformError] = useState<string | null>(null)
   const [lastGeneratedAt, setLastGeneratedAt] = useState<Date | null>(null)
   const [longformCopied, setLongformCopied] = useState(false)
   const LONGFORM_STORAGE_KEY = 'deep-read-longform-v1'
+
+  // Consulting state
+  const [consultingText, setConsultingText] = useState('')
+  const [isGeneratingConsulting, setIsGeneratingConsulting] = useState(false)
+  const [consultingError, setConsultingError] = useState<string | null>(null)
+  const [consultingGeneratedAt, setConsultingGeneratedAt] = useState<Date | null>(null)
+  const [consultingCopied, setConsultingCopied] = useState(false)
+  const CONSULTING_STORAGE_KEY = 'ai-consulting-v1'
   // Voice Recorder Hook
   const {
     isRecording,
@@ -130,6 +138,36 @@ export default function Home() {
       console.error('Failed to persist longform to storage:', error)
     }
   }, [longformText, lastGeneratedAt])
+
+  // Load/save consulting from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = localStorage.getItem(CONSULTING_STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed?.text) setConsultingText(parsed.text)
+        if (parsed?.generatedAt) setConsultingGeneratedAt(new Date(parsed.generatedAt))
+      }
+    } catch (error) {
+      console.error('Failed to restore consulting from storage:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(
+        CONSULTING_STORAGE_KEY,
+        JSON.stringify({
+          text: consultingText,
+          generatedAt: consultingGeneratedAt ? consultingGeneratedAt.toISOString() : null
+        })
+      )
+    } catch (error) {
+      console.error('Failed to persist consulting to storage:', error)
+    }
+  }, [consultingText, consultingGeneratedAt])
 
   // Handlers
   // Format timestamp with local time and timezone for AI context
@@ -402,6 +440,76 @@ export default function Home() {
     setTimeout(() => setLongformCopied(false), 2000)
   }
 
+  // Consulting handlers
+  const handleGenerateConsulting = async () => {
+    setIsGeneratingConsulting(true)
+    setConsultingError(null)
+
+    try {
+      const response = await fetch('/api/consulting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          fetchAllNotes: true,
+          currentDate: new Date().toISOString(),
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
+      })
+
+      if (!response.ok) {
+        let errorMsg = 'Failed to generate.'
+        try {
+          const payload = await response.json()
+          errorMsg = payload.error || errorMsg
+        } catch (e) {
+          errorMsg = await response.text() || errorMsg
+        }
+        throw new Error(errorMsg)
+      }
+
+      if (!response.body) throw new Error('No response body')
+
+      const reader = response.body.getReader()
+      const decoder = new TextDecoder()
+      setConsultingText('') // Clear previous text
+
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const chunk = decoder.decode(value, { stream: true })
+        setConsultingText(prev => prev + chunk)
+      }
+
+      setConsultingGeneratedAt(new Date())
+    } catch (error) {
+      console.error('Consulting error:', error)
+      setConsultingError(error instanceof Error ? error.message : 'Failed to generate consulting advice.')
+    } finally {
+      setIsGeneratingConsulting(false)
+    }
+  }
+
+  const handleDownloadConsulting = () => {
+    if (!consultingText.trim()) return
+    const blob = new Blob([consultingText], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `ai-consulting-${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleCopyConsulting = () => {
+    if (!consultingText.trim()) return
+    navigator.clipboard.writeText(consultingText)
+    setConsultingCopied(true)
+    setTimeout(() => setConsultingCopied(false), 2000)
+  }
+
   const longformParagraphs = longformText
     ? longformText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
     : []
@@ -415,7 +523,7 @@ export default function Home() {
       <div className="relative z-10 flex flex-1 flex-col">
 
         <AnimatePresence mode="wait">
-          {activeTab === 'chat' ? (
+          {activeTab === 'chat' && (
             <motion.div
               key="chat"
               initial={{ opacity: 0, x: -20 }}
@@ -436,6 +544,7 @@ export default function Home() {
                 onVoiceStop={toggleRecording}
                 onDownloadNotes={handleDownloadNotes}
                 onSwitchToDeepRead={() => setActiveTab('deepread')}
+                onSwitchToConsulting={() => setActiveTab('consulting')}
                 inputChildren={
                   voiceSession && voiceSession.status !== 'idle' && (
                     <div className="mb-2">
@@ -445,7 +554,9 @@ export default function Home() {
                 }
               />
             </motion.div>
-          ) : (
+          )}
+
+          {activeTab === 'deepread' && (
             <motion.div
               key="deepread"
               initial={{ opacity: 0, x: 20 }}
@@ -523,8 +634,8 @@ export default function Home() {
 
                   {!longformText && !isGeneratingLongform && !longformError && (
                     <div className="text-base text-text-muted space-y-4">
-                      <p>Your deep read lives here. I’ll craft a long-form piece from your notes that speaks directly to how you think.</p>
-                      <p>Hit “Regenerate” once you have notes. I’ll keep the last version locally until you overwrite it. You can download it anytime.</p>
+                      <p>Your deep read lives here. I&apos;ll craft a long-form piece from your notes that speaks directly to how you think.</p>
+                      <p>Hit &quot;Regenerate&quot; once you have notes. I&apos;ll keep the last version locally until you overwrite it. You can download it anytime.</p>
                     </div>
                   )}
 
@@ -552,6 +663,121 @@ export default function Home() {
                         }}
                       >
                         {longformText}
+                      </ReactMarkdown>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'consulting' && (
+            <motion.div
+              key="consulting"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col"
+            >
+              {/* Compact Consulting Header */}
+              <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+                <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
+                  {/* Left: Back button + Status indicator */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setActiveTab('chat')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-white hover:bg-white/10 border border-white/10 transition-all"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Chat</span>
+                    </button>
+                    <div className="w-px h-4 bg-white/10" />
+                    {isGeneratingConsulting ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+                        <span className="text-xs text-teal-300/80 font-medium">Analyzing...</span>
+                      </div>
+                    ) : consultingGeneratedAt ? (
+                      <span className="text-[11px] text-text-muted">
+                        {consultingGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-text-muted">Not generated yet</span>
+                    )}
+                  </div>
+
+                  {/* Right: Action buttons */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleCopyConsulting}
+                      disabled={!consultingText.trim()}
+                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      title="Copy to clipboard"
+                    >
+                      {consultingCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={handleDownloadConsulting}
+                      disabled={!consultingText.trim()}
+                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleGenerateConsulting}
+                      disabled={isGeneratingConsulting}
+                      className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-full text-xs font-medium bg-teal-500/20 text-teal-300 border border-teal-500/30 hover:bg-teal-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      {consultingText ? <RefreshCw className="w-3.5 h-3.5" /> : <Compass className="w-3.5 h-3.5" />}
+                      <span className={consultingText ? "hidden sm:inline" : ""}>
+                        {consultingText ? 'Regenerate' : 'Generate'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-4 pb-32 pt-6 md:px-6">
+                <div className="max-w-2xl mx-auto py-8 md:py-12 text-lg md:text-xl leading-relaxed text-[#d7e8e4] font-serif">
+                  {consultingError && (
+                    <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-200 p-4">
+                      {consultingError}
+                    </div>
+                  )}
+
+                  {!consultingText && !isGeneratingConsulting && !consultingError && (
+                    <div className="text-base text-text-muted space-y-4">
+                      <p>Your strategic advisor lives here. I&apos;ll analyze your notes and give you clear, first-principles advice to move you from A to B as fast as possible.</p>
+                      <p>Hit &quot;Generate&quot; to get actionable recommendations based on your current data. No motivation, no fluff—just math and logic.</p>
+                    </div>
+                  )}
+
+                  {isGeneratingConsulting && (
+                    <div className="text-base text-text-muted animate-pulse">Analyzing your notes with first-principles logic…</div>
+                  )}
+
+                  {!isGeneratingConsulting && consultingText && (
+                    <div className="text-[18px] md:text-[19px]">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          p: ({ node, ...props }) => <p className="mb-8 text-[#d7f0e8] leading-8 tracking-wide text-[1.15rem] md:text-[1.25rem] font-serif" {...props} />,
+                          h1: ({ node, ...props }) => <h1 className="text-3xl md:text-4xl font-serif font-bold mb-8 text-teal-50 mt-12 tracking-tight border-b border-white/10 pb-4" {...props} />,
+                          h2: ({ node, ...props }) => <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6 text-teal-100 mt-10 tracking-tight" {...props} />,
+                          h3: ({ node, ...props }) => <h3 className="text-xl md:text-2xl font-serif font-medium mb-4 text-teal-200 mt-8" {...props} />,
+                          ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-8 space-y-3 text-[#d7f0e8] text-[1.1rem] leading-7 font-serif" {...props} />,
+                          ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-8 space-y-3 text-[#d7f0e8] text-[1.1rem] leading-7 font-serif" {...props} />,
+                          li: ({ node, ...props }) => <li className="pl-2 marker:text-teal-400/50" {...props} />,
+                          blockquote: ({ node, ...props }) => <blockquote className="border-l-2 border-teal-400/30 pl-6 italic my-10 py-2 text-xl text-teal-100/90 font-serif leading-relaxed" {...props} />,
+                          code: ({ node, ...props }) => <code className="bg-white/5 rounded px-1.5 py-0.5 text-sm font-mono text-teal-100/90 border border-white/10" {...props} />,
+                          pre: ({ node, ...props }) => <pre className="bg-[#1a1a1a] rounded-xl p-6 mb-8 overflow-x-auto border border-white/5 shadow-inner" {...props} />,
+                          strong: ({ node, ...props }) => <strong className="font-bold text-teal-50" {...props} />,
+                          em: ({ node, ...props }) => <em className="italic text-teal-100 self-text" {...props} />,
+                        }}
+                      >
+                        {consultingText}
                       </ReactMarkdown>
                     </div>
                   )}
