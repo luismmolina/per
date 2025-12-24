@@ -5,34 +5,34 @@ import { loadConversations, saveConversations, clearConversations } from '../../
 async function fetchDishesData() {
   try {
     console.log('🍽️ Fetching dishes data for conversations API...')
-    
+
     const response = await fetch('https://cogs-two.vercel.app/api/dishes/prices', {
       method: 'GET',
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; GeminiPlayground/1.0)',
       },
     })
-    
+
     if (!response.ok) {
       console.warn('Failed to fetch dishes data:', response.status, response.statusText)
       return null
     }
-    
+
     const data = await response.json()
-    
+
     // Check if the response contains an error
     if (data.error) {
       console.warn('Dishes API returned error:', data.error)
       return null
     }
-    
+
     console.log('🍽️ Successfully fetched dishes data for conversations API:', {
       totalDishes: data.totalDishes,
       lastUpdated: data.lastUpdated,
       dishesWithCalculationNotes: data.dishes?.filter((d: any) => d.calculationNotes)?.length || 0,
       sampleDishNames: data.dishes?.slice(0, 3).map((d: any) => d.name) || []
     })
-    
+
     return data
   } catch (error) {
     console.warn('Error fetching dishes data:', error)
@@ -158,16 +158,34 @@ export async function GET(req: NextRequest) {
 // POST - Save conversations
 export async function POST(req: NextRequest) {
   try {
-    const { messages } = await req.json()
-    
+    const { messages, forceOverwrite } = await req.json()
+
+    // Safety check: Prevent accidental data loss
+    // Don't allow saving fewer messages than already exist (unless explicitly forced)
+    if (!forceOverwrite) {
+      const existing = await loadConversations()
+      const existingCount = existing?.messages?.length || 0
+      const newCount = messages?.length || 0
+
+      if (existingCount > 0 && newCount < existingCount) {
+        console.warn(`[SAFETY] Blocked save that would reduce messages from ${existingCount} to ${newCount}`)
+        return NextResponse.json({
+          success: false,
+          error: 'Save blocked: would result in data loss',
+          existingCount,
+          attemptedCount: newCount
+        }, { status: 409 })
+      }
+    }
+
     const conversationData = {
       messages,
       lastUpdated: new Date().toISOString(),
       totalMessages: messages.length
     }
-    
+
     await saveConversations(conversationData)
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to save conversations:', error)
@@ -179,7 +197,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE() {
   try {
     await clearConversations()
-    
+
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to clear conversations:', error)
