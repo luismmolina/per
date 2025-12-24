@@ -192,6 +192,15 @@ ONE specific, implementable next step. Include:
 Flag if the notes reveal one of his failure patterns (avoidance, guilt, paralysis). Call it out directly with specific evidence from the notes.
 
 ═══════════════════════════════════════════════════════════════
+FORMATTING RULES
+═══════════════════════════════════════════════════════════════
+
+- **DO NOT use markdown tables** — they render poorly on mobile. Use bullet points or numbered lists instead.
+- Use headers (##, ###) to organize sections
+- Use bold for emphasis on key numbers and conclusions
+- Keep paragraphs short and scannable
+
+═══════════════════════════════════════════════════════════════
 INPUT
 ═══════════════════════════════════════════════════════════════
 

@@ -190,6 +190,8 @@ CRITICAL RULES
 
 6. TIGHT WRITING — Be concise. No fluff. No reciting their situation back to them.
 
+7. NO TABLES — Do NOT use markdown tables. They render poorly on mobile. Use bullet points or numbered lists instead.
+
 ═══════════════════════════════════════════════════════════════
 THE PURPOSE
 ═══════════════════════════════════════════════════════════════
