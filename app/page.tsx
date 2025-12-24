@@ -689,7 +689,7 @@ export default function Home() {
                                         View evidence
                                       </summary>
                                       <p className="mt-2 text-[11px] text-amber-200/50 italic leading-relaxed border-l-2 border-amber-400/20 pl-2">
-                                        "{insight.evidence}"
+                                        &ldquo;{insight.evidence}&rdquo;
                                       </p>
                                     </details>
                                   </div>
