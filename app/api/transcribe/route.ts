@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'GROQ_API_KEY not set' }, { status: 500 })
     }
 
-    const tier = (process.env.GROQ_AUDIO_TIER || 'free').toLowerCase()
+    const tier = (process.env.GROQ_AUDIO_TIER || 'dev').toLowerCase()
     const byteLimit = tier === 'dev' ? DEV_TIER_MAX_BYTES : FREE_TIER_MAX_BYTES
 
     const form = await req.formData()
