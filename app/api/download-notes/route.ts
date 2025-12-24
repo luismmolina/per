@@ -39,7 +39,10 @@ ${'='.repeat(50)}
     return new NextResponse(header + notes, {
       headers: {
         'Content-Type': 'text/plain; charset=utf-8',
-        'Content-Disposition': `attachment; filename="${filename}"`
+        'Content-Disposition': `attachment; filename="${filename}"`,
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
       }
     })
   } catch (error) {
