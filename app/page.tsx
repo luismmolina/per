@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
-import { Download, MessageSquare, BookOpen } from 'lucide-react'
+import { Download, MessageSquare, BookOpen, Copy, Check } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -35,6 +35,7 @@ export default function Home() {
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
   const [longformError, setLongformError] = useState<string | null>(null)
   const [lastGeneratedAt, setLastGeneratedAt] = useState<Date | null>(null)
+  const [longformCopied, setLongformCopied] = useState(false)
   const LONGFORM_STORAGE_KEY = 'deep-read-longform-v1'
 
   // Voice Recorder Hook
@@ -379,6 +380,13 @@ export default function Home() {
     URL.revokeObjectURL(url)
   }
 
+  const handleCopyLongform = () => {
+    if (!longformText.trim()) return
+    navigator.clipboard.writeText(longformText)
+    setLongformCopied(true)
+    setTimeout(() => setLongformCopied(false), 2000)
+  }
+
   const longformParagraphs = longformText
     ? longformText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
     : []
@@ -460,6 +468,14 @@ export default function Home() {
 
                   {/* Right: Action buttons */}
                   <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleCopyLongform}
+                      disabled={!longformText.trim()}
+                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      title="Copy to clipboard"
+                    >
+                      {longformCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
                     <button
                       onClick={handleDownloadLongform}
                       disabled={!longformText.trim()}
