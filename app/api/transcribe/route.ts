@@ -5,6 +5,8 @@ import ffmpegPath from 'ffmpeg-static'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+// Increase max body size to 100MB for audio uploads
+export const maxDuration = 60 // Allow up to 60 seconds for processing
 
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
