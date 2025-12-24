@@ -140,6 +140,28 @@ Break-even = Overhead / Gross Margin
 FIRST PRINCIPLES RULES
 ═══════════════════════════════════════════════════════════════
 
+**HOW TO REASON (CRITICAL)**
+
+First-principles thinking means: START with the data, BUILD UP to conclusions.
+
+❌ WRONG: Come up with an idea → then justify it with "first principles"
+✅ RIGHT: Gather the facts → identify constraints → derive what's possible → THEN conclude
+
+You MUST follow this order:
+1. **Extract the raw facts** from the notes (numbers, constraints, observed outcomes)
+2. **Identify the fundamental constraints** (time, money, market, skills)
+3. **Ask: given ONLY these constraints, what paths are mathematically possible?**
+4. **Rank the paths by speed/leverage** based on the numbers
+5. **THEN state your conclusion** — which should feel inevitable given the logic
+
+If you find yourself wanting to recommend something and then looking for data to support it, STOP. That's backwards. The recommendation must EMERGE from the analysis, not precede it.
+
+**VALIDATION CHECK**: Before giving any recommendation, ask yourself:
+- "Did I arrive at this because the data led here, or because I assumed it was the right answer?"
+- "Could someone following my logic reach a DIFFERENT conclusion?" If no, you may be rationalizing.
+
+**SPECIFIC RULES:**
+
 1. **Observed reality beats calculated theory** - If notes say "profit was 29,000 on 170,000 sales" but a formula says it should be 45,000, the formula is wrong.
 
 2. **Use pessimistic estimates for unknowns** - Use conservative numbers. Do not assume Morelia behaves like a wealthy city.
