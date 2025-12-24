@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
-import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw } from 'lucide-react'
+import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Lightbulb, ChevronDown, ChevronUp } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -37,6 +37,20 @@ export default function Home() {
   const [lastGeneratedAt, setLastGeneratedAt] = useState<Date | null>(null)
   const [longformCopied, setLongformCopied] = useState(false)
   const LONGFORM_STORAGE_KEY = 'deep-read-longform-v1'
+
+  // Insights panel state
+  interface Insight {
+    emoji: string
+    title: string
+    summary: string
+    evidence: string
+  }
+  const [insights, setInsights] = useState<Insight[]>([])
+  const [isGeneratingInsights, setIsGeneratingInsights] = useState(false)
+  const [insightsError, setInsightsError] = useState<string | null>(null)
+  const [insightsExpanded, setInsightsExpanded] = useState(true)
+  const [lastInsightsGeneratedAt, setLastInsightsGeneratedAt] = useState<Date | null>(null)
+  const INSIGHTS_STORAGE_KEY = 'deep-read-insights-v1'
 
   // Voice Recorder Hook
   const {
@@ -131,6 +145,78 @@ export default function Home() {
       console.error('Failed to persist longform to storage:', error)
     }
   }, [longformText, lastGeneratedAt])
+
+  // Load insights from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = localStorage.getItem(INSIGHTS_STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed?.insights) setInsights(parsed.insights)
+        if (parsed?.generatedAt) setLastInsightsGeneratedAt(new Date(parsed.generatedAt))
+      }
+    } catch (error) {
+      console.error('Failed to restore insights from storage:', error)
+    }
+  }, [])
+
+  // Save insights to localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(
+        INSIGHTS_STORAGE_KEY,
+        JSON.stringify({
+          insights,
+          generatedAt: lastInsightsGeneratedAt ? lastInsightsGeneratedAt.toISOString() : null
+        })
+      )
+    } catch (error) {
+      console.error('Failed to persist insights to storage:', error)
+    }
+  }, [insights, lastInsightsGeneratedAt])
+
+  // Generate insights handler
+  const handleGenerateInsights = async () => {
+    setIsGeneratingInsights(true)
+    setInsightsError(null)
+
+    try {
+      const response = await fetch('/api/insights', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentDate: new Date().toISOString(),
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        })
+      })
+
+      if (!response.ok) {
+        let errorMsg = 'Failed to generate insights.'
+        try {
+          const payload = await response.json()
+          errorMsg = payload.error || errorMsg
+        } catch (e) {
+          errorMsg = await response.text() || errorMsg
+        }
+        throw new Error(errorMsg)
+      }
+
+      const data = await response.json()
+      if (data.insights && Array.isArray(data.insights)) {
+        setInsights(data.insights)
+        setLastInsightsGeneratedAt(new Date())
+      } else {
+        throw new Error('Invalid insights response format')
+      }
+    } catch (error) {
+      console.error('Insights error:', error)
+      setInsightsError(error instanceof Error ? error.message : 'Failed to generate insights.')
+    } finally {
+      setIsGeneratingInsights(false)
+    }
+  }
 
   // Handlers
   // Format timestamp with local time and timezone for AI context
@@ -510,6 +596,110 @@ export default function Home() {
                         {longformText ? 'Regenerate' : 'Generate'}
                       </span>
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Insights Panel */}
+              <div className="px-4 md:px-6 pt-6">
+                <div className="max-w-2xl mx-auto">
+                  <div className="rounded-2xl border border-amber-400/20 bg-gradient-to-br from-amber-900/20 to-amber-800/10 backdrop-blur-sm overflow-hidden">
+                    {/* Insights Header */}
+                    <div className="flex items-center justify-between px-4 py-3 border-b border-amber-400/10">
+                      <button
+                        onClick={() => setInsightsExpanded(!insightsExpanded)}
+                        className="flex items-center gap-2 text-amber-200 hover:text-amber-100 transition-colors"
+                      >
+                        <Lightbulb className="w-4 h-4" />
+                        <span className="text-sm font-medium">Your Core Insights</span>
+                        {insightsExpanded ? (
+                          <ChevronUp className="w-4 h-4 text-amber-400/60" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-amber-400/60" />
+                        )}
+                      </button>
+                      <div className="flex items-center gap-2">
+                        {lastInsightsGeneratedAt && (
+                          <span className="text-[10px] text-amber-300/50">
+                            {lastInsightsGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric' })}
+                          </span>
+                        )}
+                        <button
+                          onClick={handleGenerateInsights}
+                          disabled={isGeneratingInsights}
+                          className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium bg-amber-400/10 text-amber-200 border border-amber-400/20 hover:bg-amber-400/20 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                        >
+                          {isGeneratingInsights ? (
+                            <>
+                              <div className="w-3 h-3 border-2 border-amber-200/30 border-t-amber-200 rounded-full animate-spin" />
+                              <span>Generating...</span>
+                            </>
+                          ) : (
+                            <>
+                              {insights.length > 0 ? <RefreshCw className="w-3 h-3" /> : <Sparkles className="w-3 h-3" />}
+                              <span>{insights.length > 0 ? 'Refresh' : 'Generate'}</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Insights Content */}
+                    <AnimatePresence>
+                      {insightsExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="p-4 space-y-3">
+                            {insightsError && (
+                              <div className="rounded-lg border border-red-500/30 bg-red-500/10 text-xs text-red-200 p-3">
+                                {insightsError}
+                              </div>
+                            )}
+
+                            {insights.length === 0 && !isGeneratingInsights && !insightsError && (
+                              <p className="text-sm text-amber-200/60 text-center py-4">
+                                Generate insights from your notes to see recurring patterns and lessons learned.
+                              </p>
+                            )}
+
+                            {isGeneratingInsights && insights.length === 0 && (
+                              <div className="text-center py-6">
+                                <div className="w-6 h-6 border-2 border-amber-200/30 border-t-amber-200 rounded-full animate-spin mx-auto mb-2" />
+                                <p className="text-sm text-amber-200/60">Analyzing your notes...</p>
+                              </div>
+                            )}
+
+                            {insights.map((insight, index) => (
+                              <div
+                                key={index}
+                                className="group rounded-xl bg-black/20 border border-white/5 hover:border-amber-400/20 transition-colors p-3"
+                              >
+                                <div className="flex gap-3">
+                                  <span className="text-xl flex-shrink-0">{insight.emoji}</span>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-semibold text-amber-100 mb-1">{insight.title}</h4>
+                                    <p className="text-xs text-amber-200/70 leading-relaxed mb-2">{insight.summary}</p>
+                                    <details className="group/details">
+                                      <summary className="text-[10px] text-amber-300/40 cursor-pointer hover:text-amber-300/60 transition-colors">
+                                        View evidence
+                                      </summary>
+                                      <p className="mt-2 text-[11px] text-amber-200/50 italic leading-relaxed border-l-2 border-amber-400/20 pl-2">
+                                        "{insight.evidence}"
+                                      </p>
+                                    </details>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               </div>
