@@ -193,6 +193,43 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// PUT - Delete a specific message by ID
+export async function PUT(req: NextRequest) {
+  try {
+    const { messageId } = await req.json()
+
+    if (!messageId) {
+      return NextResponse.json({ success: false, error: 'messageId is required' }, { status: 400 })
+    }
+
+    const existing = await loadConversations()
+    const existingMessages = existing?.messages || []
+
+    // Filter out the message to delete
+    const updatedMessages = existingMessages.filter((msg: any) => msg.id !== messageId)
+
+    // Check if a message was actually removed
+    if (updatedMessages.length === existingMessages.length) {
+      return NextResponse.json({ success: false, error: 'Message not found' }, { status: 404 })
+    }
+
+    const conversationData = {
+      messages: updatedMessages,
+      lastUpdated: new Date().toISOString(),
+      totalMessages: updatedMessages.length
+    }
+
+    await saveConversations(conversationData)
+
+    console.log(`[DELETE MESSAGE] Removed message ${messageId}, ${existingMessages.length} -> ${updatedMessages.length} messages`)
+
+    return NextResponse.json({ success: true, remainingMessages: updatedMessages.length })
+  } catch (error) {
+    console.error('Failed to delete message:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete message' }, { status: 500 })
+  }
+}
+
 // DELETE - Clear conversations
 export async function DELETE() {
   try {

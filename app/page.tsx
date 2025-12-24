@@ -300,9 +300,25 @@ export default function Home() {
     setTimeout(() => setCopiedMessageId(null), 2000)
   }
 
-  const handleDeleteMessage = (id: string) => {
+  const handleDeleteMessage = async (id: string) => {
     if (confirm('Delete this note?')) {
+      // Optimistically remove from UI
       setMessages(prev => prev.filter(m => m.id !== id))
+
+      // Persist deletion to server
+      try {
+        const response = await fetch('/api/conversations', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messageId: id }),
+        })
+
+        if (!response.ok) {
+          console.error('Failed to delete message from server')
+        }
+      } catch (error) {
+        console.error('Failed to delete message:', error)
+      }
     }
   }
 
