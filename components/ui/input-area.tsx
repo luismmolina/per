@@ -122,11 +122,12 @@ export const InputArea = ({
                         <button
                             onClick={isListening ? onVoiceStop : onVoiceStart}
                             className={cn(
-                                "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium",
+                                "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none",
                                 isListening
                                     ? "bg-red-500/20 text-red-400 animate-pulse"
                                     : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10"
                             )}
+                            aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
                         >
                             {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                             <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
@@ -136,8 +137,9 @@ export const InputArea = ({
                         {onSwitchToDeepRead && (
                             <button
                                 onClick={onSwitchToDeepRead}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                                 title="Open Deep Read"
+                                aria-label="Open Deep Read"
                             >
                                 <BookOpen className="w-4 h-4" />
                                 <span className="hidden sm:inline">Deep Read</span>
@@ -169,18 +171,20 @@ export const InputArea = ({
                                 >
                                     <button
                                         onClick={() => handleSend('note')}
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20"
+                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20 focus-visible:ring-2 focus-visible:ring-accent-green focus-visible:outline-none"
                                         title="Save as Note"
                                         disabled={isLoading}
+                                        aria-label="Save as Note"
                                     >
                                         <Plus className="w-4 h-4" />
                                         <span className="hidden sm:inline">Note</span>
                                     </button>
                                     <button
                                         onClick={() => handleSend('question')}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium"
+                                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium focus-visible:ring-2 focus-visible:ring-primary focus-visible:outline-none"
                                         title="Ask AI"
                                         disabled={isLoading}
+                                        aria-label="Ask AI"
                                     >
                                         <Send className="w-4 h-4" />
                                         <span className="hidden sm:inline">Ask</span>
