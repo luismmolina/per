@@ -138,16 +138,26 @@ Notes:
 ${notesText}
 
 ═══════════════════════════════════════════════════════════════
-PEER AI ANALYSES (Context only - do not blindly agree)
+PEER AI ANALYSES (Lower trust than raw notes)
 ═══════════════════════════════════════════════════════════════
 
-[DEEP READ output]:
-${peerOutputs?.deepRead || "(Not generated)"}
+Other AI tools analyzed the same notes. Their conclusions are below.
 
-[A→B CONSULTING output]:
-${peerOutputs?.consulting || "(Not generated)"}
+TRUST HIERARCHY:
+1. Raw notes (highest) — ground truth
+2. Your own first-principles analysis
+3. Peer AI outputs (lowest) — opinions, may contain errors
 
-Use these for context. You may agree, disagree, or ignore. Your analysis must be independent.`
+YOUR JOB:
+- If a peer made a claim, verify it against the raw notes before agreeing
+- Explicitly note if you DISAGREE with a peer and why
+- Do not repeat their conclusions — add new value
+
+[DEEP READ]:
+${peerOutputs?.deepRead || "(Not run)"}
+
+[A→B CONSULTING]:
+${peerOutputs?.consulting || "(Not run)"}`
 
         const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 

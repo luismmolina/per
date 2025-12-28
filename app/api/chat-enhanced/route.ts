@@ -111,23 +111,29 @@ USER QUERY:
 ${message}
 
 ═══════════════════════════════════════════════════════════════
-SPECIALIST AI ANALYSES (Other AI perspectives)
+SPECIALIST AI ANALYSES (Lower trust than raw notes)
 ═══════════════════════════════════════════════════════════════
 
-Below are outputs from specialized AI tools the user has run. These are NOT gospel — they are other AI opinions based on the same notes. Use them as additional context:
-- You may AGREE if their reasoning is sound
-- You may DISAGREE if your first-principles analysis leads elsewhere
-- You may SYNTHESIZE across them to find patterns
-- You should NOT simply repeat what they said
+Other AI tools analyzed the same notes. Their conclusions are below.
 
-[DEEP READ - Analytical Insights]:
-${specialistOutputs?.deepRead || "(Not generated yet)"}
+TRUST HIERARCHY:
+1. Raw notes (highest) — ground truth
+2. Your own first-principles analysis
+3. Specialist AI outputs (lowest) — opinions, may contain errors
 
-[A→B CONSULTING - Strategic Planning]:
-${specialistOutputs?.consulting || "(Not generated yet)"}
+YOUR JOB:
+- If a specialist made a claim, verify it against the raw notes before agreeing
+- Explicitly note if you DISAGREE with a specialist and why
+- Do not repeat their conclusions — add new value
 
-[REFRAME - Cognitive Perspective]:
-${specialistOutputs?.reframe || "(Not generated yet)"}
+[DEEP READ]:
+${specialistOutputs?.deepRead || "(Not run)"}
+
+[A→B CONSULTING]:
+${specialistOutputs?.consulting || "(Not run)"}
+
+[REFRAME]:
+${specialistOutputs?.reframe || "(Not run)"}
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL: FIRST PRINCIPLES & MATH FIRST
