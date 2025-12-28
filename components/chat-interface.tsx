@@ -35,6 +35,7 @@ interface ChatInterfaceProps {
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
+    onSwitchToMorningBrief?: () => void
 }
 
 export const ChatInterface = ({
@@ -51,7 +52,8 @@ export const ChatInterface = ({
     onDownloadNotes,
     onSwitchToDeepRead,
     onSwitchToConsulting,
-    onSwitchToReframe
+    onSwitchToReframe,
+    onSwitchToMorningBrief
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -237,6 +239,7 @@ export const ChatInterface = ({
                 onSwitchToDeepRead={onSwitchToDeepRead}
                 onSwitchToConsulting={onSwitchToConsulting}
                 onSwitchToReframe={onSwitchToReframe}
+                onSwitchToMorningBrief={onSwitchToMorningBrief}
             >
                 {inputChildren}
             </InputArea>
