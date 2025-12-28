@@ -55,11 +55,9 @@ export const InputArea = ({
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSend('question')
-        }
+    // Enter key now inserts line breaks (no auto-send)
+    const handleKeyDown = (_e: React.KeyboardEvent) => {
+        // Do nothing special - let Enter create newlines naturally
     }
 
     // Report the current height so the message list can keep clear space.
@@ -136,8 +134,8 @@ export const InputArea = ({
                                 <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
                             </button>
 
-                            {/* Deep Read Button */}
-                            {onSwitchToDeepRead && (
+                            {/* Deep Read Button - hidden when typing */}
+                            {onSwitchToDeepRead && !value.trim() && (
                                 <button
                                     onClick={onSwitchToDeepRead}
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium shrink-0"
@@ -148,8 +146,8 @@ export const InputArea = ({
                                 </button>
                             )}
 
-                            {/* A→B Advisor Button */}
-                            {onSwitchToConsulting && (
+                            {/* A→B Advisor Button - hidden when typing */}
+                            {onSwitchToConsulting && !value.trim() && (
                                 <button
                                     onClick={onSwitchToConsulting}
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 border border-teal-500/20 transition-all text-sm font-medium shrink-0"
@@ -160,8 +158,8 @@ export const InputArea = ({
                                 </button>
                             )}
 
-                            {/* Reframe Button */}
-                            {onSwitchToReframe && (
+                            {/* Reframe Button - hidden when typing */}
+                            {onSwitchToReframe && !value.trim() && (
                                 <button
                                     onClick={onSwitchToReframe}
                                     className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-violet-200 border border-violet-500/20 transition-all text-sm font-medium shrink-0"
