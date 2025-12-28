@@ -281,7 +281,13 @@ export default function Home() {
           message: trimmed,
           conversationHistory: historyPayload,
           currentDate: new Date().toISOString(),
-          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          // Pass specialist AI outputs for cross-AI awareness
+          specialistOutputs: {
+            deepRead: longformText || null,
+            consulting: consultingText || null,
+            reframe: reframeText || null
+          }
         })
       })
 
@@ -416,9 +422,13 @@ export default function Home() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fetchAllNotes: true, // Tell server to fetch from DB
+          fetchAllNotes: true,
           currentDate: new Date().toISOString(),
-          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          peerOutputs: {
+            consulting: consultingText || null,
+            reframe: reframeText || null
+          }
         })
       })
 
@@ -490,7 +500,11 @@ export default function Home() {
         body: JSON.stringify({
           fetchAllNotes: true,
           currentDate: new Date().toISOString(),
-          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          peerOutputs: {
+            deepRead: longformText || null,
+            reframe: reframeText || null
+          }
         })
       })
 
@@ -560,7 +574,11 @@ export default function Home() {
         body: JSON.stringify({
           fetchAllNotes: true,
           currentDate: new Date().toISOString(),
-          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          peerOutputs: {
+            deepRead: longformText || null,
+            consulting: consultingText || null
+          }
         })
       })
 

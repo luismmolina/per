@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
             return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not set.' }), { status: 500 })
         }
 
-        const { currentDate, userTimezone, fetchAllNotes } = await req.json()
+        const { currentDate, userTimezone, fetchAllNotes, peerOutputs } = await req.json()
 
         let notesText = ''
 
@@ -135,7 +135,19 @@ Current Date: ${todayLine}
 Timezone: ${tzLine}
 
 Notes:
-${notesText}`
+${notesText}
+
+═══════════════════════════════════════════════════════════════
+PEER AI ANALYSES (Context only - do not blindly agree)
+═══════════════════════════════════════════════════════════════
+
+[DEEP READ output]:
+${peerOutputs?.deepRead || "(Not generated)"}
+
+[A→B CONSULTING output]:
+${peerOutputs?.consulting || "(Not generated)"}
+
+Use these for context. You may agree, disagree, or ignore. Your analysis must be independent.`
 
         const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
 

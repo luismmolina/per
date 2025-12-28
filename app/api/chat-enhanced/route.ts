@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       return new Response('Error: OPENROUTER_API_KEY is not set.', { status: 500 })
     }
 
-    const { message, conversationHistory = [], currentDate, userTimezone } = await req.json()
+    const { message, conversationHistory = [], currentDate, userTimezone, specialistOutputs } = await req.json()
 
     if (!message) {
       return new Response('Error: Message is required.', { status: 400 })
@@ -109,6 +109,25 @@ ${chatContext}
 
 USER QUERY:
 ${message}
+
+═══════════════════════════════════════════════════════════════
+SPECIALIST AI ANALYSES (Other AI perspectives)
+═══════════════════════════════════════════════════════════════
+
+Below are outputs from specialized AI tools the user has run. These are NOT gospel — they are other AI opinions based on the same notes. Use them as additional context:
+- You may AGREE if their reasoning is sound
+- You may DISAGREE if your first-principles analysis leads elsewhere
+- You may SYNTHESIZE across them to find patterns
+- You should NOT simply repeat what they said
+
+[DEEP READ - Analytical Insights]:
+${specialistOutputs?.deepRead || "(Not generated yet)"}
+
+[A→B CONSULTING - Strategic Planning]:
+${specialistOutputs?.consulting || "(Not generated yet)"}
+
+[REFRAME - Cognitive Perspective]:
+${specialistOutputs?.reframe || "(Not generated yet)"}
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL: FIRST PRINCIPLES & MATH FIRST
