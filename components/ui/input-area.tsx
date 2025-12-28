@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen, Compass } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -16,6 +16,7 @@ interface InputAreaProps {
     onHeightChange?: (height: number) => void
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
+    onSwitchToReframe?: () => void
 }
 
 export const InputArea = ({
@@ -28,7 +29,8 @@ export const InputArea = ({
     keyboardOffset = 0,
     onHeightChange,
     onSwitchToDeepRead,
-    onSwitchToConsulting
+    onSwitchToConsulting,
+    onSwitchToReframe
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -153,6 +155,18 @@ export const InputArea = ({
                             >
                                 <Compass className="w-4 h-4" />
                                 <span className="hidden sm:inline">A→B</span>
+                            </button>
+                        )}
+
+                        {/* Reframe Button */}
+                        {onSwitchToReframe && (
+                            <button
+                                onClick={onSwitchToReframe}
+                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-violet-200 border border-violet-500/20 transition-all text-sm font-medium"
+                                title="Open Reframe"
+                            >
+                                <Brain className="w-4 h-4" />
+                                <span className="hidden sm:inline">Reframe</span>
                             </button>
                         )}
 
