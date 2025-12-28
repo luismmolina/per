@@ -1,5 +1,6 @@
 import type { NextRequest } from 'next/server'
 import OpenAI from 'openai'
+import { loadConversations } from '../../../lib/storage'
 
 export const runtime = 'edge'
 export const dynamic = 'force-dynamic'
@@ -51,17 +52,37 @@ export async function POST(req: NextRequest) {
       return new Response('Error: Message is required.', { status: 400 })
     }
 
+    // Load long-term notes (Memory)
+    let notesContext = ''
+    try {
+      const conversations = await loadConversations()
+      const messages = conversations?.messages || []
+
+      // Use last 100 notes to avoid context window explosion, or smart filter
+      // For now, grabbing all notes but simple format
+      notesContext = messages
+        .filter((m: any) => m.type === 'note')
+        .map((m: any) => {
+          const date = new Date(m.timestamp).toLocaleDateString('en-US')
+          return `[${date}] ${m.content}`
+        })
+        .join('\n')
+    } catch (err) {
+      console.error('Failed to load notes for context:', err)
+      // Check if we can proceed without notes, or fail. Proceeding is safer.
+      notesContext = "(System: Failed to load long-term notes. Rely only on conversation history.)"
+    }
+
     const openai = new OpenAI({
       apiKey,
       baseURL: 'https://openrouter.ai/api/v1',
     })
 
-    // Personal assistant: focus on user notes only (no external domain filters)
-
     const currentDateLine = currentDate ? String(currentDate) : new Date().toString();
+    const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
 
-    // Build context from conversation history
-    const context = (conversationHistory as any[])
+    // Build context from conversation history (Immediate Context)
+    const chatContext = (conversationHistory as any[])
       .map((entry: any) => {
         if (entry.role === 'user' && entry.parts) {
           return 'User: ' + entry.parts.map((part: any) => part.text).join(' ')
@@ -73,56 +94,47 @@ export async function POST(req: NextRequest) {
       })
       .join('\n')
 
-    const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
+    // Updated Prompt: First Principles & Logic Oriented
+    let systemInstruction = `You are a First-Principles Thinking Partner. You do not provide motivation, fluff, or standard customer-service platitudes. You provide clarity, rigorous logic, and strategy based on facts.
 
-    let systemInstruction = `You are a thoughtful analyst who answers questions based on the user's personal notes. Your goal is to provide accurate, evidence-based answers in a clear, readable format.
-
-CONTEXT
+CONTEXT:
 - Today: ${currentDateLine}
 - ${timezoneLine}
-- User's notes: ${context}
-- Question: ${message}
 
-HOW TO THINK
-1. First, gather all relevant evidence from the notes
-2. Build your reasoning from evidence to conclusion
-3. Then state your answer (the answer should FOLLOW from your reasoning, not precede it)
+LONG-TERM MEMORY (USER NOTES):
+${notesContext}
 
-HOW TO WRITE
-Write in a flowing, readable style - like you're explaining your thinking to a thoughtful friend. Structure your response like this:
+IMMEDIATE CONVERSATION CONTEXT:
+${chatContext}
 
-**Looking at your notes...**
-Quote or reference the specific notes that are relevant. Be specific about what you found.
+USER QUERY:
+${message}
 
-**Here's what I can piece together...**
-Walk through your reasoning step by step. Show the logical connections. If you're making inferences, say so and explain why they're reasonable.
+YOUR CORE DIRECTIVES:
+1. **Directness**: Start immediately with the answer or core insight. No "Hello", "That's a great question", or "Here is what I found".
+2. **First Principles**: specific observations > general advice. Break problems down to their mechanics.
+3. **Data-Driven**: Base your answers on the User Notes provided. If the notes contradict the user's current stance, point it out gently but firmly.
+4. **Action-Oriented**: If the user is stuck, propose a logical "Next Step" (A -> B).
+5. **Cognitive Awareness**: If the user seems stuck in a loop (guilt, indecision), name the paradox or pattern you see.
 
-**So to answer your question:**
-Give the clear, direct answer that follows from your reasoning above.
+TONE:
+- Professional, high-bandwidth, "Chief of Staff" or "Senior Strategist" persona.
+- Concise. Use bullet points for density.
+- No "cheerleading". The user feels better through clarity, not compliments.
 
-**Confidence note:** (optional - only include if there's meaningful uncertainty)
-Briefly note your confidence level and what could change your answer.
+How to Structure Your Answer:
+- **The Core Truth**: What is the immediate answer or insight?
+- **The Evidence**: "Based on your note from [Date]..."
+- **The Strategic Shift**: How should the user view this differently? or What is the next move?
+`
 
-WRITING STYLE
-- Use natural, conversational prose (not bullet-heavy or robotic)
-- Quote from notes when helpful, using italics
-- Bold key conclusions or important points
-- Keep paragraphs digestible (3-4 sentences max)
-- Be warm but precise
-
-RULES
-- Always attempt to answer, even with limited data
-- If inferring, explain why the inference is reasonable
-- If notes contradict, acknowledge it and explain your reasoning
-- Never just say "I don't know" - show what IS known and what's missing`
-
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast'
+    const model = process.env.OPENROUTER_MODEL || 'google/gemini-2.0-flash-exp' // Default to a fast, smart model
 
     const stream = await openai.chat.completions.create({
       model,
       messages: [
         { role: 'system', content: systemInstruction },
-        { role: 'user', content: message } // Redundant but good for clarity if systemInstruction is treated as system
+        { role: 'user', content: message }
       ],
       stream: true,
     })
