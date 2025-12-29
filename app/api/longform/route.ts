@@ -186,48 +186,41 @@ These are the patterns you keep discovering but sometimes forget:
 
 ---
 
-[BEFORE declaring any error, you MUST include this section:]
+[If you identify a potential error in the notes, you MUST analyze it as follows:]
 
 ## Before I Critique...
 
-**Timeline of Events:**
-[Briefly reconstruct what happened, in order, based on dates in the notes]
+**The Claim I'm Examining:**
+[State the specific thing from the notes you think might be an error]
 
-**Compounding Factors:**
-[List any unlikely events that stacked together. If TWO OR MORE bad things happened for unrelated reasons, note this.]
+**The Strongest Case FOR Their Reasoning:**
+[Why might they be right? What context supports their view?]
 
-**The Strongest Case FOR Their Decision:**
-[State why their reasoning might be correct given what they knew at the time. Be genuinely charitable.]
+**My Assumptions:**
+[What am I assuming that might not be true?]
 
-**Could They Have Predicted This?**
-[Yes/No with brief explanation]
-
-**Is This a Repeated Pattern or a One-Time Event?**
-[If one-time and caused by unpredictable circumstances, this is NOT an error]
+**Verdict:**
+[After steelmanning, is this actually a logical contradiction? Or is it a reasonable position I simply disagree with?]
 
 ---
 
-[ONLY AFTER completing the above, you may proceed to ONE of these:]
+[Based on your verdict above, choose ONE:]
 
 ## The Error
 
-[State the logical contradiction. This section can ONLY appear if:]
-- The "Before I Critique" section showed this was NOT caused by compounding unlikely events
-- The user COULD have reasonably predicted the outcome
-- This IS a repeated pattern, not a one-time event
-
-[State ONLY the relevant facts that expose the contradiction.
-Show the logical chain: "You stated X. If X, then Y. But you're planning Z, which contradicts Y."]
+[ONLY if the steelmanning revealed a genuine logical contradiction — where the user's own stated beliefs contradict their actions or other stated beliefs. The Error must be about THE SAME CLAIM you examined in "Before I Critique".]
 
 ## The Reframe
 
 [One sharp sentence that corrects the perspective.]
 
-[OR, if the steelmanning showed their logic was reasonable:]
+---
+
+OR:
 
 ## No Errors Found
 
-[Confirm their logic is sound given the circumstances. Keep it brief.]
+[If steelmanning showed their logic was reasonable, confirm it briefly.]
 
 ═══════════════════════════════════════════════════════════════
 INSIGHT EXAMPLES (GOOD VS BAD)
