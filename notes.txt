@@ -1,7 +1,7 @@
 === Notes Export ===
-Total messages in database: 380
-Notes found: 205
-Exported: 2025-12-28T19:22:48.178Z
+Total messages in database: 397
+Notes found: 214
+Exported: 2025-12-29T20:42:13.668Z
 ==================================================
 
 [9/7/25, 6:19 AM] i need to sleep early, I think i can do more, feel more productive, and enjoy my day better if I wake up early, lets say around five am
@@ -1416,3 +1416,45 @@ even spending time using platforms like chatgpt at night some times produce idea
 [12/28/25, 4:32 AM] I wish I had more girlfriends when I was 18 to 30 years old. In the moment I thought I wasn't handsome enough or a male that could attract girls. But now I realize that it was a funnel issue, by not moving enough people through the funnel, I'm amazed that even I had some girlfriends, 4 or 5. My problem is that I didn't start the interaction because of fear of rejection. But now I realize I could have made a low friction funnel in the first stage of the funnel, even automatic and move them to have at least 5x more of those amazing experiences.
 
 [12/28/25, 5:34 AM] .I sometimes think that my problem is not to have a set of options to do. Like a roll over brainstorm of ideas. For example what to do with my wife I can see the list and choose. Or what to do in a moment of availability to work, check that list. Instead of selecting of the first thing that come to my mind. I think I need that
+
+[12/28/25, 8:15 PM] I think I have done around 4 to 6 creatives in a month for Costa Coral. This produces the result I get. Obviously with the ad investment in Facebook and TikTok, of around $4000 MXN this month.
+
+[12/28/25, 9:59 PM] What I did to motivate myself was to build a machine that gave me immediate rewards. This is when I finished the image, at that moment I could press a button that assigned me a random amount, which on average was a low amount, let's say 10 pesos, 15 pesos, mexicanos. and this could be accumulated to buy something I liked, for example, or what I used were books. This made me interested in making as many images as possible as quickly as possible, to buy a book that, although it was not for reading, was an immediate reward in my brain, and I could clearly compete with playing a video game, etc. So I was thinking what happens if I apply the same strategy to create Creatives, content for social networks, for example for Facebook and for TikTok, since in the preliminary calculations it would be the revenue and the profit that would allow this workflow.
+
+[12/28/25, 10:00 PM] I just had a realization, I don't know if it works, but when I was a 3D designer, the payment for each image I made was different, could not be paid in 5 or 6 years. This was because they were sent to stock sites, image banks, and well, maybe until the first three months they did not receive anything, some images were never sold and a small percentage was responsible for the largest sales, let's say 5% of the sales. This caused me to personally find it difficult to motivate myself to make an image, since I knew that the most probable thing is that no one would see it and I would not sell anything either, but among all those images that I created, some of them sold and were the ones responsible for to generate the most part of the English, to be able to lie to my mind, or to motivate it to make more images. 
+
+What I did to motivate myself was to build a machine that gave me immediate rewards. This is when I finished the image, at that moment I could press a button that assigned me a random amount, which on average was a low amount, let's say 10 pesos, 15 pesos, mexicanos. and this could be accumulated to buy something I liked, for example, or what I used were books. This made me interested in making as many images as possible as quickly as possible, to buy a book that, although it was not for reading, was an immediate reward in my brain, and I could clearly compete with playing a video game, etc. So I was thinking what happens if I apply the same strategy to create Creatives, content for social networks, for example for Facebook and for TikTok, since in the preliminary calculations it would be the revenue and the profit that would allow this workflow.
+
+[12/28/25, 10:27 PM] We have already tried in other months to invest more in advertising and in that month we invested 8,000 Mexican pesos. and I realized that I have the feeling that there is a limit in the amount of market to which we can access that was 8 to access sorry that was in the only on facebook before that was before discovering tik tok it was this year and I invested 8,000 since the sales were very low and I was hoping at least to have a little movement so that did not increase sales only my expenses in advertising so I do not realize that if there is only a certain limit that we cannot even if it is already more no there is no this is not linear growth between the investment, but you can reach a limit. I don't know which one it is, but let's say, as we live in Morelia, a relatively small city, you can reach these limits relatively easily. What is the most important thing in your life?
+
+[12/28/25, 10:29 PM] The ROAS of 10x, I also suspect that they are not reachable in such an easy way, or rather that the curve does not remain in line, it begins to reduce, even so, definitely in the output surveys that we have done, most of them comment that they have seen us on Facebook and on TikTok, our clients who visit us for the first time, I still think that it is around 70% of our clients who arrive through this medium 70 easily and this and with our reservation system because they do it this is immediate many times the result
+
+[12/29/25, 8:18 PM] I suspect the initial ROAS from tiktok was becuase we where new on the platform. Now that people know us the ROAS have reduced maybe $400 could bring and additional $3000 in sales if spend on good creatives on tiktok. This number is only a ballpark, I havent measured the number. 
+
+hard numbers from tiktok in my most longer run campain> 
+
+CPC 0.32 MXN
+
+and in my site reservacoral.com I see a conversion rate of 1.46% with 150 reservarvations, since I reseted the counter. 
+
+
+Many of the reservations are no show. Lets say 35%. But also many people see our ads and arrive without making any reservation.
+
+[12/29/25, 8:26 PM] I have run some numbers and the Cost Per Acquisition (CPA) is $33.72 per seated table on tiktok. 
+
+and Revenue per Table: $574 MXN (Based on Nov 2025 actuals ).
+
+So aparently this is very profitable and I rthink I should spend more money and time on tiktok
+
+[12/29/25, 8:31 PM] Flor continues to feel sick, she believes she can work this Friday 2 of jan. I wonder what should I spend my current time doing. The urge for money is making me think how to spend this time. But maybe thinking in probabilities, I should make some creatives for tiktok and facebook to maximize the opoerunity to bring new costumers when we reopen or doors. 
+
+I have canceled some reservations in this days that we have been closed. For one this make me sad, for the other I realzie that even without investing in money in ads, our site for reservations keep working for us in the background bringing new costumners. 
+
+I wonder if the most ROI for my time right now is to work in making creatives for facebook and tiktok and maybe try a new landing page trying to increase the conversion rate from 1.46% (current conversion from tiktok to our landign page for reservations reservacoral.com)
+
+[12/29/25, 8:38 PM] the AI says this> 
+
+The Logic: You are optimizing for expense reduction (saving $8k/month) while exposing yourself to catastrophic risk (losing $20k in a single weekend). By running without redundancy, you are not "saving money"; you are gambling. The cost of a spare employee is an insurance premium that is mathematically cheaper than the cost of a single unplanned closure.
+
+My thinking> 
+but I wonder if this is true? Did I lose 20k? Yes, on the surface that revenue didnt materialize, but the seafood is still in the freezer, I didnt have to pay Monse (on vacation), Flor (didnt work), didnt have to buy stuff like tortillas and yes 20k was the potential sales, but judging by the last weekends we couldnt hit those numbers. I THINK WE NEED TO BE MORE CAREFUL WITH ANY COMMENT
