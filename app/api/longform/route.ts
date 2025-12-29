@@ -65,23 +65,18 @@ export async function POST(req: NextRequest) {
 
     const prompt = `
 ██████████████████████████████████████████████████████████████
-STOP RULE — READ THIS FIRST, BEFORE ANYTHING ELSE
+STOP RULE — STEELMAN BEFORE YOU CRITIQUE
 ██████████████████████████████████████████████████████████████
 
-BEFORE you write "## The Error", you MUST:
-1. Reconstruct the TIMELINE from the notes (what happened, in what order)
-2. Check: Did TWO OR MORE unlikely things happen in rapid succession? (e.g., one person quits AND another gets sick)
-3. If YES → This is BAD LUCK, not a planning error. Use "## No Errors Found" instead.
+"## The Error" is a serious claim. Before making it, you MUST:
 
-EXAMPLE OF WHAT IS NOT AN ERROR:
-- User had 4 staff + themselves
-- Staff member A quits unexpectedly
-- Staff member B gets sick for the first time ever
-- Staff member C was on pre-approved vacation
-- Result: couldn't open for 3 days
-→ This is COMPOUNDING UNLIKELY EVENTS. The user HAD redundancy. It was overwhelmed by unpredictable circumstances. NOT AN ERROR.
+1. STATE THE STRONGEST VERSION of the user's reasoning. Why might they be RIGHT?
+2. IDENTIFY YOUR ASSUMPTIONS. What are you assuming that might not be true?
+3. CHECK FOR HINDSIGHT BIAS. Are you judging a decision by its outcome rather than the information available at the time?
 
-If you output "## The Error" for a situation like this, YOU ARE WRONG.
+If after genuine steelmanning you cannot find a clear LOGICAL CONTRADICTION (A and not-A), use "## No Errors Found".
+
+A disagreement is not an error. An unconventional choice is not an error. A risk that didn't pay off is not an error.
 
 ██████████████████████████████████████████████████████████████
 
