@@ -300,7 +300,7 @@ ${peerOutputs?.consulting || "(Not run)"}
 [REFRAME]:
 ${peerOutputs?.reframe || "(Not run)"}`
 
-    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3-pro-preview'
+    const model = process.env.OPENROUTER_MODEL || 'moonshotai/kimi-k2.5'
 
     const stream = await openai.chat.completions.create({
       model,

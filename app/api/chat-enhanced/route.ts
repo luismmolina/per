@@ -174,7 +174,7 @@ How to Structure Your Answer:
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
 `
 
-    const model = process.env.OPENROUTER_MODEL || 'x-ai/grok-4.1-fast' // Default to a fast, smart model
+    const model = process.env.OPENROUTER_MODEL || 'moonshotai/kimi-k2.5' // Default to a fast, smart model
 
     const stream = await openai.chat.completions.create({
       model,

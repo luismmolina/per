@@ -159,7 +159,7 @@ Notes:
 ${notesText}`
 
         // Use the grok-4.1-fast model as requested
-        const model = 'x-ai/grok-4.1-fast'
+        const model = 'moonshotai/kimi-k2.5'
 
         const stream = await openai.chat.completions.create({
             model,
