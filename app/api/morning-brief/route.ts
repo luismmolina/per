@@ -158,8 +158,8 @@ Timezone: ${tzLine}
 Notes:
 ${notesText}`
 
-        // Use the grok-4.1-fast model as requested
-        const model = 'moonshotai/kimi-k2.5'
+        // Use the google/gemini-3.1-pro-preview model as requested
+        const model = 'google/gemini-3.1-pro-preview'
 
         const stream = await openai.chat.completions.create({
             model,
