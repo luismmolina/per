@@ -263,6 +263,56 @@ function collectStructuredJsonCandidates(text: string): string[] {
   return Array.from(candidates)
 }
 
+function repairTruncatedJson(text: string): string | null {
+  const trimmed = text.trim()
+  if (!trimmed || (trimmed[0] !== '{' && trimmed[0] !== '[')) {
+    return null
+  }
+
+  // Walk the string tracking nesting so we can close what's open.
+  const closers: string[] = []
+  let inString = false
+  let escaping = false
+
+  for (let i = 0; i < trimmed.length; i += 1) {
+    const ch = trimmed[i]
+
+    if (inString) {
+      if (escaping) { escaping = false; continue }
+      if (ch === '\\') { escaping = true; continue }
+      if (ch === '"') { inString = false }
+      continue
+    }
+
+    if (ch === '"') { inString = true; continue }
+    if (ch === '{') { closers.push('}'); continue }
+    if (ch === '[') { closers.push(']'); continue }
+    if ((ch === '}' || ch === ']') && closers.length > 0 && closers[closers.length - 1] === ch) {
+      closers.pop()
+    }
+  }
+
+  if (closers.length === 0) {
+    return null // already balanced — normal parse should have worked
+  }
+
+  // Close an open string if needed, strip any trailing partial value/comma
+  let repaired = trimmed
+  if (inString) {
+    repaired += '"'
+  }
+
+  // Remove a trailing comma or colon that would make the JSON invalid
+  repaired = repaired.replace(/[,:\s]+$/, '')
+
+  // Close all open brackets/braces in reverse order
+  while (closers.length > 0) {
+    repaired += closers.pop()
+  }
+
+  return repaired
+}
+
 function parseStructuredGeminiOutput<T>(text: string): T {
   const candidates = collectStructuredJsonCandidates(text)
   let lastError: Error | null = null
@@ -272,6 +322,20 @@ function parseStructuredGeminiOutput<T>(text: string): T {
       return JSON.parse(candidate) as T
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  // Attempt truncation repair on the raw text and any extracted candidates
+  const repairTargets = [text.trim(), ...candidates]
+  for (const target of repairTargets) {
+    const repaired = repairTruncatedJson(target)
+    if (repaired) {
+      try {
+        console.warn('[gemini] Recovered structured output from truncated JSON response')
+        return JSON.parse(repaired) as T
+      } catch {
+        // repair didn't produce valid JSON either — continue
+      }
     }
   }
 
