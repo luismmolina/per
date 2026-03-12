@@ -40,6 +40,10 @@ interface GeminiGenerateContentResponse {
   }
 }
 
+type GeminiJsonSchema = {
+  [key: string]: unknown
+}
+
 function getGeminiApiKey(): string {
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
@@ -168,12 +172,121 @@ function extractGenerateContentText(payload: GeminiGenerateContentResponse): str
     .trim()
 }
 
+function buildStructuredOutputPreview(text: string): string {
+  return text.replace(/\s+/g, ' ').trim().slice(0, 200)
+}
+
+function extractBalancedJsonCandidate(text: string, startIndex: number): string | null {
+  const startChar = text[startIndex]
+  if (startChar !== '{' && startChar !== '[') {
+    return null
+  }
+
+  const stack: string[] = [startChar === '{' ? '}' : ']']
+  let inString = false
+  let escaping = false
+
+  for (let index = startIndex + 1; index < text.length; index += 1) {
+    const char = text[index]
+
+    if (inString) {
+      if (escaping) {
+        escaping = false
+        continue
+      }
+
+      if (char === '\\') {
+        escaping = true
+        continue
+      }
+
+      if (char === '"') {
+        inString = false
+      }
+
+      continue
+    }
+
+    if (char === '"') {
+      inString = true
+      continue
+    }
+
+    if (char === '{') {
+      stack.push('}')
+      continue
+    }
+
+    if (char === '[') {
+      stack.push(']')
+      continue
+    }
+
+    if ((char === '}' || char === ']') && stack[stack.length - 1] === char) {
+      stack.pop()
+      if (stack.length === 0) {
+        return text.slice(startIndex, index + 1)
+      }
+    }
+  }
+
+  return null
+}
+
+function collectStructuredJsonCandidates(text: string): string[] {
+  const trimmed = text.trim()
+  if (!trimmed) {
+    return []
+  }
+
+  const candidates = new Set<string>([trimmed])
+
+  for (const match of trimmed.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)) {
+    const fencedContent = match[1]?.trim()
+    if (fencedContent) {
+      candidates.add(fencedContent)
+    }
+  }
+
+  for (let index = 0; index < trimmed.length; index += 1) {
+    const char = trimmed[index]
+    if (char !== '{' && char !== '[') {
+      continue
+    }
+
+    const candidate = extractBalancedJsonCandidate(trimmed, index)
+    if (candidate) {
+      candidates.add(candidate.trim())
+    }
+  }
+
+  return Array.from(candidates)
+}
+
+function parseStructuredGeminiOutput<T>(text: string): T {
+  const candidates = collectStructuredJsonCandidates(text)
+  let lastError: Error | null = null
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate) as T
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+    }
+  }
+
+  const preview = buildStructuredOutputPreview(text)
+  const detail = lastError ? ` Last parse error: ${lastError.message}` : ''
+  throw new Error(`Gemini generation request returned invalid JSON. Preview: "${preview}"${detail}`)
+}
+
 export async function generateStructuredGeminiOutput<T>(
   prompt: string,
   options?: {
     model?: string
     maxOutputTokens?: number
     temperature?: number
+    responseJsonSchema?: GeminiJsonSchema
   },
 ): Promise<T> {
   const model = normalizeModelName(options?.model ?? process.env.GEMINI_RERANK_MODEL, DEFAULT_RERANK_MODEL)
@@ -191,6 +304,7 @@ export async function generateStructuredGeminiOutput<T>(
       ],
       generationConfig: {
         responseMimeType: 'application/json',
+        responseJsonSchema: options?.responseJsonSchema,
         maxOutputTokens: options?.maxOutputTokens ?? 512,
         temperature: options?.temperature ?? 0.1,
       },
@@ -207,5 +321,5 @@ export async function generateStructuredGeminiOutput<T>(
     throw new Error('Gemini generation request returned an empty body')
   }
 
-  return JSON.parse(text) as T
+  return parseStructuredGeminiOutput<T>(text)
 }

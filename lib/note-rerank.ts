@@ -18,6 +18,20 @@ interface RerankResponse {
   selectedIds?: string[]
 }
 
+const RERANK_RESPONSE_SCHEMA = {
+  type: 'object',
+  properties: {
+    selectedIds: {
+      type: 'array',
+      description: 'Ordered note ids selected from the provided candidate list.',
+      items: {
+        type: 'string',
+      },
+    },
+  },
+  required: ['selectedIds'],
+}
+
 const PROFILE_OBJECTIVES: Record<NoteRetrievalProfile, string> = {
   chat: 'Select the notes that most directly answer the user query or provide facts that materially change the answer.',
   longform: 'Select notes that maximize coverage of recurring patterns, key lessons, contradictions, wins, failures, and recent changes.',
@@ -86,6 +100,7 @@ excerpt=${excerpt}`
     model: getGeminiRerankModel(),
     maxOutputTokens: 256,
     temperature: 0,
+    responseJsonSchema: RERANK_RESPONSE_SCHEMA,
   })
 
   const selectedIds = Array.isArray(response.selectedIds) ? response.selectedIds : []
