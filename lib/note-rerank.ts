@@ -96,9 +96,9 @@ baseScore=${candidate.baseScore.toFixed(4)}
 excerpt=${excerpt}`
   }).join('\n\n')}`
 
-  // Estimate token budget: each note ID needs ~20-40 chars; add headroom for JSON framing.
-  const estimatedOutputChars = maxSelections * 50 + 64
-  const outputTokens = Math.max(512, Math.ceil(estimatedOutputChars / 3))
+  // Estimate token budget: each note ID needs ~20-50 chars; add generous headroom for JSON framing.
+  const estimatedOutputChars = maxSelections * 60 + 128
+  const outputTokens = Math.max(1024, Math.ceil(estimatedOutputChars / 3))
 
   const response = await generateStructuredGeminiOutput<RerankResponse>(prompt, {
     model: getGeminiRerankModel(),

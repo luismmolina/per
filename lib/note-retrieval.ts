@@ -116,12 +116,12 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     },
   },
   longform: {
-    candidateLimit: 30,
-    selectionLimit: 18,
-    maxPromptChars: 18000,
-    guaranteedRecentCount: 4,
-    recentWindowDays: 45,
-    recencyHalfLifeDays: 40,
+    candidateLimit: 80,
+    selectionLimit: 60,
+    maxPromptChars: 80000,
+    guaranteedRecentCount: 8,
+    recentWindowDays: 90,
+    recencyHalfLifeDays: 60,
     timestampStyle: 'datetime',
     weights: { similarity: 0.68, recency: 0.12, keyword: 0.20 },
     buildQueries: () => [

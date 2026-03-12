@@ -288,7 +288,7 @@ ${peerOutputs?.consulting || "(Not run)"}
 [REFRAME]:
 ${peerOutputs?.reframe || "(Not run)"}`
 
-    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-pro-preview'
+    const model = process.env.OPENROUTER_LONGFORM_MODEL || 'anthropic/claude-sonnet-4.6'
 
     const stream = await openai.chat.completions.create({
       model,
