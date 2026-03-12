@@ -7,6 +7,7 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
 - **Unified Conversation View**: Everything happens in one timeline - your notes and AI responses
 - **Two-Action Interface**: Simply type and choose to either "Add Note" or "Ask AI"
 - **Smart Context**: AI receives only your notes (not questions) as context for intelligent responses
+- **Embedding Retrieval Across Tabs**: Chat, Deep Read, Consulting, Reframe, and Morning Brief now retrieve the most relevant notes before calling the expensive model
 - **Production Cost Integration**: Automatically fetches and includes current production cost data from your API
 - **Brown's Razor**: Click the lens icon to apply first principles thinking to your notes
 - **Conversation Management**: Delete individual notes, prune conversations and download notes with timestamps
@@ -25,7 +26,12 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
    ```
 
    Copy `.env.example` to `.env.local` and add your Gemini API key and Postgres `DATABASE_URL`.
-   Optional: set `GEMINI_MODEL` (defaults to `models/gemini-2.5-flash`).
+   Optional:
+   - `GEMINI_MODEL` (defaults to `models/gemini-2.5-flash`)
+   - `GEMINI_EMBEDDING_MODEL` (defaults to `models/gemini-embedding-2-preview`)
+   - `GEMINI_EMBEDDING_DIMENSIONS` (defaults to `768`)
+   - `GEMINI_RERANK_MODEL` (defaults to `models/gemini-2.5-flash`)
+   - `ENABLE_GEMINI_NOTE_RETRIEVAL` (`false` disables embeddings + reranking and falls back to sending all notes)
 
 2. **Run the development server:**
 
@@ -43,10 +49,10 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
 ## How to Use
 
 1. **Adding Notes**: Type your thoughts, ideas, or information and click "Add Note" to save them to your knowledge base
-2. **Asking Questions**: Type a question and click "Ask AI" to get contextual responses based on all your previous notes
+2. **Asking Questions**: Type a question and click "Ask AI" to get contextual responses based on the notes most relevant to your question
 3. **Brown's Razor**: Click the lens icon (🔍) to apply first principles thinking to your notes
 4. **Managing Conversations**: Use the trash icon (🗑️) to delete a note, the scissors icon (✂️) to clean up conversations, and the download icon (📥) to export notes
-5. **Smart Context**: Only your notes (not questions or AI responses) are sent to the AI as context
+5. **Smart Context**: Only your notes (not questions or AI responses) are sent to the AI as context, and the server narrows that note set with Gemini embeddings before calling the expensive model
 
 ## Message Types & Context
 
@@ -154,6 +160,7 @@ For production use, keep your keys only in environment variables, never in sourc
 
 - **Primary Storage**: Neon Postgres (via `@neondatabase/serverless`)
 - **Data Shape**: Stored as a single JSON document keyed by `contextual-conversations`
+- **Retrieval Index**: Notes are also indexed in a companion Postgres table with Gemini embeddings so every AI tab can pull only the most relevant notes
 - **Auto-Save**: Every message is automatically saved via API calls
 - **Cloud Persistence**: Your conversations are stored securely in Postgres
 

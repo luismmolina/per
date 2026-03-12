@@ -30,6 +30,14 @@ declare module 'remark-gfm' {
 declare namespace NodeJS {
   interface ProcessEnv {
     GEMINI_API_KEY: string;
+    GEMINI_EMBEDDING_MODEL?: string;
+    GEMINI_EMBEDDING_DIMENSIONS?: string;
+    GEMINI_RERANK_MODEL?: string;
+    ENABLE_GEMINI_NOTE_RETRIEVAL?: string;
+    OPENROUTER_API_KEY?: string;
+    OPENROUTER_MODEL?: string;
+    GROQ_API_KEY?: string;
+    DATABASE_URL?: string;
     NODE_ENV: 'development' | 'production' | 'test';
     [key: string]: string | undefined;
   }

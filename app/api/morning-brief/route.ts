@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server'
 import OpenAI from 'openai'
-import { loadConversations } from '../../../lib/storage'
+import { getRelevantNotesContext } from '../../../lib/note-retrieval'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
@@ -16,32 +16,20 @@ export async function POST(req: NextRequest) {
 
         let notesText = ''
 
-        // If configured to fetch from storage, retrieve all notes
+        // If configured to fetch from storage, retrieve the most relevant notes for this route.
         if (fetchAllNotes) {
             try {
-                const conversations = await loadConversations()
-                const messages = conversations?.messages || []
+                const retrieval = await getRelevantNotesContext({
+                    profile: 'morning-brief',
+                    currentDate: currentDate ? String(currentDate) : undefined,
+                    userTimezone: typeof userTimezone === 'string' ? userTimezone : undefined,
+                })
 
-                const fetchedNotes = messages
-                    .filter((m: any) => m.type === 'note')
-                    .map((m: any) => {
-                        const date = new Date(m.timestamp).toLocaleString('en-US', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: true,
-                            timeZoneName: 'short'
-                        })
-                        return `[${date}] (note) ${m.content}`
-                    })
-                    .join('\n')
+                notesText = retrieval.notesText
 
-                if (fetchedNotes) {
-                    notesText = fetchedNotes
-                }
+                console.log(
+                    `[morning-brief] note retrieval selected ${retrieval.diagnostics.selectedNotes}/${retrieval.diagnostics.availableNotes} notes (${Math.round(retrieval.diagnostics.promptReductionRatio * 100)}% reduction)`,
+                )
             } catch (storageError) {
                 console.error('Failed to fetch notes from storage:', storageError)
                 return new Response(JSON.stringify({ error: 'Failed to retrieve notes from storage.' }), { status: 500 })
@@ -155,7 +143,7 @@ INPUT
 Current Date: ${todayLine}
 Timezone: ${tzLine}
 
-Notes:
+Retrieved Notes:
 ${notesText}`
 
         // Use the google/gemini-3.1-pro-preview model as requested

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadConversations, saveConversations, clearConversations } from '../../../lib/storage'
+import { syncConversationNoteIndex } from '../../../lib/note-retrieval'
 
 // Fetch dishes data from external COGS API
 async function fetchDishesData() {
@@ -186,7 +187,15 @@ export async function POST(req: NextRequest) {
 
     await saveConversations(conversationData)
 
-    return NextResponse.json({ success: true })
+    let retrievalSynced = true
+    try {
+      await syncConversationNoteIndex(conversationData)
+    } catch (error) {
+      retrievalSynced = false
+      console.error('Failed to sync note index after save:', error)
+    }
+
+    return NextResponse.json({ success: true, retrievalSynced })
   } catch (error) {
     console.error('Failed to save conversations:', error)
     return NextResponse.json({ success: false, error: 'Failed to save conversations' }, { status: 500 })
@@ -221,9 +230,17 @@ export async function PUT(req: NextRequest) {
 
     await saveConversations(conversationData)
 
+    let retrievalSynced = true
+    try {
+      await syncConversationNoteIndex(conversationData)
+    } catch (error) {
+      retrievalSynced = false
+      console.error('Failed to sync note index after deleting a message:', error)
+    }
+
     console.log(`[DELETE MESSAGE] Removed message ${messageId}, ${existingMessages.length} -> ${updatedMessages.length} messages`)
 
-    return NextResponse.json({ success: true, remainingMessages: updatedMessages.length })
+    return NextResponse.json({ success: true, remainingMessages: updatedMessages.length, retrievalSynced })
   } catch (error) {
     console.error('Failed to delete message:', error)
     return NextResponse.json({ success: false, error: 'Failed to delete message' }, { status: 500 })
@@ -235,7 +252,15 @@ export async function DELETE() {
   try {
     await clearConversations()
 
-    return NextResponse.json({ success: true })
+    let retrievalSynced = true
+    try {
+      await syncConversationNoteIndex({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
+    } catch (error) {
+      retrievalSynced = false
+      console.error('Failed to clear the note index after deleting conversations:', error)
+    }
+
+    return NextResponse.json({ success: true, retrievalSynced })
   } catch (error) {
     console.error('Failed to clear conversations:', error)
     return NextResponse.json({ success: false, error: 'Failed to clear conversations' }, { status: 500 })

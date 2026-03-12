@@ -1,8 +1,8 @@
 import type { NextRequest } from 'next/server'
 import OpenAI from 'openai'
-import { loadConversations } from '../../../lib/storage'
+import { getRelevantNotesContext } from '../../../lib/note-retrieval'
 
-export const runtime = 'edge'
+export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 function iteratorToStream(iterator: AsyncIterable<any>): ReadableStream<any> {
@@ -52,27 +52,6 @@ export async function POST(req: NextRequest) {
       return new Response('Error: Message is required.', { status: 400 })
     }
 
-    // Load long-term notes (Memory)
-    let notesContext = ''
-    try {
-      const conversations = await loadConversations()
-      const messages = conversations?.messages || []
-
-      // Use last 100 notes to avoid context window explosion, or smart filter
-      // For now, grabbing all notes but simple format
-      notesContext = messages
-        .filter((m: any) => m.type === 'note')
-        .map((m: any) => {
-          const date = new Date(m.timestamp).toLocaleDateString('en-US')
-          return `[${date}] ${m.content}`
-        })
-        .join('\n')
-    } catch (err) {
-      console.error('Failed to load notes for context:', err)
-      // Check if we can proceed without notes, or fail. Proceeding is safer.
-      notesContext = "(System: Failed to load long-term notes. Rely only on conversation history.)"
-    }
-
     const openai = new OpenAI({
       apiKey,
       baseURL: 'https://openrouter.ai/api/v1',
@@ -80,6 +59,26 @@ export async function POST(req: NextRequest) {
 
     const currentDateLine = currentDate ? String(currentDate) : new Date().toString();
     const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
+    let notesContext = ''
+
+    try {
+      const retrieval = await getRelevantNotesContext({
+        profile: 'chat',
+        userQuery: String(message),
+        conversationHistory: Array.isArray(conversationHistory) ? conversationHistory : [],
+        currentDate: currentDate ? String(currentDate) : undefined,
+        userTimezone: typeof userTimezone === 'string' ? userTimezone : undefined,
+      })
+
+      notesContext = retrieval.notesText || '(No saved notes yet.)'
+
+      console.log(
+        `[chat-enhanced] note retrieval selected ${retrieval.diagnostics.selectedNotes}/${retrieval.diagnostics.availableNotes} notes (${Math.round(retrieval.diagnostics.promptReductionRatio * 100)}% reduction)`,
+      )
+    } catch (err) {
+      console.error('Failed to load notes for chat context:', err)
+      notesContext = "(System: Failed to load long-term notes. Rely only on conversation history.)"
+    }
 
     // Build context from conversation history (Immediate Context)
     const chatContext = (conversationHistory as any[])
@@ -101,8 +100,8 @@ CONTEXT:
 - Today: ${currentDateLine}
 - ${timezoneLine}
 
-LONG-TERM MEMORY (USER NOTES):
-${notesContext}
+    LONG-TERM MEMORY (RETRIEVED USER NOTES):
+    ${notesContext}
 
 IMMEDIATE CONVERSATION CONTEXT:
 ${chatContext}
