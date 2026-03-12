@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { compressAudioForUpload, isAudioCompressionSupported } from '../audioCompressor'
 
 export type ChunkStatus = 'queued' | 'uploading' | 'success' | 'error'
 
@@ -144,9 +145,30 @@ export function useVoiceRecorder({
   )
 
   const sendChunkForTranscription = useCallback(async (job: ChunkJob) => {
+    // Compress audio client-side before upload to stay under Vercel's 4.5MB limit
+    let audioBlob = job.blob
+    let audioType = job.blob.type || mediaRecorderRef.current?.mimeType || 'audio/webm'
+    let filename = `voice_${job.sessionId}_${job.chunkIndex}.webm`
+
+    if (isAudioCompressionSupported()) {
+      try {
+        console.log(`[VoiceRecorder] Compressing audio (${(job.blob.size / 1024 / 1024).toFixed(2)}MB)...`)
+        const compressionResult = await compressAudioForUpload(job.blob)
+
+        if (compressionResult.wasCompressed) {
+          audioBlob = compressionResult.blob
+          audioType = 'audio/wav'
+          filename = `voice_${job.sessionId}_${job.chunkIndex}.wav`
+          console.log(`[VoiceRecorder] Compression complete: ${(compressionResult.originalSize / 1024 / 1024).toFixed(2)}MB -> ${(compressionResult.compressedSize / 1024 / 1024).toFixed(2)}MB`)
+        }
+      } catch (error) {
+        console.warn('[VoiceRecorder] Audio compression failed, using original:', error)
+        // Continue with original blob if compression fails
+      }
+    }
+
     const form = new FormData()
-    const type = job.blob.type || mediaRecorderRef.current?.mimeType || 'audio/webm'
-    form.append('audio', new File([job.blob], `voice_${job.sessionId}_${job.chunkIndex}.webm`, { type }))
+    form.append('audio', new File([audioBlob], filename, { type: audioType }))
     form.append('sessionId', job.sessionId)
     form.append('chunkIndex', job.chunkIndex.toString())
     form.append('isLast', job.isLast ? 'true' : 'false')

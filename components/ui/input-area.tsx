@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sunrise } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -15,6 +15,9 @@ interface InputAreaProps {
     keyboardOffset?: number
     onHeightChange?: (height: number) => void
     onSwitchToDeepRead?: () => void
+    onSwitchToConsulting?: () => void
+    onSwitchToReframe?: () => void
+    onSwitchToMorningBrief?: () => void
 }
 
 export const InputArea = ({
@@ -26,7 +29,10 @@ export const InputArea = ({
     children,
     keyboardOffset = 0,
     onHeightChange,
-    onSwitchToDeepRead
+    onSwitchToDeepRead,
+    onSwitchToConsulting,
+    onSwitchToReframe,
+    onSwitchToMorningBrief
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -51,11 +57,9 @@ export const InputArea = ({
         }
     }
 
-    const handleKeyDown = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault()
-            handleSend('question')
-        }
+    // Enter key now inserts line breaks (no auto-send)
+    const handleKeyDown = (_e: React.KeyboardEvent) => {
+        // Do nothing special - let Enter create newlines naturally
     }
 
     // Report the current height so the message list can keep clear space.
@@ -115,74 +119,113 @@ export const InputArea = ({
                     />
 
                     {/* Action buttons row - Below textarea */}
-                    <div className="flex items-center gap-2">
-                        {/* Voice Button */}
-                        <button
-                            onClick={isListening ? onVoiceStop : onVoiceStart}
-                            className={cn(
-                                "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium",
-                                isListening
-                                    ? "bg-red-500/20 text-red-400 animate-pulse"
-                                    : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10"
-                            )}
-                        >
-                            {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                            <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
-                        </button>
-
-                        {/* Deep Read Button */}
-                        {onSwitchToDeepRead && (
+                    <div className="flex items-center justify-between gap-2 overflow-hidden">
+                        {/* Scrollable Tools Section */}
+                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 min-w-0 pr-2">
+                            {/* Voice Button */}
                             <button
-                                onClick={onSwitchToDeepRead}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium"
-                                title="Open Deep Read"
+                                onClick={isListening ? onVoiceStop : onVoiceStart}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium shrink-0",
+                                    isListening
+                                        ? "bg-red-500/20 text-red-400 animate-pulse"
+                                        : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10"
+                                )}
                             >
-                                <BookOpen className="w-4 h-4" />
-                                <span className="hidden sm:inline">Deep Read</span>
+                                {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                                <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
                             </button>
-                        )}
 
-                        <div className="flex-1" />
-
-                        {/* Note and Ask buttons */}
-                        <AnimatePresence mode="wait">
-                            {value.trim() ? (
-                                <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="flex gap-2"
+                            {/* Deep Read Button - hidden when typing */}
+                            {onSwitchToDeepRead && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToDeepRead}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium shrink-0"
+                                    title="Open Deep Read"
                                 >
-                                    <button
-                                        onClick={() => handleSend('note')}
-                                        className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20"
-                                        title="Save as Note"
-                                        disabled={isLoading}
-                                    >
-                                        <Plus className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Note</span>
-                                    </button>
-                                    <button
-                                        onClick={() => handleSend('question')}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium"
-                                        title="Ask AI"
-                                        disabled={isLoading}
-                                    >
-                                        <Send className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Ask</span>
-                                    </button>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 0.5 }}
-                                    exit={{ opacity: 0 }}
-                                    className="text-xs text-text-muted pr-2"
-                                >
-                                    Type to save a note or ask AI
-                                </motion.div>
+                                    <BookOpen className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Deep Read</span>
+                                </button>
                             )}
-                        </AnimatePresence>
+
+                            {/* A→B Advisor Button - hidden when typing */}
+                            {onSwitchToConsulting && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToConsulting}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 border border-teal-500/20 transition-all text-sm font-medium shrink-0"
+                                    title="Open A→B Advisor"
+                                >
+                                    <Compass className="w-4 h-4" />
+                                    <span className="hidden sm:inline">A→B</span>
+                                </button>
+                            )}
+
+                            {/* Reframe Button - hidden when typing */}
+                            {onSwitchToReframe && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToReframe}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-violet-200 border border-violet-500/20 transition-all text-sm font-medium shrink-0"
+                                    title="Open Reframe"
+                                >
+                                    <Brain className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Reframe</span>
+                                </button>
+                            )}
+
+                            {/* Morning Brief Button - hidden when typing */}
+                            {onSwitchToMorningBrief && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToMorningBrief}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 hover:text-orange-200 border border-orange-500/20 transition-all text-sm font-medium shrink-0"
+                                    title="Open Morning Brief"
+                                >
+                                    <Sunrise className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Brief</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Note and Ask buttons - Fixed Right */}
+                        <div className="flex items-center gap-2 shrink-0">
+                            <AnimatePresence mode="wait">
+                                {value.trim() ? (
+                                    <motion.div
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: 20 }}
+                                        className="flex gap-2"
+                                    >
+                                        <button
+                                            onClick={() => handleSend('note')}
+                                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20 shrink-0"
+                                            title="Save as Note"
+                                            disabled={isLoading}
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                            <span className="hidden sm:inline">Note</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleSend('question')}
+                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium shrink-0"
+                                            title="Ask AI"
+                                            disabled={isLoading}
+                                        >
+                                            <Send className="w-4 h-4" />
+                                            <span className="hidden sm:inline">Ask</span>
+                                        </button>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 0.5 }}
+                                        exit={{ opacity: 0 }}
+                                        className="text-xs text-text-muted pr-2 hidden sm:block whitespace-nowrap"
+                                    >
+                                        Type to save a note or ask AI
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
                     </div>
                 </div>
             </div>

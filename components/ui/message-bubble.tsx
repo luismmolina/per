@@ -48,15 +48,15 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
             )}
         >
             <div className={cn(
-                "relative max-w-[85vw] sm:max-w-[75%] w-fit flex flex-col min-w-0 rounded-[1.5rem] p-[1px] overflow-hidden",
-                isAI ? "bg-gradient-to-br from-white/10 to-white/5" :
-                    "bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
+                "relative flex flex-col min-w-0 overflow-hidden",
+                isAI ? "w-full bg-transparent p-0 rounded-none" :
+                    "max-w-[85vw] sm:max-w-[75%] w-fit rounded-[1.5rem] p-[1px] bg-gradient-to-br from-primary/20 to-accent-purple/20 border border-primary/30"
             )}>
                 {/* Inner Glow/Glass Container */}
                 <div className={
                     cn(
-                        "relative w-full overflow-hidden rounded-[1.3rem] px-4 sm:px-5 py-4",
-                        isAI ? "bg-black/40 backdrop-blur-md" : "backdrop-blur-sm"
+                        "relative w-full overflow-hidden",
+                        isAI ? "bg-transparent px-0 py-2" : "rounded-[1.3rem] px-4 sm:px-5 py-4 backdrop-blur-sm"
                     )
                 } >
 
@@ -87,7 +87,7 @@ export const MessageBubble = React.memo(({ message, onCopy, onDelete, isCopied }
                     <div className="space-y-3">
                         {
                             isAI ? (
-                                <div className="w-full min-w-0 rounded-2xl p-5 break-words overflow-hidden bg-gradient-to-br from-white/5 to-transparent" style={{ overflowWrap: 'anywhere' }} >
+                                <div className="w-full min-w-0 break-words overflow-hidden bg-transparent p-1" style={{ overflowWrap: 'anywhere' }} >
                                     <ReactMarkdown
                                         remarkPlugins={[remarkGfm]}
                                         components={{

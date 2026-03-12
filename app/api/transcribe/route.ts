@@ -5,6 +5,8 @@ import ffmpegPath from 'ffmpeg-static'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+// Increase max body size to 100MB for audio uploads
+export const maxDuration = 60 // Allow up to 60 seconds for processing
 
 const FREE_TIER_MAX_BYTES = 25 * 1024 * 1024
 const DEV_TIER_MAX_BYTES = 100 * 1024 * 1024
@@ -90,16 +92,35 @@ async function preprocessAudio(file: File, byteLimit: number): Promise<AudioPrep
   const normalizedFile = await ensureFile(file, fallbackName, fallbackType)
   const originalBytes = await getFileSize(normalizedFile)
 
-  const alreadyFlac = ((normalizedFile as any).type as string) === 'audio/flac'
-  const mustTranscode = originalBytes > byteLimit || !alreadyFlac
+  // Always transcode to FLAC 16kHz mono for optimal Groq API compatibility
+  // Groq downsamples to 16kHz mono anyway, so doing it upfront reduces upload size
+  const mimeType = ((normalizedFile as any).type as string) || ''
+  const isAlreadyOptimized = mimeType === 'audio/flac' && originalBytes < byteLimit * 0.5
 
-  if (!mustTranscode) {
+  console.log(`[Transcribe API] Preprocessing: originalBytes=${originalBytes}, mimeType=${mimeType}, isAlreadyOptimized=${isAlreadyOptimized}`)
+
+  if (isAlreadyOptimized) {
+    console.log('[Transcribe API] Skipping transcode - file is already optimized FLAC')
     return { file: normalizedFile, applied: false, originalBytes, processedBytes: originalBytes }
   }
 
+  if (!FFMPEG_BINARY) {
+    console.warn('[Transcribe API] FFmpeg not available - cannot preprocess audio')
+    return {
+      file: normalizedFile,
+      applied: false,
+      originalBytes,
+      processedBytes: originalBytes,
+      error: 'FFmpeg not available',
+    }
+  }
+
   try {
+    console.log('[Transcribe API] Transcoding to FLAC 16kHz mono...')
     const converted = await transcodeToFlacMono16k(normalizedFile)
     const processedBytes = await getFileSize(converted)
+    const reduction = ((originalBytes - processedBytes) / originalBytes * 100).toFixed(1)
+    console.log(`[Transcribe API] Transcode complete: ${originalBytes} -> ${processedBytes} bytes (${reduction}% reduction)`)
     return {
       file: converted,
       applied: true,
@@ -107,13 +128,14 @@ async function preprocessAudio(file: File, byteLimit: number): Promise<AudioPrep
       processedBytes,
     }
   } catch (error) {
-    console.info('Audio preprocessing skipped (FFmpeg not found or failed); using original file')
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('[Transcribe API] FFmpeg transcode failed:', errorMsg)
     return {
       file: normalizedFile,
       applied: false,
       originalBytes,
       processedBytes: originalBytes,
-      error: error instanceof Error ? error.message : String(error),
+      error: errorMsg,
     }
   }
 }
@@ -125,7 +147,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'GROQ_API_KEY not set' }, { status: 500 })
     }
 
-    const tier = (process.env.GROQ_AUDIO_TIER || 'free').toLowerCase()
+    const tier = (process.env.GROQ_AUDIO_TIER || 'dev').toLowerCase()
     const byteLimit = tier === 'dev' ? DEV_TIER_MAX_BYTES : FREE_TIER_MAX_BYTES
 
     const form = await req.formData()
