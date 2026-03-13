@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
-import { rerankNotesWithCheapModel, type NoteRetrievalProfile } from './note-rerank'
+import { type NoteRetrievalProfile } from './note-rerank'
 import { getSql } from './postgres'
 import {
   getMessageTimestampIso,
@@ -751,46 +751,9 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const mergedCandidates = mergeRecentCandidates(rankedCandidates, profile, nowIso)
     const limitedCandidates = mergedCandidates.slice(0, profile.candidateLimit)
 
-    let rerankerUsed = false
+    // Use score-ranked candidates directly — no LLM reranker.
+    // The embedding similarity + recency + keyword scoring is sufficient.
     let selectedCandidates = limitedCandidates.slice(0, profile.selectionLimit)
-
-    // Only use LLM reranker when there's a real user query (chat profile).
-    // Non-chat profiles have no query for the LLM to reason about — the
-    // embedding + recency + keyword scoring is sufficient.
-    const shouldRerank = Boolean(input.userQuery?.trim()) && limitedCandidates.length > profile.selectionLimit
-    if (shouldRerank) {
-      try {
-        const selectedIds = await rerankNotesWithCheapModel({
-          profile: input.profile,
-          candidates: limitedCandidates.map((candidate) => ({
-            noteId: candidate.noteId,
-            content: candidate.content,
-            timestampIso: candidate.timestampIso,
-            baseScore: candidate.combinedScore,
-          })),
-          maxSelections: profile.selectionLimit,
-          userQuery: input.userQuery,
-          queryHints: queries,
-        })
-
-        if (selectedIds.length > 0) {
-          const minimumExpected = Math.max(1, Math.floor(profile.selectionLimit * 0.25))
-          if (selectedIds.length < minimumExpected) {
-            console.warn(
-              `[note-retrieval] Reranker returned only ${selectedIds.length}/${profile.selectionLimit} ids (minimum ${minimumExpected}), likely truncated — falling back to score-ranked candidates`,
-            )
-          } else {
-            rerankerUsed = true
-            const byId = new Map(limitedCandidates.map((candidate) => [candidate.noteId, candidate]))
-            selectedCandidates = selectedIds
-              .map((noteId) => byId.get(noteId))
-              .filter((candidate): candidate is RetrievalCandidate => Boolean(candidate))
-          }
-        }
-      } catch (error) {
-        console.warn(`[note-retrieval] Cheap reranker failed for ${input.profile}:`, error)
-      }
-    }
 
     selectedCandidates = ensureRecentCoverage(selectedCandidates, limitedCandidates, profile, nowIso)
     const selectedNotes = selectedCandidates
@@ -836,7 +799,7 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         fullPromptChars: fullNotesText.length,
         selectedPromptChars: notesText.length,
         promptReductionRatio,
-        rerankerUsed,
+        rerankerUsed: false,
         fallbackUsed: false,
       },
     }
