@@ -168,8 +168,8 @@ async function expandQueryWithLLM(
 
 const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> = {
   chat: {
-    candidateLimit: 60,
-    selectionLimit: 30,
+    candidateLimit: 100,
+    selectionLimit: 40,
     maxPromptChars: 50000,
     guaranteedRecentCount: 6,
     recentWindowDays: 14,
