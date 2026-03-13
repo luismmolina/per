@@ -157,7 +157,7 @@ How to Structure Your Answer:
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
 `
 
-    const model = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-pro-preview' // Default to a fast, smart model
+    const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6'
 
     const stream = await openai.chat.completions.create({
       model,

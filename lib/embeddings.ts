@@ -1,6 +1,6 @@
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
 const DEFAULT_EMBEDDING_MODEL = 'models/gemini-embedding-2-preview'
-const DEFAULT_RERANK_MODEL = 'models/gemini-2.5-flash'
+const DEFAULT_RERANK_MODEL = 'models/gemini-3.1-flash-lite-preview'
 const DEFAULT_EMBEDDING_DIMENSIONS = 768
 const EMBEDDING_BATCH_SIZE = 12
 // Gemini embedding models accept up to 8,192 tokens per input.
