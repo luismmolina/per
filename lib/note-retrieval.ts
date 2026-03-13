@@ -759,11 +759,18 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         })
 
         if (selectedIds.length > 0) {
-          rerankerUsed = true
-          const byId = new Map(limitedCandidates.map((candidate) => [candidate.noteId, candidate]))
-          selectedCandidates = selectedIds
-            .map((noteId) => byId.get(noteId))
-            .filter((candidate): candidate is RetrievalCandidate => Boolean(candidate))
+          const minimumExpected = Math.max(1, Math.floor(profile.selectionLimit * 0.25))
+          if (selectedIds.length < minimumExpected) {
+            console.warn(
+              `[note-retrieval] Reranker returned only ${selectedIds.length}/${profile.selectionLimit} ids (minimum ${minimumExpected}), likely truncated — falling back to score-ranked candidates`,
+            )
+          } else {
+            rerankerUsed = true
+            const byId = new Map(limitedCandidates.map((candidate) => [candidate.noteId, candidate]))
+            selectedCandidates = selectedIds
+              .map((noteId) => byId.get(noteId))
+              .filter((candidate): candidate is RetrievalCandidate => Boolean(candidate))
+          }
         }
       } catch (error) {
         console.warn(`[note-retrieval] Cheap reranker failed for ${input.profile}:`, error)

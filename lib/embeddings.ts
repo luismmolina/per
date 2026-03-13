@@ -369,8 +369,11 @@ export async function generateStructuredGeminiOutput<T>(
       generationConfig: {
         responseMimeType: 'application/json',
         responseJsonSchema: options?.responseJsonSchema,
-        maxOutputTokens: options?.maxOutputTokens ?? 512,
+        maxOutputTokens: options?.maxOutputTokens ?? 2048,
         temperature: options?.temperature ?? 0.1,
+        // Disable thinking for structured output calls — thinking tokens consume
+        // the maxOutputTokens budget and can truncate the actual JSON response.
+        thinkingConfig: { thinkingBudget: 0 },
       },
     }),
   })
