@@ -159,14 +159,25 @@ How to Structure Your Answer:
 
     const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6'
 
-    const stream = await openai.chat.completions.create({
-      model,
-      messages: [
-        { role: 'system', content: systemInstruction },
-        { role: 'user', content: message }
-      ],
-      stream: true,
-    })
+    const stream = await openai.chat.completions.create(
+      {
+        model,
+        messages: [
+          { role: 'system', content: systemInstruction },
+          { role: 'user', content: message }
+        ],
+        stream: true,
+      },
+      {
+        // Enable extended thinking for deeper first-principles reasoning (OpenRouter extension)
+        body: {
+          thinking: {
+            type: 'enabled',
+            budget_tokens: 10000,
+          },
+        },
+      },
+    )
 
     const responseStream = iteratorToStream(stream)
     return new Response(responseStream, {

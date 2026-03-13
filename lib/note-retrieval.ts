@@ -97,10 +97,10 @@ const STOP_WORDS = new Set([
 
 const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> = {
   chat: {
-    candidateLimit: 18,
-    selectionLimit: 8,
-    maxPromptChars: 15000,
-    guaranteedRecentCount: 2,
+    candidateLimit: 60,
+    selectionLimit: 30,
+    maxPromptChars: 50000,
+    guaranteedRecentCount: 6,
     recentWindowDays: 14,
     recencyHalfLifeDays: 21,
     timestampStyle: 'date',
@@ -116,62 +116,62 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     },
   },
   longform: {
-    candidateLimit: 80,
-    selectionLimit: 60,
-    maxPromptChars: 80000,
-    guaranteedRecentCount: 8,
+    candidateLimit: 200,
+    selectionLimit: 40,
+    maxPromptChars: 200000,
+    guaranteedRecentCount: 24,
     recentWindowDays: 90,
     recencyHalfLifeDays: 60,
     timestampStyle: 'datetime',
     weights: { similarity: 0.68, recency: 0.12, keyword: 0.20 },
-    buildQueries: () => [
-      'Recurring patterns, lessons, contradictions, and self-knowledge in the notes.',
+    buildQueries: (input) => [
+      `Recurring patterns, lessons, contradictions, and self-knowledge in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Wins, failures, turning points, repeated mistakes, and proof-backed insights in the notes.',
       'Recent changes, constraints, emotional themes, and things the user keeps forgetting.',
     ],
   },
   consulting: {
-    candidateLimit: 24,
-    selectionLimit: 12,
-    maxPromptChars: 12000,
-    guaranteedRecentCount: 3,
+    candidateLimit: 80,
+    selectionLimit: 40,
+    maxPromptChars: 45000,
+    guaranteedRecentCount: 10,
     recentWindowDays: 30,
     recencyHalfLifeDays: 30,
     timestampStyle: 'datetime',
     weights: { similarity: 0.70, recency: 0.12, keyword: 0.18 },
-    buildQueries: () => [
-      'Current situation, goals, desired state, constraints, and bottlenecks in the notes.',
+    buildQueries: (input) => [
+      `Current situation, goals, desired state, constraints, and bottlenecks in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Numbers, revenue, profit, operations, leverage, and what has already worked in the notes.',
       'Strategic blockers, unresolved decisions, risks, and opportunities in the notes.',
     ],
   },
   reframe: {
-    candidateLimit: 16,
-    selectionLimit: 6,
-    maxPromptChars: 5000,
-    guaranteedRecentCount: 3,
+    candidateLimit: 50,
+    selectionLimit: 20,
+    maxPromptChars: 18000,
+    guaranteedRecentCount: 8,
     recentWindowDays: 10,
     recencyHalfLifeDays: 7,
     timestampStyle: 'datetime',
     forceRecentCoverage: true,
     weights: { similarity: 0.56, recency: 0.28, keyword: 0.16 },
-    buildQueries: () => [
-      'Recent guilt, regret, self-judgment, worry, and mental loops in the notes.',
+    buildQueries: (input) => [
+      `Recent guilt, regret, self-judgment, worry, and mental loops in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Recent contradictions, emotional friction, second-guessing, and relief-producing facts in the notes.',
     ],
   },
   'morning-brief': {
-    candidateLimit: 16,
-    selectionLimit: 6,
-    maxPromptChars: 4500,
-    guaranteedRecentCount: 4,
+    candidateLimit: 50,
+    selectionLimit: 20,
+    maxPromptChars: 16000,
+    guaranteedRecentCount: 10,
     recentWindowDays: 7,
     recencyHalfLifeDays: 5,
     timestampStyle: 'datetime',
     forceRecentCoverage: true,
     weights: { similarity: 0.52, recency: 0.30, keyword: 0.18 },
-    buildQueries: () => [
-      'Active tasks, recent decisions, deadlines, momentum, and next steps in the notes.',
+    buildQueries: (input) => [
+      `Active tasks, recent decisions, deadlines, momentum, and next steps in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Projects that can move forward immediately, energy constraints, and what matters today.',
     ],
   },
@@ -754,7 +754,11 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     let rerankerUsed = false
     let selectedCandidates = limitedCandidates.slice(0, profile.selectionLimit)
 
-    if (limitedCandidates.length > profile.selectionLimit) {
+    // Only use LLM reranker when there's a real user query (chat profile).
+    // Non-chat profiles have no query for the LLM to reason about — the
+    // embedding + recency + keyword scoring is sufficient.
+    const shouldRerank = Boolean(input.userQuery?.trim()) && limitedCandidates.length > profile.selectionLimit
+    if (shouldRerank) {
       try {
         const selectedIds = await rerankNotesWithCheapModel({
           profile: input.profile,
