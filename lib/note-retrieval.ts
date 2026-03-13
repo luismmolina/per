@@ -46,6 +46,10 @@ interface RetrievalProfileConfig {
     recency: number
     keyword: number
   }
+  shortNoteMaxChars?: number
+  shortNoteScoreBoost?: number
+  shortNoteMinScore?: number
+  shortNoteBudgetRatio?: number
   buildQueries: (input: NoteContextRequest) => string[]
 }
 
@@ -176,6 +180,10 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     recencyHalfLifeDays: 21,
     timestampStyle: 'date',
     weights: { similarity: 0.76, recency: 0.14, keyword: 0.10 },
+    shortNoteMaxChars: 150,
+    shortNoteScoreBoost: 0.12,
+    shortNoteMinScore: 0.12,
+    shortNoteBudgetRatio: 0.15,
     buildQueries: (input) => {
       const queries = [input.userQuery?.trim() ?? '']
       const historySummary = summarizeConversationHistory(input.conversationHistory)
@@ -195,6 +203,10 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     recencyHalfLifeDays: 60,
     timestampStyle: 'datetime',
     weights: { similarity: 0.68, recency: 0.12, keyword: 0.20 },
+    shortNoteMaxChars: 200,
+    shortNoteScoreBoost: 0.08,
+    shortNoteMinScore: 0.10,
+    shortNoteBudgetRatio: 0.10,
     buildQueries: (input) => [
       `Recurring patterns, lessons, contradictions, and self-knowledge in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Wins, failures, turning points, repeated mistakes, and proof-backed insights in the notes.',
@@ -210,6 +222,10 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     recencyHalfLifeDays: 30,
     timestampStyle: 'datetime',
     weights: { similarity: 0.70, recency: 0.12, keyword: 0.18 },
+    shortNoteMaxChars: 150,
+    shortNoteScoreBoost: 0.14,
+    shortNoteMinScore: 0.10,
+    shortNoteBudgetRatio: 0.18,
     buildQueries: (input) => [
       `Current situation, goals, desired state, constraints, and bottlenecks in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Numbers, revenue, profit, operations, leverage, and what has already worked in the notes.',
@@ -226,6 +242,10 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     timestampStyle: 'datetime',
     forceRecentCoverage: true,
     weights: { similarity: 0.56, recency: 0.28, keyword: 0.16 },
+    shortNoteMaxChars: 120,
+    shortNoteScoreBoost: 0.06,
+    shortNoteMinScore: 0.15,
+    shortNoteBudgetRatio: 0.10,
     buildQueries: (input) => [
       `Recent guilt, regret, self-judgment, worry, and mental loops in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Recent contradictions, emotional friction, second-guessing, and relief-producing facts in the notes.',
@@ -241,6 +261,10 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
     timestampStyle: 'datetime',
     forceRecentCoverage: true,
     weights: { similarity: 0.52, recency: 0.30, keyword: 0.18 },
+    shortNoteMaxChars: 120,
+    shortNoteScoreBoost: 0.10,
+    shortNoteMinScore: 0.12,
+    shortNoteBudgetRatio: 0.12,
     buildQueries: (input) => [
       `Active tasks, recent decisions, deadlines, momentum, and next steps in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Projects that can move forward immediately, energy constraints, and what matters today.',
@@ -262,6 +286,8 @@ export interface NoteContextDiagnostics {
   indexedNotes: number
   candidateNotes: number
   selectedNotes: number
+  shortNotesIncluded: number
+  shortNoteChars: number
   fullPromptChars: number
   selectedPromptChars: number
   promptReductionRatio: number
@@ -590,6 +616,9 @@ function rankCandidates(
   nowIso: string,
   profile: RetrievalProfileConfig,
 ): RetrievalCandidate[] {
+  const shortMax = profile.shortNoteMaxChars ?? 150
+  const boostFactor = profile.shortNoteScoreBoost ?? 0
+
   return notes
     .map((note) => {
       const similarityScore = queryEmbeddings.length
@@ -597,10 +626,17 @@ function rankCandidates(
         : 0
       const recencyScore = computeRecencyScore(note.timestampIso, nowIso, profile)
       const keywordScore = computeKeywordScore(note.content, queryTerms)
-      const combinedScore =
+      const baseCombinedScore =
         (similarityScore * profile.weights.similarity) +
         (recencyScore * profile.weights.recency) +
         (keywordScore * profile.weights.keyword)
+
+      // Short notes get a density bonus — they provide context at negligible cost.
+      // Bonus scales linearly: full boost at 0 chars, zero boost at shortNoteMaxChars.
+      const densityBonus = boostFactor > 0 && note.content.length < shortMax
+        ? boostFactor * (1 - note.content.length / shortMax)
+        : 0
+      const combinedScore = baseCombinedScore + densityBonus
 
       return {
         ...note,
@@ -781,6 +817,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         indexedNotes: 0,
         candidateNotes: 0,
         selectedNotes: 0,
+        shortNotesIncluded: 0,
+        shortNoteChars: 0,
         fullPromptChars: 0,
         selectedPromptChars: 0,
         promptReductionRatio: 0,
@@ -800,6 +838,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         indexedNotes: 0,
         candidateNotes: allNotes.length,
         selectedNotes: allNotes.length,
+        shortNotesIncluded: 0,
+        shortNoteChars: 0,
         fullPromptChars: fullNotesText.length,
         selectedPromptChars: fullNotesText.length,
         promptReductionRatio: 0,
@@ -832,12 +872,11 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const mergedCandidates = mergeRecentCandidates(rankedCandidates, profile, nowIso)
     const limitedCandidates = mergedCandidates.slice(0, profile.candidateLimit)
 
-    // Use score-ranked candidates directly — no LLM reranker.
-    // The embedding similarity + recency + keyword scoring is sufficient.
+    // Pass 1: Primary selection — top-N notes by combined score
     let selectedCandidates = limitedCandidates.slice(0, profile.selectionLimit)
-
     selectedCandidates = ensureRecentCoverage(selectedCandidates, limitedCandidates, profile, nowIso)
-    const selectedNotes = selectedCandidates
+
+    const primaryNotes = selectedCandidates
       .sort((left, right) => right.combinedScore - left.combinedScore)
       .map<NoteIndexSource>((candidate) => ({
         noteId: candidate.noteId,
@@ -846,26 +885,68 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         timestampIso: candidate.timestampIso,
       }))
 
-    const budgetedNotes = selectNotesWithinBudget(
-      selectedNotes,
+    const budgetedPrimary = selectNotesWithinBudget(
+      primaryNotes,
       profile.timestampStyle,
       input.userTimezone,
       profile.maxPromptChars,
     )
-    const notesText = formatNotesForPrompt(
-      budgetedNotes,
-      profile.timestampStyle,
-      input.userTimezone,
-    )
 
-    const selectedNoteIds = budgetedNotes.map((note) => note.noteId)
+    // Pass 2: Short-note sweep — fill remaining budget with cheap, relevant short notes
+    const shortNoteMaxChars = profile.shortNoteMaxChars ?? 150
+    const shortNoteMinScore = profile.shortNoteMinScore ?? 0.12
+    const shortNoteBudgetRatio = profile.shortNoteBudgetRatio ?? 0.15
+    const primaryIds = new Set(budgetedPrimary.map((note) => note.noteId))
+
+    let primaryChars = 0
+    for (const note of budgetedPrimary) {
+      const line = `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, input.userTimezone)}] ${note.content}`
+      primaryChars += line.length + 1
+    }
+
+    const maxShortBudget = Math.floor(profile.maxPromptChars * shortNoteBudgetRatio)
+    const remainingBudget = Math.min(maxShortBudget, profile.maxPromptChars - primaryChars)
+
+    const shortNoteCandidates = rankedCandidates
+      .filter((candidate) =>
+        !primaryIds.has(candidate.noteId) &&
+        candidate.content.length <= shortNoteMaxChars &&
+        candidate.combinedScore >= shortNoteMinScore
+      )
+      .sort((left, right) => right.combinedScore - left.combinedScore)
+
+    const sweepNotes: NoteIndexSource[] = []
+    let sweepChars = 0
+    for (const candidate of shortNoteCandidates) {
+      const line = `[${formatTimestampForPrompt(candidate.timestampIso, profile.timestampStyle, input.userTimezone)}] ${candidate.content}`
+      if (sweepChars + line.length + 1 > remainingBudget) {
+        continue
+      }
+      sweepNotes.push({
+        noteId: candidate.noteId,
+        content: candidate.content,
+        contentHash: candidate.contentHash,
+        timestampIso: candidate.timestampIso,
+      })
+      sweepChars += line.length + 1
+    }
+
+    // Merge primary + sweep notes, sorted chronologically for coherent reading
+    const allSelected = [...budgetedPrimary, ...sweepNotes]
+      .sort((left, right) => new Date(left.timestampIso).getTime() - new Date(right.timestampIso).getTime())
+
+    const notesText = allSelected
+      .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, input.userTimezone)}] ${note.content}`)
+      .join('\n')
+
+    const selectedNoteIds = allSelected.map((note) => note.noteId)
 
     const promptReductionRatio = fullNotesText.length > 0
       ? Math.max(0, 1 - (notesText.length / fullNotesText.length))
       : 0
 
     console.log(
-      `[note-retrieval] ${input.profile}: ${selectedNoteIds.length}/${allNotes.length} notes selected, ${Math.round(promptReductionRatio * 100)}% prompt reduction`,
+      `[note-retrieval] ${input.profile}: ${selectedNoteIds.length}/${allNotes.length} notes selected (${sweepNotes.length} short-note sweep, +${sweepChars} chars), ${Math.round(promptReductionRatio * 100)}% prompt reduction`,
     )
 
     return {
@@ -877,6 +958,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         indexedNotes: indexedNotes.length,
         candidateNotes: limitedCandidates.length,
         selectedNotes: selectedNoteIds.length,
+        shortNotesIncluded: sweepNotes.length,
+        shortNoteChars: sweepChars,
         fullPromptChars: fullNotesText.length,
         selectedPromptChars: notesText.length,
         promptReductionRatio,
@@ -896,6 +979,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         indexedNotes: 0,
         candidateNotes: allNotes.length,
         selectedNotes: allNotes.length,
+        shortNotesIncluded: 0,
+        shortNoteChars: 0,
         fullPromptChars: fullNotesText.length,
         selectedPromptChars: fullNotesText.length,
         promptReductionRatio: 0,
