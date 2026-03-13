@@ -96,7 +96,7 @@ const STOP_WORDS = new Set([
 ])
 
 const QUERY_EXPANSION_MODEL = 'z-ai/glm-5'
-const QUERY_EXPANSION_TIMEOUT_MS = 4000
+const QUERY_EXPANSION_TIMEOUT_MS = 15000
 
 async function expandQueryWithLLM(
   userQuery: string,
