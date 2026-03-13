@@ -95,6 +95,77 @@ const STOP_WORDS = new Set([
   'your',
 ])
 
+const QUERY_EXPANSION_MODEL = 'z-ai/glm-5'
+const QUERY_EXPANSION_TIMEOUT_MS = 4000
+
+async function expandQueryWithLLM(
+  userQuery: string,
+  conversationSummary?: string,
+): Promise<string | null> {
+  const apiKey = process.env.OPENROUTER_API_KEY
+  if (!apiKey) return null
+
+  const systemPrompt = [
+    'You are a search-query expander. Your ONLY job is to take a short user question and rewrite it as a richer, broader search query.',
+    'Rules:',
+    '- Do NOT change the intent or meaning of the original question.',
+    '- Add related concepts, categories of information, and terms that would be needed to answer the question thoroughly.',
+    '- Include synonyms and related keywords that might appear in personal notes (e.g. for "profit" also mention revenue, costs, expenses, margins, sales, COGS).',
+    '- Output ONLY the expanded query text. No preamble, no explanation, no formatting.',
+    '- Keep the expanded query under 200 words.',
+    '- Write in the same language as the user question.',
+  ].join('\n')
+
+  const userContent = conversationSummary
+    ? `Question: ${userQuery}\n\nRecent conversation context:\n${conversationSummary}`
+    : `Question: ${userQuery}`
+
+  try {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), QUERY_EXPANSION_TIMEOUT_MS)
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: QUERY_EXPANSION_MODEL,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userContent },
+        ],
+        max_tokens: 300,
+        temperature: 0.3,
+      }),
+      signal: controller.signal,
+    })
+
+    clearTimeout(timeout)
+
+    if (!response.ok) {
+      console.warn(`[note-retrieval] Query expansion failed (${response.status})`)
+      return null
+    }
+
+    const data = (await response.json()) as {
+      choices?: Array<{ message?: { content?: string } }>
+    }
+    const expanded = data.choices?.[0]?.message?.content?.trim()
+
+    if (expanded && expanded.length > userQuery.length) {
+      console.log(`[note-retrieval] Query expanded: "${userQuery}" → "${expanded.slice(0, 120)}..."`)
+      return expanded
+    }
+
+    return null
+  } catch (error) {
+    console.warn('[note-retrieval] Query expansion error:', error instanceof Error ? error.message : error)
+    return null
+  }
+}
+
 const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> = {
   chat: {
     candidateLimit: 60,
@@ -742,6 +813,16 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     await syncConversationNoteIndex(conversations)
     const indexedNotes = await loadIndexedNotes()
     const queries = profile.buildQueries(input)
+
+    // Expand short user queries for better embedding coverage (chat only)
+    if (input.profile === 'chat' && input.userQuery?.trim()) {
+      const conversationSummary = summarizeConversationHistory(input.conversationHistory)
+      const expanded = await expandQueryWithLLM(input.userQuery.trim(), conversationSummary || undefined)
+      if (expanded) {
+        queries.push(expanded)
+      }
+    }
+
     const queryEmbeddings = await embedTexts(
       queries.map((query) => ({ text: query })),
       input.profile === 'chat' ? 'QUESTION_ANSWERING' : 'RETRIEVAL_QUERY',
