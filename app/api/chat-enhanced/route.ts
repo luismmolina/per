@@ -118,7 +118,7 @@ How to Structure Your Answer:
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
 `
 
-    const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6'
+    const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.6'
 
     const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
