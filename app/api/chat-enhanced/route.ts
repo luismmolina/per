@@ -1,42 +1,8 @@
 import type { NextRequest } from 'next/server'
-import OpenAI from 'openai'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-function iteratorToStream(iterator: AsyncIterable<any>): ReadableStream<any> {
-  return new ReadableStream({
-    async start(controller) {
-      const encoder = new TextEncoder();
-
-      try {
-        for await (const chunk of iterator) {
-          try {
-            const content = chunk.choices[0]?.delta?.content
-            if (content) {
-              const data = { type: 'text', content: content }
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-            }
-          } catch (innerErr) {
-            console.error('Error processing chunk part:', innerErr)
-          }
-        }
-
-        controller.close();
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Stream error caught: ${errorMessage}`, { error });
-        try {
-          const errorData = { type: 'error', content: 'An unexpected error occurred during the stream. Please check the server logs.', details: errorMessage };
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`));
-        } finally {
-          controller.close();
-        }
-      }
-    },
-  });
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -51,11 +17,6 @@ export async function POST(req: NextRequest) {
     if (!message) {
       return new Response('Error: Message is required.', { status: 400 })
     }
-
-    const openai = new OpenAI({
-      apiKey,
-      baseURL: 'https://openrouter.ai/api/v1',
-    })
 
     const currentDateLine = currentDate ? String(currentDate) : new Date().toString();
     const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
@@ -159,27 +120,82 @@ How to Structure Your Answer:
 
     const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-opus-4.6'
 
-    const stream = await openai.chat.completions.create(
-      {
+    const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
         model,
         messages: [
           { role: 'system', content: systemInstruction },
           { role: 'user', content: message }
         ],
         stream: true,
-      },
-      {
-        // Enable extended thinking for deeper first-principles reasoning (OpenRouter extension)
-        body: {
-          thinking: {
-            type: 'enabled',
-            budget_tokens: 10000,
-          },
+        // Extended thinking for deeper first-principles reasoning
+        thinking: {
+          type: 'enabled',
+          budget_tokens: 10000,
         },
-      },
-    )
+      }),
+    })
 
-    const responseStream = iteratorToStream(stream)
+    if (!orResponse.ok || !orResponse.body) {
+      const errText = await orResponse.text().catch(() => orResponse.statusText)
+      throw new Error(`OpenRouter request failed (${orResponse.status}): ${errText}`)
+    }
+
+    // Pipe the SSE stream, extracting text content from each chunk
+    const encoder = new TextEncoder()
+    const decoder = new TextDecoder()
+    const responseStream = new ReadableStream({
+      async start(controller) {
+        const reader = orResponse.body!.getReader()
+        let buffer = ''
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+            const lines = buffer.split('\n')
+            buffer = lines.pop() ?? ''
+
+            for (const line of lines) {
+              const trimmed = line.trim()
+              if (!trimmed.startsWith('data:')) continue
+              const payload = trimmed.slice(5).trim()
+              if (!payload || payload === '[DONE]') continue
+
+              try {
+                const chunk = JSON.parse(payload)
+                const content = chunk.choices?.[0]?.delta?.content
+                if (content) {
+                  const data = { type: 'text', content }
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+                }
+              } catch {
+                // skip malformed chunks
+              }
+            }
+          }
+
+          controller.close()
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : String(error)
+          console.error(`Stream error caught: ${errorMessage}`, { error })
+          try {
+            const errorData = { type: 'error', content: 'An unexpected error occurred during the stream.', details: errorMessage }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`))
+          } finally {
+            controller.close()
+          }
+        }
+      },
+    })
+
     return new Response(responseStream, {
       headers: {
         'Content-Type': 'text/event-stream',
