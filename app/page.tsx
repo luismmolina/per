@@ -262,8 +262,12 @@ export default function Home() {
   }, [])
 
   const buildConversationHistory = useCallback((history: Message[]) => {
+    // Only send recent Q&A exchanges — notes are handled by the
+    // server-side retrieval system (embeddings + reranker).
+    // This minimal history helps the retrieval build context-aware queries.
     return history
-      .filter((msg) => msg.type !== 'question')
+      .filter((msg) => msg.type === 'question' || msg.type === 'ai-response')
+      .slice(-10)
       .map((msg) => ({
         role: msg.type === 'ai-response' ? 'model' : 'user',
         parts: [{ text: `[${formatTimestampForAI(msg.timestamp)}] ${msg.content}` }]

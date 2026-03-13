@@ -80,19 +80,6 @@ export async function POST(req: NextRequest) {
       notesContext = "(System: Failed to load long-term notes. Rely only on conversation history.)"
     }
 
-    // Build context from conversation history (Immediate Context)
-    const chatContext = (conversationHistory as any[])
-      .map((entry: any) => {
-        if (entry.role === 'user' && entry.parts) {
-          return 'User: ' + entry.parts.map((part: any) => part.text).join(' ')
-        }
-        if (entry.role === 'model' && entry.parts) {
-          return 'AI: ' + entry.parts.map((part: any) => part.text).join(' ')
-        }
-        return ''
-      })
-      .join('\n')
-
     // Updated Prompt: First Principles & Logic Oriented
     let systemInstruction = `You are a First-Principles Thinking Partner. You do not provide motivation, fluff, or standard customer-service platitudes. You provide clarity, rigorous logic, and strategy based on facts.
 
@@ -102,9 +89,6 @@ CONTEXT:
 
     LONG-TERM MEMORY (RETRIEVED USER NOTES):
     ${notesContext}
-
-IMMEDIATE CONVERSATION CONTEXT:
-${chatContext}
 
 USER QUERY:
 ${message}

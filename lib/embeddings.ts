@@ -3,6 +3,9 @@ const DEFAULT_EMBEDDING_MODEL = 'models/gemini-embedding-2-preview'
 const DEFAULT_RERANK_MODEL = 'models/gemini-2.5-flash'
 const DEFAULT_EMBEDDING_DIMENSIONS = 768
 const EMBEDDING_BATCH_SIZE = 12
+// Gemini embedding models accept up to 8,192 tokens per input.
+// ~4 chars/token with margin for overhead → safe char limit for text.
+const MAX_EMBEDDING_INPUT_CHARS = 28000
 
 export type GeminiEmbeddingTaskType =
   | 'RETRIEVAL_DOCUMENT'
@@ -132,7 +135,7 @@ export async function embedTexts(
         requests: batch.map((input) => ({
           model,
           content: {
-            parts: [{ text: input.text }],
+            parts: [{ text: input.text.slice(0, MAX_EMBEDDING_INPUT_CHARS) }],
           },
           taskType,
           title: taskType === 'RETRIEVAL_DOCUMENT' ? input.title ?? undefined : undefined,

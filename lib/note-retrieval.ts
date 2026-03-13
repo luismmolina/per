@@ -99,7 +99,7 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
   chat: {
     candidateLimit: 18,
     selectionLimit: 8,
-    maxPromptChars: 7000,
+    maxPromptChars: 15000,
     guaranteedRecentCount: 2,
     recentWindowDays: 14,
     recencyHalfLifeDays: 21,
@@ -416,7 +416,9 @@ function summarizeConversationHistory(history: unknown[] | undefined): string {
     return ''
   }
 
-  return history
+  const MAX_SUMMARY_CHARS = 1500
+
+  const lines = history
     .slice(-6)
     .map((entry) => {
       if (!entry || typeof entry !== 'object') {
@@ -429,10 +431,19 @@ function summarizeConversationHistory(history: unknown[] | undefined): string {
         ? candidate.parts.map((part) => part.text ?? '').join(' ').trim()
         : ''
 
-      return text ? `${speaker}: ${text}` : ''
+      // Cap individual entries so one long message doesn't dominate
+      const capped = text.length > 300 ? text.slice(0, 300) + '…' : text
+      return capped ? `${speaker}: ${capped}` : ''
     })
     .filter(Boolean)
-    .join('\n')
+
+  let result = ''
+  for (const line of lines) {
+    if (result.length + line.length + 1 > MAX_SUMMARY_CHARS) break
+    result += (result ? '\n' : '') + line
+  }
+
+  return result
 }
 
 function extractQueryTerms(queries: string[]): string[] {
