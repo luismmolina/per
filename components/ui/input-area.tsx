@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sunrise } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sunrise, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -18,6 +18,7 @@ interface InputAreaProps {
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
     onSwitchToMorningBrief?: () => void
+    onSwitchToWrite?: () => void
 }
 
 export const InputArea = ({
@@ -32,7 +33,8 @@ export const InputArea = ({
     onSwitchToDeepRead,
     onSwitchToConsulting,
     onSwitchToReframe,
-    onSwitchToMorningBrief
+    onSwitchToMorningBrief,
+    onSwitchToWrite
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -181,6 +183,17 @@ export const InputArea = ({
                                 >
                                     <Sunrise className="w-4 h-4" />
                                     <span className="hidden sm:inline">Brief</span>
+                                </button>
+                            )}
+
+                            {onSwitchToWrite && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToWrite}
+                                    className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 hover:text-amber-100 border border-amber-500/20 transition-all text-sm font-medium shrink-0"
+                                    title="Open Zen Writer"
+                                >
+                                    <FileText className="w-4 h-4" />
+                                    <span>Write</span>
                                 </button>
                             )}
                         </div>

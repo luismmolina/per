@@ -3,7 +3,7 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
-import { ArrowDown, ChevronUp, Download } from 'lucide-react'
+import { ArrowDown, ChevronUp, Download, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface Message {
@@ -36,6 +36,7 @@ interface ChatInterfaceProps {
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
     onSwitchToMorningBrief?: () => void
+    onSwitchToWrite?: () => void
 }
 
 export const ChatInterface = ({
@@ -53,7 +54,8 @@ export const ChatInterface = ({
     onSwitchToDeepRead,
     onSwitchToConsulting,
     onSwitchToReframe,
-    onSwitchToMorningBrief
+    onSwitchToMorningBrief,
+    onSwitchToWrite
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -150,15 +152,28 @@ export const ChatInterface = ({
             <div className="absolute top-0 left-0 right-0 z-40 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
                 <div className="max-w-3xl mx-auto flex items-center justify-between">
                     <span className="text-sm font-medium text-text-muted">My Notes</span>
-                    {onDownloadNotes && (
-                        <button
-                            onClick={onDownloadNotes}
-                            className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
-                            title="Download Notes"
-                        >
-                            <Download className="w-4 h-4" />
-                        </button>
-                    )}
+                    <div className="flex items-center gap-2">
+                        {onSwitchToWrite && (
+                            <button
+                                onClick={onSwitchToWrite}
+                                className="hidden lg:flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-100 transition-all hover:bg-amber-500/20"
+                                title="Open Zen Writer"
+                            >
+                                <FileText className="h-3.5 w-3.5" />
+                                <span>Write</span>
+                            </button>
+                        )}
+
+                        {onDownloadNotes && (
+                            <button
+                                onClick={onDownloadNotes}
+                                className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
+                                title="Download Notes"
+                            >
+                                <Download className="w-4 h-4" />
+                            </button>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -240,6 +255,7 @@ export const ChatInterface = ({
                 onSwitchToConsulting={onSwitchToConsulting}
                 onSwitchToReframe={onSwitchToReframe}
                 onSwitchToMorningBrief={onSwitchToMorningBrief}
+                onSwitchToWrite={onSwitchToWrite}
             >
                 {inputChildren}
             </InputArea>

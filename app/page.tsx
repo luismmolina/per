@@ -4,11 +4,13 @@ import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
+import { DesktopWriter } from '../components/desktop-writer'
 import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Compass, Brain, Sunrise } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useDesktopViewport } from '../lib/hooks/useDesktopViewport'
 
 interface Message {
   id: string
@@ -30,13 +32,17 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
-  const [activeTab, setActiveTab] = useState<'chat' | 'deepread' | 'consulting' | 'reframe' | 'morningbrief'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe' | 'morningbrief'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
   const [longformError, setLongformError] = useState<string | null>(null)
   const [lastGeneratedAt, setLastGeneratedAt] = useState<Date | null>(null)
   const [longformCopied, setLongformCopied] = useState(false)
   const LONGFORM_STORAGE_KEY = 'deep-read-longform-v1'
+  const [writerDraft, setWriterDraft] = useState('')
+  const [writerLastSavedAt, setWriterLastSavedAt] = useState<Date | null>(null)
+  const WRITER_DRAFT_STORAGE_KEY = 'desktop-writer-draft-v1'
+  const { isDesktop } = useDesktopViewport()
 
   // Consulting state
   const [consultingText, setConsultingText] = useState('')
@@ -244,6 +250,47 @@ export default function Home() {
       console.error('Failed to persist morning brief to storage:', error)
     }
   }, [morningBriefText, morningBriefGeneratedAt])
+
+  // Load/save desktop writer draft from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const saved = localStorage.getItem(WRITER_DRAFT_STORAGE_KEY)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (typeof parsed?.text === 'string') {
+          setWriterDraft(parsed.text)
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore writer draft from storage:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      if (writerDraft.length > 0) {
+        localStorage.setItem(
+          WRITER_DRAFT_STORAGE_KEY,
+          JSON.stringify({
+            text: writerDraft,
+            updatedAt: new Date().toISOString()
+          })
+        )
+      } else {
+        localStorage.removeItem(WRITER_DRAFT_STORAGE_KEY)
+      }
+    } catch (error) {
+      console.error('Failed to persist writer draft to storage:', error)
+    }
+  }, [writerDraft])
+
+  useEffect(() => {
+    if (!isDesktop && activeTab === 'write') {
+      setActiveTab('chat')
+    }
+  }, [activeTab, isDesktop])
 
   // Handlers
   // Format timestamp with local time and timezone for AI context
@@ -748,6 +795,31 @@ export default function Home() {
     setTimeout(() => setMorningBriefCopied(false), 2000)
   }
 
+  const handleOpenWriter = () => {
+    if (!isDesktop) return
+    setActiveTab('write')
+  }
+
+  const handleSaveWriterDraft = () => {
+    const trimmed = writerDraft.trim()
+    if (!trimmed) return
+
+    void handleSendMessage(trimmed, 'note')
+    setWriterDraft('')
+    setWriterLastSavedAt(new Date())
+  }
+
+  const handleClearWriterDraft = () => {
+    if (!writerDraft.trim()) {
+      setWriterDraft('')
+      return
+    }
+
+    if (confirm('Clear this draft?')) {
+      setWriterDraft('')
+    }
+  }
+
   const longformParagraphs = longformText
     ? longformText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
     : []
@@ -785,6 +857,7 @@ export default function Home() {
                 onSwitchToConsulting={() => setActiveTab('consulting')}
                 onSwitchToReframe={() => setActiveTab('reframe')}
                 onSwitchToMorningBrief={() => setActiveTab('morningbrief')}
+                onSwitchToWrite={isDesktop ? handleOpenWriter : undefined}
                 inputChildren={
                   voiceSession && voiceSession.status !== 'idle' && (
                     <div className="mb-2">
@@ -792,6 +865,26 @@ export default function Home() {
                     </div>
                   )
                 }
+              />
+            </motion.div>
+          )}
+
+          {activeTab === 'write' && isDesktop && (
+            <motion.div
+              key="write"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col h-full"
+            >
+              <DesktopWriter
+                value={writerDraft}
+                onChange={setWriterDraft}
+                onSave={handleSaveWriterDraft}
+                onClear={handleClearWriterDraft}
+                onExit={() => setActiveTab('chat')}
+                lastSavedAt={writerLastSavedAt}
               />
             </motion.div>
           )}
