@@ -800,6 +800,14 @@ export default function Home() {
     setActiveTab('write')
   }
 
+  const handleWriterDraftChange = (nextDraft: string) => {
+    setWriterDraft(nextDraft)
+
+    if (writerLastSavedAt) {
+      setWriterLastSavedAt(null)
+    }
+  }
+
   const handleSaveWriterDraft = () => {
     const trimmed = writerDraft.trim()
     if (!trimmed) return
@@ -880,7 +888,7 @@ export default function Home() {
             >
               <DesktopWriter
                 value={writerDraft}
-                onChange={setWriterDraft}
+                onChange={handleWriterDraftChange}
                 onSave={handleSaveWriterDraft}
                 onClear={handleClearWriterDraft}
                 onExit={() => setActiveTab('chat')}
