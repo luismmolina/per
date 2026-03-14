@@ -7,7 +7,7 @@ A smart journal app that combines note-taking with AI-powered insights. Built wi
 - **Unified Conversation View**: Everything happens in one timeline - your notes and AI responses
 - **Two-Action Interface**: Simply type and choose to either "Add Note" or "Ask AI"
 - **Smart Context**: AI receives only your notes (not questions) as context for intelligent responses
-- **Embedding Retrieval Across Tabs**: Chat, Deep Read, Consulting, Reframe, and Morning Brief now retrieve the most relevant notes before calling the expensive model
+- **Embedding Retrieval Across Views**: Chat, Deep Read, Consulting, and Reframe retrieve the most relevant notes before calling the expensive model
 - **Production Cost Integration**: Automatically fetches and includes current production cost data from your API
 - **Brown's Razor**: Click the lens icon to apply first principles thinking to your notes
 - **Conversation Management**: Delete individual notes, prune conversations and download notes with timestamps

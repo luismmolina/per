@@ -5,7 +5,6 @@ export type NoteRetrievalProfile =
   | 'longform'
   | 'consulting'
   | 'reframe'
-  | 'morning-brief'
 
 export interface NoteRerankCandidate {
   noteId: string
@@ -37,7 +36,6 @@ const PROFILE_OBJECTIVES: Record<NoteRetrievalProfile, string> = {
   longform: 'Select notes that maximize coverage of recurring patterns, key lessons, contradictions, wins, failures, and recent changes.',
   consulting: 'Select notes that best describe the current state, desired state, constraints, economics, bottlenecks, leverage, and proven wins.',
   reframe: 'Select notes that most clearly show recent guilt, regret, self-judgment, mental loops, contradictions, and the facts that dissolve them.',
-  'morning-brief': 'Select notes that most clearly point to immediate next actions, active projects, deadlines, momentum, and energy constraints.',
 }
 
 function collapseWhitespace(value: string): string {

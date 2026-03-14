@@ -35,7 +35,6 @@ interface ChatInterfaceProps {
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
-    onSwitchToMorningBrief?: () => void
     onSwitchToWrite?: () => void
 }
 
@@ -54,7 +53,6 @@ export const ChatInterface = ({
     onSwitchToDeepRead,
     onSwitchToConsulting,
     onSwitchToReframe,
-    onSwitchToMorningBrief,
     onSwitchToWrite
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -157,10 +155,10 @@ export const ChatInterface = ({
                             <button
                                 onClick={onSwitchToWrite}
                                 className="hidden lg:flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-100 transition-all hover:bg-amber-500/20"
-                                title="Open Zen Writer"
+                                title="Open Writer"
                             >
                                 <FileText className="h-3.5 w-3.5" />
-                                <span>Write</span>
+                                <span>Writer</span>
                             </button>
                         )}
 
@@ -254,8 +252,6 @@ export const ChatInterface = ({
                 onSwitchToDeepRead={onSwitchToDeepRead}
                 onSwitchToConsulting={onSwitchToConsulting}
                 onSwitchToReframe={onSwitchToReframe}
-                onSwitchToMorningBrief={onSwitchToMorningBrief}
-                onSwitchToWrite={onSwitchToWrite}
             >
                 {inputChildren}
             </InputArea>

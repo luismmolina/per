@@ -251,25 +251,6 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
       'Recent contradictions, emotional friction, second-guessing, and relief-producing facts in the notes.',
     ],
   },
-  'morning-brief': {
-    candidateLimit: 50,
-    selectionLimit: 20,
-    maxPromptChars: 16000,
-    guaranteedRecentCount: 10,
-    recentWindowDays: 7,
-    recencyHalfLifeDays: 5,
-    timestampStyle: 'datetime',
-    forceRecentCoverage: true,
-    weights: { similarity: 0.52, recency: 0.30, keyword: 0.18 },
-    shortNoteMaxChars: 120,
-    shortNoteScoreBoost: 0.10,
-    shortNoteMinScore: 0.12,
-    shortNoteBudgetRatio: 0.12,
-    buildQueries: (input) => [
-      `Active tasks, recent decisions, deadlines, momentum, and next steps in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
-      'Projects that can move forward immediately, energy constraints, and what matters today.',
-    ],
-  },
 }
 
 export interface NoteContextRequest {

@@ -5,7 +5,7 @@ import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
 import { DesktopWriter } from '../components/desktop-writer'
-import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Compass, Brain, Sunrise } from 'lucide-react'
+import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Compass, Brain } from 'lucide-react'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -32,7 +32,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
-  const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe' | 'morningbrief'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
   const [longformError, setLongformError] = useState<string | null>(null)
@@ -60,13 +60,6 @@ export default function Home() {
   const [reframeCopied, setReframeCopied] = useState(false)
   const REFRAME_STORAGE_KEY = 'ai-reframe-v1'
 
-  // Morning Brief state
-  const [morningBriefText, setMorningBriefText] = useState('')
-  const [isGeneratingMorningBrief, setIsGeneratingMorningBrief] = useState(false)
-  const [morningBriefError, setMorningBriefError] = useState<string | null>(null)
-  const [morningBriefGeneratedAt, setMorningBriefGeneratedAt] = useState<Date | null>(null)
-  const [morningBriefCopied, setMorningBriefCopied] = useState(false)
-  const MORNING_BRIEF_STORAGE_KEY = 'morning-brief-v1'
   // Voice Recorder Hook
   const {
     isRecording,
@@ -220,36 +213,6 @@ export default function Home() {
       console.error('Failed to persist reframe to storage:', error)
     }
   }, [reframeText, reframeGeneratedAt])
-
-  // Load/save morning brief from localStorage
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      const saved = localStorage.getItem(MORNING_BRIEF_STORAGE_KEY)
-      if (saved) {
-        const parsed = JSON.parse(saved)
-        if (parsed?.text) setMorningBriefText(parsed.text)
-        if (parsed?.generatedAt) setMorningBriefGeneratedAt(new Date(parsed.generatedAt))
-      }
-    } catch (error) {
-      console.error('Failed to restore morning brief from storage:', error)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    try {
-      localStorage.setItem(
-        MORNING_BRIEF_STORAGE_KEY,
-        JSON.stringify({
-          text: morningBriefText,
-          generatedAt: morningBriefGeneratedAt ? morningBriefGeneratedAt.toISOString() : null
-        })
-      )
-    } catch (error) {
-      console.error('Failed to persist morning brief to storage:', error)
-    }
-  }, [morningBriefText, morningBriefGeneratedAt])
 
   // Load/save desktop writer draft from localStorage
   useEffect(() => {
@@ -725,76 +688,6 @@ export default function Home() {
     setTimeout(() => setReframeCopied(false), 2000)
   }
 
-  // Morning Brief handlers
-  const handleGenerateMorningBrief = async () => {
-    setIsGeneratingMorningBrief(true)
-    setMorningBriefError(null)
-
-    try {
-      const response = await fetch('/api/morning-brief', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fetchAllNotes: true,
-          currentDate: new Date().toISOString(),
-          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-        })
-      })
-
-      if (!response.ok) {
-        let errorMsg = 'Failed to generate.'
-        try {
-          const payload = await response.json()
-          errorMsg = payload.error || errorMsg
-        } catch (e) {
-          errorMsg = await response.text() || errorMsg
-        }
-        throw new Error(errorMsg)
-      }
-
-      if (!response.body) throw new Error('No response body')
-
-      const reader = response.body.getReader()
-      const decoder = new TextDecoder()
-      setMorningBriefText('') // Clear previous text
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-
-        const chunk = decoder.decode(value, { stream: true })
-        setMorningBriefText(prev => prev + chunk)
-      }
-
-      setMorningBriefGeneratedAt(new Date())
-    } catch (error) {
-      console.error('Morning Brief error:', error)
-      setMorningBriefError(error instanceof Error ? error.message : 'Failed to generate morning brief.')
-    } finally {
-      setIsGeneratingMorningBrief(false)
-    }
-  }
-
-  const handleDownloadMorningBrief = () => {
-    if (!morningBriefText.trim()) return
-    const blob = new Blob([morningBriefText], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `morning-brief-${new Date().toISOString().split('T')[0]}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-  }
-
-  const handleCopyMorningBrief = () => {
-    if (!morningBriefText.trim()) return
-    navigator.clipboard.writeText(morningBriefText)
-    setMorningBriefCopied(true)
-    setTimeout(() => setMorningBriefCopied(false), 2000)
-  }
-
   const handleOpenWriter = () => {
     if (!isDesktop) return
     setActiveTab('write')
@@ -864,7 +757,6 @@ export default function Home() {
                 onSwitchToDeepRead={() => setActiveTab('deepread')}
                 onSwitchToConsulting={() => setActiveTab('consulting')}
                 onSwitchToReframe={() => setActiveTab('reframe')}
-                onSwitchToMorningBrief={() => setActiveTab('morningbrief')}
                 onSwitchToWrite={isDesktop ? handleOpenWriter : undefined}
                 inputChildren={
                   voiceSession && voiceSession.status !== 'idle' && (
@@ -1242,121 +1134,6 @@ export default function Home() {
             </motion.div>
           )}
 
-          {activeTab === 'morningbrief' && (
-            <motion.div
-              key="morningbrief"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              transition={{ duration: 0.3 }}
-              className="flex-1 flex flex-col"
-            >
-              {/* Compact Morning Brief Header */}
-              <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
-                <div className="max-w-2xl mx-auto flex items-center justify-between gap-4">
-                  {/* Left: Back button + Status indicator */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => setActiveTab('chat')}
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-white hover:bg-white/10 border border-white/10 transition-all"
-                    >
-                      <MessageSquare className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Chat</span>
-                    </button>
-                    <div className="w-px h-4 bg-white/10" />
-                    {isGeneratingMorningBrief ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" />
-                        <span className="text-xs text-orange-300/80 font-medium">Preparing your sprint…</span>
-                      </div>
-                    ) : morningBriefGeneratedAt ? (
-                      <span className="text-[11px] text-text-muted">
-                        {morningBriefGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
-                      </span>
-                    ) : (
-                      <span className="text-[11px] text-text-muted">Not generated yet</span>
-                    )}
-                  </div>
-
-                  {/* Right: Action buttons */}
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={handleCopyMorningBrief}
-                      disabled={!morningBriefText.trim()}
-                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                      title="Copy to clipboard"
-                    >
-                      {morningBriefCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
-                    </button>
-                    <button
-                      onClick={handleDownloadMorningBrief}
-                      disabled={!morningBriefText.trim()}
-                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={handleGenerateMorningBrief}
-                      disabled={isGeneratingMorningBrief}
-                      className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-full text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30 hover:bg-orange-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-                    >
-                      {morningBriefText ? <RefreshCw className="w-3.5 h-3.5" /> : <Sunrise className="w-3.5 h-3.5" />}
-                      <span className={morningBriefText ? "hidden sm:inline" : ""}>
-                        {morningBriefText ? 'Regenerate' : 'Generate'}
-                      </span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto px-4 pb-32 pt-6 md:px-6">
-                <div className="max-w-2xl mx-auto py-8 md:py-12 text-lg md:text-xl leading-relaxed text-[#f0e4d7] font-serif">
-                  {morningBriefError && (
-                    <div className="mb-6 rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-200 p-4">
-                      {morningBriefError}
-                    </div>
-                  )}
-
-                  {!morningBriefText && !isGeneratingMorningBrief && !morningBriefError && (
-                    <div className="text-base text-text-muted space-y-4">
-                      <p>Your morning accelerator lives here. I&apos;ll give you exactly 3 actions for the next 40 minutes — no more, no less.</p>
-                      <p>Hit &quot;Generate&quot; when you wake up. I&apos;ll extract the highest-leverage tasks from your notes and connect each to your WHY.</p>
-                      <p className="text-orange-300/70 text-sm italic">☀️ Optimized for imperfect action — because a done task beats a perfect plan.</p>
-                    </div>
-                  )}
-
-                  {isGeneratingMorningBrief && (
-                    <div className="text-base text-text-muted animate-pulse">Analyzing your notes for today&apos;s highest-leverage actions…</div>
-                  )}
-
-                  {!isGeneratingMorningBrief && morningBriefText && (
-                    <div className="text-[18px] md:text-[19px]">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                          p: ({ node, ...props }) => <p className="mb-8 text-[#fff8f0] leading-8 tracking-wide text-[1.15rem] md:text-[1.25rem] font-serif" {...props} />,
-                          h1: ({ node, ...props }) => <h1 className="text-3xl md:text-4xl font-serif font-bold mb-8 text-orange-50 mt-12 tracking-tight border-b border-white/10 pb-4" {...props} />,
-                          h2: ({ node, ...props }) => <h2 className="text-2xl md:text-3xl font-serif font-semibold mb-6 text-orange-100 mt-10 tracking-tight" {...props} />,
-                          h3: ({ node, ...props }) => <h3 className="text-xl md:text-2xl font-serif font-medium mb-4 text-orange-200 mt-8" {...props} />,
-                          ul: ({ node, ...props }) => <ul className="list-disc pl-6 mb-8 space-y-3 text-[#fff8f0] text-[1.1rem] leading-7 font-serif" {...props} />,
-                          ol: ({ node, ...props }) => <ol className="list-decimal pl-6 mb-8 space-y-3 text-[#fff8f0] text-[1.1rem] leading-7 font-serif" {...props} />,
-                          li: ({ node, ...props }) => <li className="pl-2 marker:text-orange-400/50" {...props} />,
-                          blockquote: ({ node, ...props }) => <blockquote className="border-l-2 border-orange-400/30 pl-6 italic my-10 py-2 text-xl text-orange-100/90 font-serif leading-relaxed" {...props} />,
-                          code: ({ node, ...props }) => <code className="bg-white/5 rounded px-1.5 py-0.5 text-sm font-mono text-orange-100/90 border border-white/10" {...props} />,
-                          pre: ({ node, ...props }) => <pre className="bg-[#1a1a1a] rounded-xl p-6 mb-8 overflow-x-auto border border-white/5 shadow-inner" {...props} />,
-                          strong: ({ node, ...props }) => <strong className="font-bold text-orange-50" {...props} />,
-                          em: ({ node, ...props }) => <em className="italic text-orange-100 self-text" {...props} />,
-                        }}
-                      >
-                        {morningBriefText}
-                      </ReactMarkdown>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
         </AnimatePresence>
 
       </div>

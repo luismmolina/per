@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sunrise, FileText } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -17,8 +17,6 @@ interface InputAreaProps {
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
-    onSwitchToMorningBrief?: () => void
-    onSwitchToWrite?: () => void
 }
 
 export const InputArea = ({
@@ -32,9 +30,7 @@ export const InputArea = ({
     onHeightChange,
     onSwitchToDeepRead,
     onSwitchToConsulting,
-    onSwitchToReframe,
-    onSwitchToMorningBrief,
-    onSwitchToWrite
+    onSwitchToReframe
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -174,28 +170,6 @@ export const InputArea = ({
                                 </button>
                             )}
 
-                            {/* Morning Brief Button - hidden when typing */}
-                            {onSwitchToMorningBrief && !value.trim() && (
-                                <button
-                                    onClick={onSwitchToMorningBrief}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-300 hover:text-orange-200 border border-orange-500/20 transition-all text-sm font-medium shrink-0"
-                                    title="Open Morning Brief"
-                                >
-                                    <Sunrise className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Brief</span>
-                                </button>
-                            )}
-
-                            {onSwitchToWrite && !value.trim() && (
-                                <button
-                                    onClick={onSwitchToWrite}
-                                    className="hidden lg:flex items-center gap-2 px-4 py-2.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-200 hover:text-amber-100 border border-amber-500/20 transition-all text-sm font-medium shrink-0"
-                                    title="Open Zen Writer"
-                                >
-                                    <FileText className="w-4 h-4" />
-                                    <span>Write</span>
-                                </button>
-                            )}
                         </div>
 
                         {/* Note and Ask buttons - Fixed Right */}
