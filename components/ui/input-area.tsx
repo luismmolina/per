@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain } from 'lucide-react'
+import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sparkles } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
@@ -17,6 +17,7 @@ interface InputAreaProps {
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
+    onSwitchToExplore?: () => void
 }
 
 export const InputArea = ({
@@ -30,7 +31,8 @@ export const InputArea = ({
     onHeightChange,
     onSwitchToDeepRead,
     onSwitchToConsulting,
-    onSwitchToReframe
+    onSwitchToReframe,
+    onSwitchToExplore
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
@@ -167,6 +169,17 @@ export const InputArea = ({
                                 >
                                     <Brain className="w-4 h-4" />
                                     <span className="hidden sm:inline">Reframe</span>
+                                </button>
+                            )}
+
+                            {onSwitchToExplore && !value.trim() && (
+                                <button
+                                    onClick={onSwitchToExplore}
+                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-200 hover:text-sky-100 border border-sky-500/20 transition-all text-sm font-medium shrink-0"
+                                    title="Open Explore"
+                                >
+                                    <Sparkles className="w-4 h-4" />
+                                    <span className="hidden sm:inline">Explore</span>
                                 </button>
                             )}
 

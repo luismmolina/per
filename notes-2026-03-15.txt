@@ -1,7 +1,7 @@
 === Notes Export ===
-Total messages in database: 397
-Notes found: 214
-Exported: 2025-12-29T20:42:13.668Z
+Total messages in database: 497
+Notes found: 270
+Exported: 2026-03-15T06:23:49.169Z
 ==================================================
 
 [9/7/25, 6:19 AM] i need to sleep early, I think i can do more, feel more productive, and enjoy my day better if I wake up early, lets say around five am
@@ -1458,3 +1458,511 @@ The Logic: You are optimizing for expense reduction (saving $8k/month) while exp
 
 My thinking> 
 but I wonder if this is true? Did I lose 20k? Yes, on the surface that revenue didnt materialize, but the seafood is still in the freezer, I didnt have to pay Monse (on vacation), Flor (didnt work), didnt have to buy stuff like tortillas and yes 20k was the potential sales, but judging by the last weekends we couldnt hit those numbers. I THINK WE NEED TO BE MORE CAREFUL WITH ANY COMMENT
+
+[12/29/25, 8:51 PM] flor getting sick for this long, never happened in our history of costa coral. Monse had requested vacations and because we had Flor, Yeni and Leslye and I. I didnt see any problem, I though we had sufficient redundancy. Then Leslye quit abruplty and didnt show up on sunday 21, still we operated with Monse and Flor and I on Sunday 21. Flor and I worked on 22 and 23. and then she reported sick on 25. We didnt have time to hire or train some else. Or think of a solution to avoid this. I though we had enough redundancy. 
+
+In fact this weekend we can oparate we Monse and Yeni (saturday, Sunday)
+
+[12/31/25, 6:43 AM] Thinking on building a todo list. Mixed with Elo ranking. The todo list will only show the top 5 to do on the screen. And the rest in the Elo fighting A vs B. And another screen to add things to do. This will reduce the options of things to do. Maybe we could maximize for ROI or peace of mind.
+
+[1/7/26, 4:53 PM] Ok, well there have been a few days where I have not added anything to my notes. I have noticed that sometimes I do it when I bring a lot of things in my head, which is the same when I should do more notes to be able to learn a little more about me. But well, we went back to work this Friday. That was the first day with good sales. I don't remember, we came around 5,000, which in our context is good. Later on Saturday we came only 4,000, which is low. I would have expected around 7,000 to 8,000. and on Sunday we sold 13,200, which makes us one of the best days we have had. Usually 13 is almost 13 200 300 500 it is the maximum that can sometimes be sold With this number of tables available staff etc Which makes me come to several conclusions, that the absence of some days did not mark our end, as sometimes my mind made me think and from there came my feeling of guilt, the clients were there, we just had to open our platform again to make reservations. On Friday and Sunday I received several, so it makes me think that both the platform and the idea of creating a very good platform to make reservations would generate enough value for us and for others. And, well, of the things we have created, it is the things with the most value. I am sure that many have not discovered it and we could be that medium by which they discover it. Thank you.
+
+[1/7/26, 4:55 PM] Now, I feel, since yesterday, somewhat anxious, especially because I have several debts that have not been paid. This is due to the days that we were without work and it stresses me not only not having money but having debts, credit cards, due to coral cost in its first days. One thing I must mention is that now with the minimum staff and the increase in prices, I feel that I give a little more to the money and therefore a day of sales let say suppose that today it sells three thousand pesos because that would feel like a pretty contribution to my debts, because I know that, for example, three days of 3,000, well, practically they would solve the problem that I have of delayed debts, or at least they would buy me mental peace. That means that although the increase in price was little, and that we are not paying the replacement of the ESRI, it is little, in my scale it is a significant change.
+
+[1/7/26, 4:58 PM] I have continued to develop the reservation application, in this case already to sell to other restaurants that are in similar situations. I don't know if I had already commented on this in our notes, but I already have significant advances. Yes, it needs a lot of development, but I'm already making progress. Maybe I'm worried about developing too many features, that maybe an initial client doesn't care so much about, because they only want something that works and not something that works very well for them. So maybe adding those more complicated features will take longer to launch and they will complicate the use for the owner of the restaurant So I have to make certain decisions there, but I have already advanced and I feel quite satisfied with the progress. In fact, it is practically almost usable. We are missing, let's say, 30% of the progress rules to be able to launch it. And this, taking into account that it only limits it to what is necessary to launch it, which is the most recommended, to already begin to have an idea if there is a demand for this solution, which I want to think that yes, since at least we have tried it, that it has worked for us. and with someone so persistent and with a good job like Flor, I think we have a high chance of being able to sell.
+
+[1/7/26, 5:01 PM] My mind is divided a little in the idea of trying to put all my effort in Costa Coral, or divide my effort between Costa Coral and develop and sell this reserve application. because I don't know, I've always thought that focusing is important and not to divide your efforts, however, Cosa Coral is already advancing, even if right now we were only in the process of acquiring it If I wasn't demanding so much time and money, I would be very satisfied with letting it work. But right now it takes not only all my time but my tranquility my money I don have to spend my money on other things right now I have to spend it on other things especially before the subsidy that was given from me to be iterating and trying the idea with clients who paid 169 pesos for something that we are currently paying 16 million I tried to apply Jeff Bezos' strategy that gave very low prices in order to win the market, to learn. But that problem had to be solved and in my case it was reflected in my debt on credit cards. But hey, it was the only way to prove that we could increase the price and find a top, which I would never have imagined, which is for people to pay $ 289 for a buffet. We have no place to copy from, and that's what we liked. I hope I can get the project out of the way.
+
+[1/7/26, 5:03 PM] I have several things in my mind that I have to solve. I'll give you some perspectives, they're not that difficult. I still feel overwhelmed. I think it could be the use of artificial intelligence tools and give me the life I want, which is something simple thing to have the opportunity to interact with artificial intelligence tools and fill my life with them what I can see fast before more people start using them and how it happened to me with other things like bitcoin where I was one of the first to see it but I never I did something that kept me up front, early or early, I just kept it as something interesting, I never took it to action, doing something that I did not want to be in the industry, and then I went out. I want to learn from that.
+
+[1/7/26, 5:07 PM] Yes, I did. Well, actually, the gross profit of the month is around 1200. and around 1200 pesos, which, paying everything else, I'm probably still in profit, like 800 pesos. If I decided to sell the reservation system in 1899 with only two sales, I think I would be practically covering what I earned in four days. I can only do it with two of them. Let's suppose I have to make a third one to pay the floor so that it continues to sell. And that makes it clear to me that I think it is a better option if we try to optimize for my time effort and quality of life to sell the software system better. I say that because I have considered that maybe a viable strategy is not only to rest on Tuesdays, but also on Mondays, I can afford to do that, and dedicate that Monday to develop the application in a faster way. I can do everything I need to do for the application and develop that product. With only three sales, Flor and I would buy a full day of rest, rest since we prefer to rest in our houses or to be working on that project instead of working on the project of the reserves two or three hours a day than coming here to Costa Coral and doing work, being standing all day very tired with all the stress that this implies you
+
+[1/9/26, 10:24 PM] after a few days into january 2026. today is 9. This week, at least weekdays it has been felt slow in demand in costa coral, with days of 1500 mxn, 2000 mxn. This makes the decision of letting go a Florencia and then not hiring a replacemnt for Leslye a very smart choose. At least I am not as stressed and worried as I could be if I hadnt made this decision.
+
+[1/10/26, 8:43 PM] I will need to sell the reservation system to hire a replacement of me on Costa Coral. At least the physical work. At a very good salary for the replacement.
+
+[1/12/26, 12:47 AM] I have noticed that there are videos on YouTube where the creator achieves, even if he is describing a concept, this concept can be about history, about the system, but he does it in a very rhythmic way, I don't know how to describe it, it sounds pleasant to the ear. I know that they use some kind of software to make music, but I would like to know more about it, what concepts do I have to investigate, to know, for example, what I do for my restaurant. What should I know to create this rhythm that is not a music, that is not poetry, but that feels like there is a kind of rhythm that pleases the ear. I don't know if it's because the words start in a grid, like the one in Fruit Loops Studio, I don't know what it's called, or like Ableton Live, I don't know, or if it has to be with respect to music, I don't know, but I would like to know what concepts I can investigate thoroughly to be able to create this effect.
+
+[1/14/26, 11:23 PM] As more days pass, i realize that not hiring a replacement for Leslye and fire Florencia, was the smart choice. Sales have been slow in the month of January. With this slim staff is possible to limit the loses or even make  small profit. Also the increase in price benefited us.
+
+[1/16/26, 8:25 PM] Today is 16 january 2026. Until now, our current tiktok campaing cost us 0.23 mxn per click to the landing page. This is from the lifetime of the campaing from 2025-09-12 to 2026-01-16. 
+
+In the landing page our best design converts at 1.13%. That is from 100 people that visits, we get 1.13 reservations. 
+
+I make this anotations because I plan to reset the data to see what is the current conversion in this slow month of January.
+
+[1/28/26, 6:29 AM] Something about Thomson Sampling that excites me. The idea of constant discovery that I can find something that works, something that following a set of rules can discover something hidden and of value.
+
+[1/28/26, 6:33 AM] I have been away of taking notes. First because I was very stressed because of the lack of money, specially at the middle of the month, having to pay a lot of bill out me in a position that I thought I had to ask to someone for more money. This month I had to pay the severance to Leslye and other extra expenses that I didn't count on. But something weird has happened, with the next few days the sales have improved and now I feel weird, like I have more space in my head, like there is something I am forgetting, but is the lack of worries about bills to pay, it's weird to me to feel like I don't have a way to pay something 3 to 4 days in the future.
+
+[2/19/26, 10:42 PM] Distribution of sales on the month of December
+
+   * Buffet Premium Costo: 56.95% ($46,673.00)
+       * Includes: "COSTO BUFFET PREMIUM", "PREMIUM+AGUA RESERVA", and "PROMO
+         PREMIUM + AGUA"
+   * Buffet Basico Costo: 25.31% ($20,743.00)
+   * Taco Trio ($169): 17.74% ($14,534.00)
+
+[2/19/26, 10:48 PM] Buffet Premium
+$98
+COGS per Customer
+
+$192
+Gross Profit
+
+[2/19/26, 10:48 PM] Buffet Basico
+$75
+COGS per Customer
+
+$155
+Gross Profit
+
+[2/22/26, 4:57 AM] We are currently working with the slim staff. Flor and me on weekdays. And Flor, Monse, Yeni and me on weekends. 
+
+We need to coordinate a lot to pull of this days with so few people. But with or very high costs of COGS, I have realized that we need to reduce the cost someplace else, in this case staff. Don't know how long we can keep this pace. 
+
+I have though that we need to change the business model. My research points out that the model doesn't scale too well, because we need a lot of people only to sell a little more. To handle the unpredictability and burst of demand. We need to try others ideas that are more along the lines of Ala carte.
+
+[2/22/26, 5:02 AM] I have been thinking of introducing the Taco Duo at $149, keep Taco Trio at $169. 
+
+And rise the buffet básico at $249. Finally the buffet premium at $289. This is only an idea. Not implemented so far. 
+
+Also not allow mixed tables (buffet and a la carte). This makes us have to police the tables and the problem that people that eats a little and we profit a lot, they choose the trio. So by not allowing mixing, we can profit a lot or reduce the loading to the kitchen if all buy trio or duo (if we introduce the duo)
+
+[2/22/26, 5:10 AM] The range of when usually the costumers arrive is short 3:00pm to 4:30pm aprox. So the surge makes the kitchen struggle a lot. We need to find ways to serve costumers at other hours trying to sell to locals, to diversify the time the costumers arrive.
+
+[2/22/26, 5:36 AM] Some stuff I haven't mention is that the restaurant system will be hard to sell as a SAAS. This is because the necessities of every restaurant are different. We have tested different configurations because as our needs changes the UI, the features changes and so on. I imagine this will be the same for other restaurants, one hostess, two, none, etc. This will be difficult to sell.
+
+[2/22/26, 4:51 PM] I am making a script to combine multiple clips in a coherent way using AI to make TikTok videos. It's really good. With it I can mix a lot of videos and each one will feel different. Let's say you have 40 videos in the gallery. The combination possibilities become huge that a person watching one or two per day, will feel like each is unique. Today will use it in Costa coral and later planning to sell it as a service (I won't tell about the script) 
+
+$6000 per month to the client
+
+Will keep $2000
+Use the $4000 for ads to the client. In Facebook and TikTok.
+
+I think is very useful.
+
+[2/23/26, 3:02 AM] We have had tables where one person selects the buffet and the other a taco trio or a single taco. That I think doesn't benefit the business. We move the person who eats a lot to the buffet and the person who eats a little to pay for a single taco. There is no average. This is one reason I want to stop mixed tables. The other people share food from buffet to no buffet people
+
+[2/23/26, 3:03 AM] This month we might sell around $130,000 mxn
+
+[2/25/26, 4:43 AM] ok so i know that social commitment makes me do stuff for some reason, but is a very specific prasure, for example when I need to do something to Costa Coral, like opening the restaurant. I feel the preasure to open, to provide good value for their money. This presure makes me do stuff.  This cannot be replicated on my personal life or when i promise something to someone close to me, for some reason.
+
+[2/25/26, 7:59 PM] We are spending $1700 mxn on tiktok ads in the last 30 days and 74 usd on facebook ads.
+
+[2/25/26, 8:11 PM] We usually have 1 invoice for or provider of veggies and pther supplies per week (Granados). Our expenses of COGS are mainly to this supplier and Rey Camaron. 
+
+This are the last 3 invoices from Granados:
+3083.60
+5184.29
+3398.45
+
+This are the last 4 of rey camaron
+3655.28
+4752.12
+2513.28
+3234.45
+
+[2/25/26, 8:13 PM] We spend in cheese around 5kg per week and the kilo cost $103.
+
+[2/25/26, 8:16 PM] We are expecting to sell 126000 mxn on this month.
+
+[2/26/26, 5:10 PM] I would like to... well, rather, the service to create videos by mixing several clips, it works, I wouldn't say it's excellent, but it's enough to be functional. Some videos can be improved, but I think the idea is good. It is effective and the problem that many businesses have is simply to start uploading content to social networks, to social networks, TikTok, Facebook, so that their place is known. And I think that with that you can provide 80% of the value that an advertising agency wants to generate for a business. But currently, agencies do a lot of graphic design, which is static, it does not capture as much the attention of a client as a video. And I think it takes a lot of time doing each of the designs And in our case, by mixing, let's say in a business bank, 40 clips, 30 clips, you can practically generate an infinite amount or that at least to the perception of the client of those interested in going to that business they see it as each business, each video, a different video. So I think there is a great potential of value to the business that contracts this service. Not necessarily the program or the script, but to me as an agency that uses this tool, I have considered that a good value would be 3,000 pesos a month, and for this amount, maybe offer 30 videos per month and another option with maybe 15 videos per month for $2,600. Something like that to force them to upgrade to $3,000.
+
+[2/26/26, 5:13 PM] The script to combine videos is practically finished. It is more functional. What is missing is to perfect it. However, I can't find a way to force myself to offer this service. I don't know why, I'm afraid of rejection, but it should be given as the price that has to be paid. even create the tools so that a third party can sell it as a flower. For this I would use a landing page and a kind of CRM so that it can mark the contacts that the and the businesses that you will contact, maybe through social networks, or those that you have to contact physically, our conversion rate, etc. Maybe if I just build these two tools it would be a quick way to get the service and taking into account that for each client we convert, it is 3,000 pesos per month, this work would only have to be done once, and I don't know how many clients we can convince per week, but even if it were one a week, it would be 12,000 pesos. The second month would be 24,000. And since the expenses are minimal, it is a much more profitable model than the current restaurant. But I don't know, I don't know what is limiting me to not sell. To not sell this solution or to move faster or to create these tools so that someone else can sell it.
+
+[2/26/26, 5:21 PM] A problem that I currently see with the idea of selling this video service, is that I am the factor that stops the sale. That is, if I do not sell anything, there is no result. Coral rose, the interesting thing is that either Flo or I are producing sometimes both at the same time, sometimes one, sometimes the other. but it is a very effective combination. So, if we do the same here, I give her the tools to sell her or me, I also think that the problem is just trying to sell it to five clients, If we sell it that would break that mental barrier that I have And once we have two clients I think it would be enough for me to start offering it Yes, I think it's a mental barrier and it gives me rejection. Or that people think it was not worth it. Although I, from the very beginning, feel that it is very worth it to pay $2,300, $3,000. and this one. And I think that this service can be automated in great measure, except to go to visit the business, maybe a couple of times, the first time, to capture videos. And then, just once a month, to give the right quality, add another video, add the restaurant context, to make them more and more accurate, these videos generated with artificial intelligence.
+
+[2/26/26, 5:24 PM] Let's suppose that for Clint, after all the expenses, there are 2,200 pesos left, and per month, for Clint, and currently in the restaurant, according to some calculations I made, I am carrying around 100 pesos per hour, already adding the profit from the business plus my activity as a waiter. That means that a client is equivalent to around 22 hours of mine in the restaurant. which is equivalent to three days So for each client that I get I earn three days And if this client renews their subscription with us, I can quickly start releasing days for myself. I wonder, for example, with 5 clubs, which I find practical, 5, which are 15 days, maybe half a month, which would be something incredible. So I think there is a great opportunity to make greater leverage with this digital business that I am currently in.
+
+[2/28/26, 7:12 AM] I have decided to switch from our current provider of premade concentrates for the water we serve to made it ourselves. I suspect we spend around 6660 MXN monthly. It's called pulpa mia. 
+I suspect we can make it for around $1600 MXN a month if we make it per month.
+
+[3/5/26, 7:41 AM] We cannot implement the charge to make a reservation. People in Mexico doesn't like that
+
+[3/6/26, 1:41 AM]  This is a test to see if it really works.
+
+[3/6/26, 1:45 AM]  Today I have to pay the rent for the local day of Costa Coral It's 7.44, I think we're just in the depot After doing that deposit I can do the transfer that is needed In addition to that, I have to resume with the publicity, a lot, to eliminate the interior where we mentioned that water was given correctly since this is not going to be a promotion that we are going to include and I have to register our expenses well to know that now that we are going to incorporate the jars with chili water and other cold foods if it really reduces our expenses or also reduces the workload in the kitchen since it will move a little of the workload to the first hours when we are doing production instead of the peak
+
+[3/6/26, 1:51 AM]  Ok, what else do I have to do tonight? Well, that, make the last decisions, for example, if I am told that we are giving water the water 69 pesos so it must be very good because that will subsidize a little the cost of the buffet so that we can sell it at the prices that we are giving it And that in the promotion in the advertising it appears at a relatively cheap price We continue I think it is a good idea to continue promoting the price of the basic buffet Thanks to our hook And this Continue promoting it and already inside the restaurant Try Sell them the premium buffet to increase our profit I´m almost sure that if we tried to sell the premium buffet that is, to offer directly the price of the premium buffet maybe we wouldn´t have the demand we have on weekends but we´ll find out What else? I think that is all for now.
+
+[3/6/26, 1:56 AM]  I feel that with the decision that I am very satisfied is with the one of dividing, not allowing the mixed tables, although we have not seen the results, but that will release the load quite a bit, the only thing that will be, we will also have to practice as waiters, how are we going to explain it in a friendly way and for example what happens when a couple goes and they have two children of ten, no, an age that exceeds, for example, the meter 30 centimeters, which is where they would have to pay the full buffet well you will have to be very direct that to access everyone has to ask for a buffet In any case they want a buffet or they can ask for a card but everyone has to ask for a card What will happen? Yes, I think that will have to be very firm. I need rules to avoid the inconveniences that we have had in the past when the customers who ask for a buffet give it to someone who has not asked for a buffet at the end of the day, that's what I end up paying and obviously I'm not in the position to be giving food so if you don think so or it very expensive for you to eat at the buffet you can go to a cart Even so you will have to pay more or consume less and that will free us I work in the kitchen so that it is not so difficult and we end up so exhausted on the weekends and well, I am still not sure how people are going to respond how they are going to feel inside the kitchen I mean more how they will respond, especially if everyone will go to premium buffet everyone will go to basic buffet, or how the proportions will be redistributed in the demand that is my curiosity how the proportion will change there is a high possibility that some premiums will go to basic because they had the idea of spending 229 and previously some of them could be a family of 4 could switch to premium, one of the family could switch to premium and the rest to basic now everyone would have to be basic in that case because it would be very expensive for a person to switch and I don't know, I think it will end up benefiting us in the corral of the big numbers, either with higher sales or with a decrease in workload.
+
+[3/6/26, 2:01 AM]  Something we have to do is implement as quickly as possible the selling to the people who pass in front of the business or the people who are in the businesses around I'm sure that they will tell us if I have already seen it they asked us when we offered more accessible tacos practically they always asked us for a rachera and I feel that they can pay up to 36 pesos per taco However, once we started raising our prices, once we had the buffet, these customers stopped buying because they were not enough. I suspect that their budget must be between 69 and 99 pesos a day to spend on food on the street So I think we should resume. It does require an investment, but it is already minimal with the possible profit, it can be quite a lot because we already have everything, we only We are busy promoting, making combos that are more accessible and that people who are willing to spend that amount of money and not 169 or 229 that can be something very expensive but 89 79 there we can have an additional income I would also like to explore this I must agree where if we talk about probabilities it is easier to sell something that is cheap Let's say something like $29 pesos to something very expensive, like for example, currently we have accounts of over $1,000 pesos. There must be some probability that explains that to us, and that obviously if we try to pursue a cheap account, as we currently do, the probability of us constantly getting them is difficult, however, reducing our... I'm not saying replacing what we really have now, but to pursue these other clients at the time of 1 to 3 pm where we don have demand and even though Flor is doing production and I am cleaning if demand is already there, it would be useless to go and treat someone else, and not be so busy with work, or increase our expenses, or in the future even replace the buffet and build Costa Coral around a concept that does not require a waiter and at that moment I can go out of work, go out every day, do a more sustainable business because right now I feel that three people are forced to occupy daily or at least the days that are offered in the buffet So, maybe we have to revisit the business of the buffet, maybe just offer it on Fridays, Saturdays and Sundays or something like that. Something that allows me not to have to go every day.
+
+[3/7/26, 10:44 PM]  It's just the second day where we are trying not to allow mixing, for example, taco trio with buffet or taco duo with buffet, that is, card with the option of buffet, it is very soon to say, I have to analyze the numbers but for now I think I have seen that I suspect, I have not seen but it can be anecdotal with the few samples that we have seen the average ticket can increase and the average consumption can increase I wonder what happens if this only represents half a taco per table or even one how much would this represent at the end of the month and well, you have to verify it with numbers, I have to verify with 11 that the number of people who attend is really entering to be able to have precise statistics But, the little we have analyzed, apparently, if it slightly increases the average ticket or decreases the consumption of tacos At least we just saw a table where the person a person who wanted to win a prize and the others wanted more and he made everyone become a prize Well, that equals to 60 pesos, practically 60 pesos per person and as a person converted 3 would be almost 180 pesos additional of the table that we would not have obtained because excellent with the policy that we are not going to give water with the reserve I do not know if it benefited us affected us since today we have only had two reservations but I am also very aware that usually I put 200 pesos on Friday, 200 pesos on Saturday and 200 pesos on Sunday in publicity on TikTok and this week I didn't do it, I didn't do it on Friday So, it may have affected, although yesterday we sold well, which contradicts both theories. Because on the one hand, it showed us that it didn't matter that water policy, we sold well. In fact, yesterday we sold more than we have today, Saturday at 4.40 pm But well, the day is not over yet, on Saturday we will see how much we end up selling
+
+[3/7/26, 11:28 PM] Preliminary data (first 2 days). Show the following ratios after the changes in not allowing mixed tables 
+
+Premium 49% 24 sales 
+Básico 14% 7 sales 
+Trio/Duo 37% 18 sales
+
+[3/8/26, 10:43 PM] with data of 3 days the average taco is 4.65. But I think is more around 6 per costumer, a reduction from the previous 6.8 tacos. this happenedafter the no mixed tables policy. We need more data to have it for certain, but encouraging data.
+
+[3/9/26, 1:03 AM] Yesterday and today, the sales of beverage represent 21% of the total sales, both days. This is significant. Before it represented a lot less, don't know the amount but it was less than 21% or the total sales
+
+[3/9/26, 1:08 AM] today we sold $8737
+
+[3/9/26, 9:19 PM] we have more data to tell that the current average tacos per costumer in the buffet is 5.65 after revising a full weekend (friday, sat, sun)
+
+[3/9/26, 11:10 PM] March 6-8, 2026 Customer Behavior Snapshot
+Generated from finalized cheques in softrestaurant10 on 2026-03-09.
+
+Purpose
+This snapshot summarizes how customer behavior looked on March 6, 7, and 8, 2026 after the recent changes. It focuses on buffet behavior, taco trio behavior, and beverage sales.
+
+Methodology
+- Scope: finalized non-cancelled rows in `cheques` and `cheqdet` for 2026-03-06, 2026-03-07, and 2026-03-08.
+- `Table` in this report means finalized check / folio. Finalized data does not preserve the live mesa label, so folio is the stable reference.
+- `Trio table`: any folio that contains a product description with both `taco` and `trio`.
+- `Premium-only buffet`: folio contains at least one row with `buffet` and `premium`, and no row with `buffet` and `basico`.
+- `Basico-only buffet`: folio contains at least one row with `buffet` and `basico`, and no row with `buffet` and `premium`.
+- `Mixed buffet`: folio contains both premium and basico pricing rows. Mixed folios are excluded from premium vs basico comparison.
+- `Untyped buffet`: folio has zero-price buffet consumption rows, but no basico or premium pricing row.
+- `buffet_selections`: zero-price buffet rows where the description contains `BUFFET`. This is a POS selection count, not a kitchen portion count.
+- Beverage section uses product groups `AGUA`, `REFRESCO`, and `SIN ALCOHOL`.
+
+Executive Summary
+- Total finalized sales across the 3 days: 22,162.00 MXN from 31 checks and 70 guests.
+- Average check: 714.90 MXN. Average sales per guest: 316.60 MXN.
+- Total beverage revenue: 4,270.00 MXN, equal to 19.27% of total sales.
+- `AGUA CON REFIL` alone generated 3,438.00 MXN, which is 80.52% of beverage revenue.
+- There were 24 buffet checks in total, generating 17,310.00 MXN, or 78.11% of total sales.
+- There were no mixed basico/premium buffet checks in finalized data.
+- Premium-only buffet checks showed higher buffet item consumption per guest than basico-only checks:
+  - Premium-only overall: 16 checks, 38 guests, 13,218.00 MXN, 222 buffet selections, 5.84 buffet items per guest.
+  - Basico-only overall: 8 checks, 14 guests, 4,092.00 MXN, 72 buffet selections, 5.14 buffet items per guest.
+- No untyped buffet checks were found.
+- Trio activity appears in 7 trio checks.
+
+Daily Overview
+
+2026-03-06
+- Checks: 10
+- Guests: 20
+- Total sales: 6,613.00 MXN
+- Average check: 661.30 MXN
+- Sales per guest: 330.65 MXN
+- Beverage revenue: 1,031.00 MXN
+- Beverage share of sales: 15.59%
+- Buffet checks with buffet consumption: 7
+- Trio checks: 3
+
+2026-03-07
+- Checks: 9
+- Guests: 22
+- Total sales: 6,812.00 MXN
+- Average check: 756.89 MXN
+- Sales per guest: 309.64 MXN
+- Beverage revenue: 1,367.00 MXN
+- Beverage share of sales: 20.07%
+- Buffet checks with buffet consumption: 7
+- Trio checks: 2
+
+2026-03-08
+- Checks: 12
+- Guests: 28
+- Total sales: 8,737.00 MXN
+- Average check: 728.08 MXN
+- Sales per guest: 312.04 MXN
+- Beverage revenue: 1,872.00 MXN
+- Beverage share of sales: 21.43%
+- Buffet checks with buffet consumption: 10
+- Trio checks: 2
+
+Buffet Segmentation Summary
+Mixed buffet folios found: 0
+
+2026-03-06
+- Premium-only: 5 checks, 10 guests, 3,581.00 MXN sales, 11 premium seat rows, 66 buffet_selections, 6.60 buffet items per guest, 358.10 MXN sales per guest
+- Basico-only: 2 checks, 4 guests, 1,132.00 MXN sales, 4 basico seat rows, 18 buffet_selections, 4.50 buffet items per guest, 283.00 MXN sales per guest
+- Untyped buffet: 0 checks
+
+2026-03-07
+- Premium-only: 5 checks, 13 guests, 4,679.00 MXN sales, 13 premium seat rows, 73 buffet_selections, 5.62 buffet items per guest, 359.92 MXN sales per guest
+- Basico-only: 2 checks, 3 guests, 874.00 MXN sales, 3 basico seat rows, 14 buffet_selections, 4.67 buffet items per guest, 291.33 MXN sales per guest
+- Untyped buffet: 0 checks
+
+2026-03-08
+- Premium-only: 6 checks, 15 guests, 4,958.00 MXN sales, 14 premium seat rows, 83 buffet_selections, 5.53 buffet items per guest, 330.53 MXN sales per guest
+- Basico-only: 4 checks, 7 guests, 2,086.00 MXN sales, 7 basico seat rows, 40 buffet_selections, 5.71 buffet items per guest, 298.00 MXN sales per guest
+- Untyped buffet: 0 checks
+
+Overall Buffet Comparison
+- Premium-only: 16 checks, 38 guests, 13,218.00 MXN sales, 38 premium seat rows, 222 buffet_selections, 5.84 buffet items per guest, 347.84 MXN sales per guest
+- Basico-only: 8 checks, 14 guests, 4,092.00 MXN sales, 14 basico seat rows, 72 buffet_selections, 5.14 buffet items per guest, 292.29 MXN sales per guest
+- Untyped buffet: 0 checks
+- All buffet checks combined: 24 checks, 52 guests, 17,310.00 MXN sales, 294 buffet_selections, 5.65 buffet items per guest
+
+Buffet Check Detail
+
+2026-03-06 premium_only
+- Folio 5962: 2 guests, total 576.00, premium seat rows 2, buffet_selections 13
+- Folio 5963: 3 guests, total 1,041.00, premium seat rows 3, buffet_selections 22
+- Folio 5965: 1 guest, total 694.00, premium seat rows 2, buffet_selections 5
+- Folio 5966: 2 guests, total 576.00, premium seat rows 2, buffet_selections 16
+- Folio 5967: 2 guests, total 694.00, premium seat rows 2, buffet_selections 10
+
+2026-03-06 basico_only
+- Folio 5968: 2 guests, total 576.00, basico seat rows 2, buffet_selections 9
+- Folio 5970: 2 guests, total 556.00, basico seat rows 2, buffet_selections 9
+
+2026-03-07 premium_only
+- Folio 5973: 2 guests, total 714.00, premium seat rows 2, buffet_selections 14
+- Folio 5974: 2 guests, total 714.00, premium seat rows 2, buffet_selections 18
+- Folio 5977: 4 guests, total 1,437.00, premium seat rows 4, buffet_selections 12
+- Folio 5978: 2 guests, total 743.00, premium seat rows 2, buffet_selections 13
+- Folio 5982: 3 guests, total 1,071.00, premium seat rows 3, buffet_selections 16
+
+2026-03-07 basico_only
+- Folio 5979: 2 guests, total 596.00, basico seat rows 2, buffet_selections 9
+- Folio 5983: 1 guest, total 278.00, basico seat rows 1, buffet_selections 5
+
+2026-03-08 premium_only
+- Folio 5987: 2 guests, total 714.00, premium seat rows 2, buffet_selections 15
+- Folio 5988: 2 guests, total 714.00, premium seat rows 2, buffet_selections 13
+- Folio 5989: 2 guests, total 714.00, premium seat rows 2, buffet_selections 11
+- Folio 5994: 2 guests, total 714.00, premium seat rows 2, buffet_selections 14
+- Folio 5996: 3 guests, total 1,100.00, premium seat rows 3, buffet_selections 15
+- Folio 5997: 4 guests, total 1,002.00, premium seat rows 3, buffet_selections 15
+
+2026-03-08 basico_only
+- Folio 5991: 2 guests, total 596.00, basico seat rows 2, buffet_selections 14
+- Folio 5992: 2 guests, total 596.00, basico seat rows 2, buffet_selections 10
+- Folio 5993: 1 guest, total 298.00, basico seat rows 1, buffet_selections 7
+- Folio 5995: 2 guests, total 596.00, basico seat rows 2, buffet_selections 9
+
+Taco Trio Tables
+
+Daily summary
+- 2026-03-06: 3 trio checks, 6 guests, 1,900.00 MXN in check sales, 8 trio rows, 1,352.00 MXN trio revenue
+- 2026-03-07: 2 trio checks, 6 guests, 1,259.00 MXN in check sales, 6 trio rows, 1,014.00 MXN trio revenue
+- 2026-03-08: 2 trio checks, 6 guests, 1,693.00 MXN in check sales, 3 trio rows, 507.00 MXN trio revenue
+- Overall: 7 trio checks, 18 guests, 4,852.00 MXN in check sales, 17 trio rows, 2,873.00 MXN trio revenue
+
+Detailed trio checks
+- 2026-03-06 folio 5964: 3 guests, total 595.00, trio rows 3, trio revenue 507.00
+- 2026-03-06 folio 5969: 1 guest, total 892.00, trio rows 4, trio revenue 676.00
+- 2026-03-06 folio 5971: 2 guests, total 413.00, trio rows 1, trio revenue 169.00
+- 2026-03-07 folio 5975: 4 guests, total 872.00, trio rows 4, trio revenue 676.00
+- 2026-03-07 folio 5976: 2 guests, total 387.00, trio rows 2, trio revenue 338.00
+- 2026-03-08 folio 5990: 2 guests, total 883.00, trio rows 1, trio revenue 169.00
+- 2026-03-08 folio 5998: 4 guests, total 810.00, trio rows 2, trio revenue 338.00
+
+Beverage Sales
+
+Overall beverage totals
+- AGUA group: 53 units, 3,467.00 MXN
+- REFRESCO group: 17 units, 803.00 MXN
+- Combined beverage revenue: 4,270.00 MXN
+
+2026-03-06 beverage detail
+- AGUA CON REFIL: 15 units, 885.00 MXN
+- BOTELLA DE AGUA: 1 unit, 29.00 MXN
+- COCA COLA 355 ML: 3 units, 117.00 MXN
+
+2026-03-07 beverage detail
+- AGUA CON REFIL: 12 units, 828.00 MXN
+- COCA COLA 355 ML: 7 units, 343.00 MXN
+- SIDRAL MUNDET 355 ML: 2 units, 98.00 MXN
+- FANTA: 1 unit, 49.00 MXN
+- FRESCA: 1 unit, 49.00 MXN
+
+2026-03-08 beverage detail
+- AGUA CON REFIL: 25 units, 1,725.00 MXN
+- COCA COLA 355 ML: 2 units, 98.00 MXN
+- SIDRAL MUNDET 355 ML: 1 unit, 49.00 MXN
+
+Top Paid Items By Day
+
+2026-03-06
+- COSTO BUFFET PREMIUM: 11 units, 3,168.00 MXN
+- TACO TRIO: 8 units, 1,352.00 MXN
+- COSTO BUFFET BASICO: 4 units, 916.00 MXN
+- AGUA CON REFIL: 15 units, 885.00 MXN
+- TACO DUO: 1 unit, 146.00 MXN
+- COCA COLA 355 ML: 3 units, 117.00 MXN
+
+2026-03-07
+- COSTO BUFFET PREMIUM: 13 units, 3,744.00 MXN
+- TACO TRIO: 6 units, 1,014.00 MXN
+- AGUA CON REFIL: 12 units, 828.00 MXN
+- COSTO BUFFET BASICO: 3 units, 687.00 MXN
+- COCA COLA 355 ML: 7 units, 343.00 MXN
+- SIDRAL MUNDET 355 ML: 2 units, 98.00 MXN
+- FANTA: 1 unit, 49.00 MXN
+- FRESCA: 1 unit, 49.00 MXN
+
+2026-03-08
+- COSTO BUFFET PREMIUM: 14 units, 4,032.00 MXN
+- AGUA CON REFIL: 25 units, 1,725.00 MXN
+- COSTO BUFFET BASICO: 7 units, 1,603.00 MXN
+- TACO DUO: 4 units, 584.00 MXN
+- TACO TRIO: 3 units, 507.00 MXN
+- HAMBURGUESA CAM CARTA: 1 unit, 139.00 MXN
+- COCA COLA 355 ML: 2 units, 98.00 MXN
+- SIDRAL MUNDET 355 ML: 1 unit, 49.00 MXN
+
+Top Buffet Items By Day
+
+2026-03-06
+- CAMARON COCO BUFFET: 9
+- CAMARON ROCA BUFFET: 9
+- QUESATACO LANGOSTA BUFFET: 7
+- ARRACHERA BUFFET: 5
+- FILETE MOJO BUFFET: 5
+- PLATO CAMARONES BUFFET: 5
+- TACO COSTA CORAL BUFFET: 5
+- TACO DIABLITO BUFFET: 5
+- TACO ESPECIAL BUFFET: 5
+- TACO VERA BUFFET: 5
+
+2026-03-07
+- ENSENADA FILETE BUFFET: 9
+- ARRACHERA BUFFET: 8
+- GOBERNADOR BUFFET: 7
+- TACO COSTA CORAL BUFFET: 7
+- TACO DIABLITO BUFFET: 7
+- PLATO CAMARONES BUFFET: 6
+- CAMARON COCO BUFFET: 5
+- CAMARON EMPANIZADO BUFFET: 5
+- QUESATACO LANGOSTA BUFFET: 5
+- PASTA MOJO AJO BUFFET: 4
+
+2026-03-08
+- ARRACHERA BUFFET: 11
+- CAMARON EMPANIZADO BUFFET: 10
+- GOBERNADOR BUFFET: 10
+- TACO ESPECIAL BUFFET: 9
+- CAMARON COCO BUFFET: 8
+- ENSENADA FILETE BUFFET: 8
+- TACO COSTA CORAL BUFFET: 7
+- FILETE COCO BUFFET: 6
+- TACO DIABLITO BUFFET: 6
+- TACO VERA BUFFET: 6
+
+Data Quality / Interpretation Notes
+- No mixed basico/premium buffet folios were found in these 3 days.
+- No untyped buffet checks were found.
+- Some buffet folios have priced buffet seat rows that do not match `nopersonas`:
+  - 2026-03-06 folio 5965: 1 guest vs 2 premium seat rows
+  - 2026-03-08 folio 5997: 4 guests vs 3 premium seat rows
+- Because of those mismatches, `nopersonas` is the better denominator for behavior per guest, while priced buffet rows are useful as a secondary signal, not a perfect guest count.
+
+Suggested Read Of The Snapshot
+- Premium buffet still shows higher buffet item consumption per guest than basico.
+- Beverage sales became a larger share of sales on March 7 and March 8 than on March 6, driven mainly by `AGUA CON REFIL`.
+
+[3/13/26, 6:46 AM] This jueves we sold around 6200 MXN. This is great. I think we can sell around 130,000 to 135,000 MXN this month.
+
+[3/13/26, 9:24 PM] today friday, very low sales. its kind of raining, but still we where specting more sales from today. only 3 people so far. at around $900. I should be less anxious, yesterday we sold around 6000 mxn, yes it was mainly from one big table, but still, demand is demand. But I isually get worried whenever we make changes and I think that whgat if I made changes that broke th ebusiness, I need to remoiand myself that this is a datapoint. 
+
+Pribably yes, free water with reservation, attracts some costumers that currenlty we dont have. but we need to test having the promo and dont have it. To see the effects, we know what is to have the promo. 
+
+I need to wait to see how people react to the changes. 
+
+Also we are on 13, days before many peolpe get paid in Mexico, I need to be remianded of that.
+
+[3/13/26, 11:07 PM] Date range: 2026-03-06 to 2026-03-13 sales. In this time frame we applied the new changes, no mixed tables, no agua gratis with refill on reservations. 
+
+- Total sales amount: 34,495.00
+- Total dishes served on the period: 538
+- People served: 109
+- Buffet basico sold: 22
+- Buffet premium sold: 59
+- Taco trio sold: 26
+- Taco duo sold: 7
+
+[3/13/26, 11:13 PM] ## Previous Period: 2026-02-27 to 2026-03-05 this is snapshot of sales before our changes of nos mixed tables and not free water
+
+- Total sales amount: 39,569.00
+- Zero-price dishes: 784
+- People served: 142
+- Buffet basico sold: 16
+- Buffet premium sold: 81
+- Taco trio sold: 46
+- Taco duo sold: 0
+- Taco duo sold: 0
+
+[3/14/26, 12:03 AM] Periods analyzed:
+
+- Baseline period: 2026-02-19 to 2026-02-26
+- Previous period: 2026-02-27 to 2026-03-05
+- Current period: 2026-03-06 to 2026-03-13
+
+## Baseline Period: 2026-02-19 to 2026-02-26
+
+Context: Earlier 8-day comparison window before the previous period. Use this as the older baseline reference.
+
+- Total sales amount: 32,320.00
+- Zero-price dishes: 663
+- People served: 124
+- Buffet basico sold: 30
+- Buffet premium sold: 52
+- Taco trio sold: 37
+- Taco duo sold: 0
+- Agua con refil sales: 2,065.00
+- Agua con refil units: 35
+
+## Previous Period: 2026-02-27 to 2026-03-05
+
+Context: Immediate 8-day window before the current period. This is the direct comparison window right before the period you are treating as post-change.
+
+- Total sales amount: 39,569.00
+- Zero-price dishes: 784
+- People served: 142
+- Buffet basico sold: 16
+- Buffet premium sold: 81
+- Taco trio sold: 46
+- Taco duo sold: 0
+- Agua con refil sales: 2,124.00
+- Agua con refil units: 36
+
+## Current Period: 2026-03-06 to 2026-03-13
+
+Context: Latest 8-day window. Based on your prior framing, this is the period after the recent changes and includes today's live sales.
+
+- Total sales amount: 36,637.00
+- Zero-price dishes: 562
+- People served: 115
+- Buffet basico sold: 22
+- Buffet premium sold: 65
+- Taco trio sold: 26
+- Taco duo sold: 7
+- Agua con refil sales: 5,922.00
+- Agua con refil units: 88
+
+## Change: Current vs Previous
+
+- Total sales amount: -2,932.00 (-7.41%)
+- Zero-price dishes: -222 (-28.32%)
+- People served: -27 (-19.01%)
+- Buffet basico sold: +6 (+37.50%)
+- Buffet premium sold: -16 (-19.75%)
+- Taco trio sold: -20 (-43.48%)
+- Taco duo sold: +7 (n/a, previous period was 0)
+- Agua con refil sales: +3,798.00 (+178.81%)
+- Agua con refil units: +52 (+144.44%)
+
+## Change: Previous vs Baseline
+
+- Total sales amount: +7,249.00 (+22.43%)
+- Zero-price dishes: +121 (+18.25%)
+- People served: +18 (+14.52%)
+- Buffet basico sold: -14 (-46.67%)
+- Buffet premium sold: +29 (+55.77%)
+- Taco trio sold: +9 (+24.32%)
+- Taco duo sold: 0 (+0.00%)
+- Agua con refil sales: +59.00 (+2.86%)
+- Agua con refil units: +1 (+2.86%)
+
+[3/14/26, 5:12 AM] ok, so today is friday. I need to rethink how my life is going. While we have managed to reduce the amount of work required per day to earn a living in costa coral, I need still to keep going as waitstaff and the revenue, I think from the early test is the same, only less work. Well at least is progress. 
+
+I wonder how can we make the profit bigger. We have become an expensive please to eat. And many dont have the money. They difficult part will be to include some product that doesnt canibalize the buffet, for the time being. 
+
+As the Ai told me once, we have a very limited set of costumers and there is no so much dilution between them. but also the buffet is costly in effort to create so I think is the proper pricing. Probably I need to offer the taco trio more in social media so people can go and ask for it. So it doesnt canibalize the buffet.
+
+[3/14/26, 4:36 PM] I ran some numbers and apparently I traded less work for the same amount of profit after the changes we made. Which is good. But still we need to make more profit. Yes we need to sell to passing by people at certain hours. With the reduction of work from the buffet, now that is possible. But I wonder if we should let promo of free water again, limited to the buffet premium with reservation or with a promo code. We will benefit from the no mixed tables policy and the incentive of the water with refill that people get to make a reservation
+
+[3/14/26, 10:06 PM] Tables who made reservations ask if they water will be free, even as we no longer advertise it. I think it plays a bigger role than we thought

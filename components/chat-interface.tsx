@@ -35,6 +35,7 @@ interface ChatInterfaceProps {
     onSwitchToDeepRead?: () => void
     onSwitchToConsulting?: () => void
     onSwitchToReframe?: () => void
+    onSwitchToExplore?: () => void
     onSwitchToWrite?: () => void
 }
 
@@ -53,6 +54,7 @@ export const ChatInterface = ({
     onSwitchToDeepRead,
     onSwitchToConsulting,
     onSwitchToReframe,
+    onSwitchToExplore,
     onSwitchToWrite
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -252,6 +254,7 @@ export const ChatInterface = ({
                 onSwitchToDeepRead={onSwitchToDeepRead}
                 onSwitchToConsulting={onSwitchToConsulting}
                 onSwitchToReframe={onSwitchToReframe}
+                onSwitchToExplore={onSwitchToExplore}
             >
                 {inputChildren}
             </InputArea>

@@ -4,6 +4,7 @@ export type NoteRetrievalProfile =
   | 'chat'
   | 'longform'
   | 'consulting'
+  | 'explore'
   | 'reframe'
 
 export interface NoteRerankCandidate {
@@ -35,6 +36,7 @@ const PROFILE_OBJECTIVES: Record<NoteRetrievalProfile, string> = {
   chat: 'Select the notes that most directly answer the user query or provide facts that materially change the answer.',
   longform: 'Select notes that maximize coverage of recurring patterns, key lessons, contradictions, wins, failures, and recent changes.',
   consulting: 'Select notes that best describe the current state, desired state, constraints, economics, bottlenecks, leverage, and proven wins.',
+  explore: 'Select notes that capture current economics, constraints, previous ideas, what has already been tested, underused assets, and evidence needed to judge whether a novel option fits.',
   reframe: 'Select notes that most clearly show recent guilt, regret, self-judgment, mental loops, contradictions, and the facts that dissolve them.',
 }
 

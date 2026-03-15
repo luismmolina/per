@@ -5,7 +5,11 @@ import { VoiceSessionPanel } from '../components/voice-session-panel'
 import { useVoiceRecorder } from '../lib/hooks/useVoiceRecorder'
 import { ChatInterface } from '../components/chat-interface'
 import { DesktopWriter } from '../components/desktop-writer'
-import { Download, MessageSquare, BookOpen, Copy, Check, Sparkles, RefreshCw, Compass, Brain } from 'lucide-react'
+import { ExploreBoard } from '../components/explore-board'
+import { Download, MessageSquare, Copy, Check, Sparkles, RefreshCw, Compass, Brain } from 'lucide-react'
+import type { ExploreResult } from '../lib/explore'
+import { formatExploreResultAsText } from '../lib/explore'
+import { normalizeExploreResult } from '../lib/explore-response'
 
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
@@ -32,7 +36,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
-  const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe'>('chat')
+  const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe' | 'explore'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
   const [longformError, setLongformError] = useState<string | null>(null)
@@ -60,10 +64,19 @@ export default function Home() {
   const [reframeCopied, setReframeCopied] = useState(false)
   const REFRAME_STORAGE_KEY = 'ai-reframe-v1'
 
+  // Explore state
+  const [exploreResult, setExploreResult] = useState<ExploreResult | null>(null)
+  const [exploreObjective, setExploreObjective] = useState('Increase my profit')
+  const [isGeneratingExplore, setIsGeneratingExplore] = useState(false)
+  const [exploreError, setExploreError] = useState<string | null>(null)
+  const [exploreGeneratedAt, setExploreGeneratedAt] = useState<Date | null>(null)
+  const [exploreCopied, setExploreCopied] = useState(false)
+  const EXPLORE_STORAGE_KEY = 'ai-explore-v1'
+  const EXPLORE_OBJECTIVE_STORAGE_KEY = 'ai-explore-objective-v1'
+
   // Voice Recorder Hook
   const {
     isRecording,
-    isTranscribing,
     voiceSession,
     toggleRecording,
     retryFailedChunk
@@ -213,6 +226,49 @@ export default function Home() {
       console.error('Failed to persist reframe to storage:', error)
     }
   }, [reframeText, reframeGeneratedAt])
+
+  // Load/save explore output from localStorage
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      const savedObjective = localStorage.getItem(EXPLORE_OBJECTIVE_STORAGE_KEY)
+      const fallbackObjective = savedObjective && savedObjective.trim().length > 0
+        ? savedObjective
+        : 'Increase my profit'
+      if (savedObjective) {
+        setExploreObjective(savedObjective)
+      }
+
+      const savedResult = localStorage.getItem(EXPLORE_STORAGE_KEY)
+      if (savedResult) {
+        const parsed = JSON.parse(savedResult)
+        if (parsed?.result) {
+          setExploreResult(normalizeExploreResult(parsed.result, fallbackObjective))
+        }
+        if (parsed?.generatedAt) {
+          setExploreGeneratedAt(new Date(parsed.generatedAt))
+        }
+      }
+    } catch (error) {
+      console.error('Failed to restore explore output from storage:', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    try {
+      localStorage.setItem(EXPLORE_OBJECTIVE_STORAGE_KEY, exploreObjective)
+      localStorage.setItem(
+        EXPLORE_STORAGE_KEY,
+        JSON.stringify({
+          result: exploreResult,
+          generatedAt: exploreGeneratedAt ? exploreGeneratedAt.toISOString() : null,
+        })
+      )
+    } catch (error) {
+      console.error('Failed to persist explore output to storage:', error)
+    }
+  }, [exploreGeneratedAt, exploreObjective, exploreResult])
 
   // Load/save desktop writer draft from localStorage
   useEffect(() => {
@@ -688,6 +744,74 @@ export default function Home() {
     setTimeout(() => setReframeCopied(false), 2000)
   }
 
+  const handleGenerateExplore = async () => {
+    const trimmedObjective = exploreObjective.trim()
+    if (!trimmedObjective) {
+      setExploreError('Enter an objective first.')
+      return
+    }
+
+    setIsGeneratingExplore(true)
+    setExploreError(null)
+
+    try {
+      const response = await fetch('/api/explore', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          objective: trimmedObjective,
+          fetchAllNotes: true,
+          currentDate: new Date().toISOString(),
+          userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          peerOutputs: {
+            deepRead: longformText || null,
+            consulting: consultingText || null,
+            reframe: reframeText || null,
+          },
+        }),
+      })
+
+      let payload: any = null
+      try {
+        payload = await response.json()
+      } catch (error) {
+        payload = null
+      }
+
+      if (!response.ok) {
+        throw new Error(payload?.error || 'Failed to generate exploration ideas.')
+      }
+
+      setExploreResult(normalizeExploreResult(payload, trimmedObjective))
+      setExploreGeneratedAt(new Date())
+    } catch (error) {
+      console.error('Explore error:', error)
+      setExploreError(error instanceof Error ? error.message : 'Failed to generate exploration ideas.')
+    } finally {
+      setIsGeneratingExplore(false)
+    }
+  }
+
+  const handleCopyExplore = () => {
+    if (!exploreResult) return
+    navigator.clipboard.writeText(formatExploreResultAsText(exploreResult))
+    setExploreCopied(true)
+    setTimeout(() => setExploreCopied(false), 2000)
+  }
+
+  const handleDownloadExplore = () => {
+    if (!exploreResult) return
+    const blob = new Blob([formatExploreResultAsText(exploreResult)], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `explore-${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   const handleOpenWriter = () => {
     if (!isDesktop) return
     setActiveTab('write')
@@ -720,10 +844,7 @@ export default function Home() {
       setWriterDraft('')
     }
   }
-
-  const longformParagraphs = longformText
-    ? longformText.split(/\n{2,}/).map(p => p.trim()).filter(Boolean)
-    : []
+  const exploreResultIsStale = exploreResult && exploreResult.objective.trim() !== exploreObjective.trim()
 
   return (
     <main
@@ -757,6 +878,7 @@ export default function Home() {
                 onSwitchToDeepRead={() => setActiveTab('deepread')}
                 onSwitchToConsulting={() => setActiveTab('consulting')}
                 onSwitchToReframe={() => setActiveTab('reframe')}
+                onSwitchToExplore={() => setActiveTab('explore')}
                 onSwitchToWrite={isDesktop ? handleOpenWriter : undefined}
                 inputChildren={
                   voiceSession && voiceSession.status !== 'idle' && (
@@ -1128,6 +1250,138 @@ export default function Home() {
                         {reframeText}
                       </ReactMarkdown>
                     </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'explore' && (
+            <motion.div
+              key="explore"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3 }}
+              className="flex-1 flex flex-col"
+            >
+              <div className="sticky top-0 z-30 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+                <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setActiveTab('chat')}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium text-text-muted hover:text-white hover:bg-white/10 border border-white/10 transition-all"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">Chat</span>
+                    </button>
+                    <div className="w-px h-4 bg-white/10" />
+                    {isGeneratingExplore ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+                        <span className="text-xs text-sky-200/80 font-medium">Exploring...</span>
+                      </div>
+                    ) : exploreGeneratedAt ? (
+                      <span className="text-[11px] text-text-muted">
+                        {exploreGeneratedAt.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-text-muted">Not generated yet</span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={handleCopyExplore}
+                      disabled={!exploreResult}
+                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      title="Copy to clipboard"
+                    >
+                      {exploreCopied ? <Check className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={handleDownloadExplore}
+                      disabled={!exploreResult}
+                      className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                      title="Download"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={handleGenerateExplore}
+                      disabled={isGeneratingExplore}
+                      className="flex items-center gap-2 px-3 py-1.5 sm:px-4 rounded-full text-xs font-medium bg-sky-500/20 text-sky-200 border border-sky-500/30 hover:bg-sky-500/30 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                    >
+                      {exploreResult ? <RefreshCw className="w-3.5 h-3.5" /> : <Sparkles className="w-3.5 h-3.5" />}
+                      <span className={exploreResult ? 'hidden sm:inline' : ''}>
+                        {exploreResult ? 'Regenerate' : 'Generate'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-1 overflow-y-auto px-4 pb-32 pt-6 md:px-6">
+                <div className="max-w-5xl mx-auto py-8 md:py-12 space-y-8">
+                  <section className="rounded-[2rem] border border-white/10 bg-white/5 p-5 md:p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                      <div className="space-y-3 max-w-3xl">
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sky-200/70">Explore Objective</p>
+                        <h1 className="text-2xl md:text-3xl font-semibold tracking-tight text-white">Novel options, not echoes</h1>
+                        <p className="text-sm leading-7 text-white/70">
+                          Type the objective you want to improve. The system will separate ideas that are already yours from options that are actually new, then attach short tests.
+                        </p>
+                      </div>
+                      <div className="rounded-full border border-sky-400/20 bg-sky-500/10 px-4 py-2 text-xs uppercase tracking-[0.18em] text-sky-100/80">
+                        Novelty-first mode
+                      </div>
+                    </div>
+
+                    <div className="mt-5 flex flex-col gap-3 md:flex-row">
+                      <input
+                        value={exploreObjective}
+                        onChange={(event) => setExploreObjective(event.target.value)}
+                        placeholder="Increase my profit"
+                        className="flex-1 rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-base text-white placeholder:text-white/30 focus:outline-none focus:ring-2 focus:ring-sky-500/40"
+                      />
+                      <button
+                        onClick={handleGenerateExplore}
+                        disabled={isGeneratingExplore || !exploreObjective.trim()}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl border border-sky-400/30 bg-sky-500/15 px-5 py-3 text-sm font-medium text-sky-100 transition-all hover:bg-sky-500/25 disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <Sparkles className="w-4 h-4" />
+                        Explore objective
+                      </button>
+                    </div>
+
+                    {exploreResultIsStale && (
+                      <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-500/10 px-4 py-3 text-sm text-amber-100/85">
+                        The visible board was generated for <span className="font-medium">{exploreResult?.objective}</span>. Generate again to refresh it for your current objective.
+                      </div>
+                    )}
+                  </section>
+
+                  {exploreError && (
+                    <div className="rounded-xl border border-red-500/30 bg-red-500/10 text-sm text-red-200 p-4">
+                      {exploreError}
+                    </div>
+                  )}
+
+                  {isGeneratingExplore && (
+                    <div className="rounded-[2rem] border border-sky-400/20 bg-sky-500/10 p-6 text-base text-sky-100/80 animate-pulse">
+                      Scanning your notes, separating your own ideas from adjacent ones, and forcing a wider search space for new options...
+                    </div>
+                  )}
+
+                  {!isGeneratingExplore && !exploreResult && !exploreError && (
+                    <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 text-base text-text-muted space-y-4">
+                      <p>Start with a concrete objective such as <span className="text-white">Increase my profit</span>, <span className="text-white">Reduce waiter dependency</span>, or <span className="text-white">Find revenue outside the buffet</span>.</p>
+                      <p>The board will show what is already in your notes, where the blind spots are, and which experiments are new enough to be worth testing.</p>
+                    </div>
+                  )}
+
+                  {!isGeneratingExplore && exploreResult && (
+                    <ExploreBoard result={exploreResult} />
                   )}
                 </div>
               </div>

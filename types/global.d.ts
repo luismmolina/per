@@ -36,6 +36,7 @@ declare namespace NodeJS {
     ENABLE_GEMINI_NOTE_RETRIEVAL?: string;
     OPENROUTER_API_KEY?: string;
     OPENROUTER_MODEL?: string;
+    OPENROUTER_EXPLORE_MODEL?: string;
     OPENROUTER_LONGFORM_MODEL?: string;
     GROQ_API_KEY?: string;
     DATABASE_URL?: string;
