@@ -12,6 +12,26 @@ import { getRelevantNotesContext } from '../../../lib/note-retrieval'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const MAX_OBJECTIVE_CHARS = 240
+const MAX_PEER_OUTPUT_CHARS = 8000
+
+function clipPromptText(value: unknown, maxChars: number): string | null {
+  if (typeof value !== 'string') {
+    return null
+  }
+
+  const trimmed = value.trim()
+  if (!trimmed) {
+    return null
+  }
+
+  if (trimmed.length <= maxChars) {
+    return trimmed
+  }
+
+  return `${trimmed.slice(0, maxChars).trim()}\n...[truncated]`
+}
+
 export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY
@@ -27,9 +47,7 @@ export async function POST(req: NextRequest) {
       peerOutputs,
     } = await req.json()
 
-    const normalizedObjective = typeof objective === 'string' && objective.trim().length > 0
-      ? objective.trim()
-      : 'Increase my profit'
+    const normalizedObjective = clipPromptText(objective, MAX_OBJECTIVE_CHARS) || 'Increase my profit'
 
     if (!fetchAllNotes) {
       return new Response(JSON.stringify({ error: 'Notes are required to explore new options.' }), { status: 400 })
@@ -66,6 +84,9 @@ export async function POST(req: NextRequest) {
 
     const todayLine = currentDate ? String(currentDate) : new Date().toString()
     const tzLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
+    const deepReadText = clipPromptText(peerOutputs?.deepRead, MAX_PEER_OUTPUT_CHARS) || '(Not run)'
+    const consultingText = clipPromptText(peerOutputs?.consulting, MAX_PEER_OUTPUT_CHARS) || '(Not run)'
+    const reframeText = clipPromptText(peerOutputs?.reframe, MAX_PEER_OUTPUT_CHARS) || '(Not run)'
 
     const prompt = `You are EXPLORE — a novelty-first strategist.
 
@@ -108,13 +129,13 @@ HARD RULES:
 
 PEER OUTPUTS:
 [DEEP READ]
-${peerOutputs?.deepRead || '(Not run)'}
+${deepReadText}
 
 [A TO B CONSULTING]
-${peerOutputs?.consulting || '(Not run)'}
+${consultingText}
 
 [REFRAME]
-${peerOutputs?.reframe || '(Not run)'}
+${reframeText}
 
 JSON SHAPE:
 {
@@ -187,7 +208,7 @@ OUTPUT TARGETS:
 RAW NOTES:
 ${notesText}`
 
-    const model = process.env.OPENROUTER_EXPLORE_MODEL || process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.6'
+    const model = process.env.OPENROUTER_EXPLORE_MODEL || 'z-ai/glm-5'
 
     const response = await openai.chat.completions.create({
       model,

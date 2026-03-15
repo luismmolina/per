@@ -110,14 +110,18 @@ function BulletCard({
   return (
     <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/40">{title}</p>
-      <ul className="mt-4 space-y-3 text-sm leading-6 text-white/80">
-        {items.map((item, index) => (
-          <li key={`${title}-${index}`} className="flex gap-2">
-            <span className="mt-0.5 text-white/40">-</span>
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
+      {items.length > 0 ? (
+        <ul className="mt-4 space-y-3 text-sm leading-6 text-white/80">
+          {items.map((item, index) => (
+            <li key={`${title}-${index}`} className="flex gap-2">
+              <span className="mt-0.5 text-white/40">-</span>
+              <span>{item}</span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-4 text-sm leading-6 text-white/45">Nothing solid extracted for this section yet.</p>
+      )}
     </div>
   )
 }
@@ -149,16 +153,22 @@ export function ExploreBoard({ result }: { result: ExploreResult }) {
 
       <section className="space-y-4">
         <h2 className="text-xl font-semibold text-white">Where To Look Next</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          {result.opportunitySpaces.map((space, index) => (
-            <div
-              key={`space-${index}`}
-              className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5 text-sm leading-6 text-emerald-50"
-            >
-              {space}
-            </div>
-          ))}
-        </div>
+        {result.opportunitySpaces.length > 0 ? (
+          <div className="grid gap-3 md:grid-cols-2">
+            {result.opportunitySpaces.map((space, index) => (
+              <div
+                key={`space-${index}`}
+                className="rounded-3xl border border-emerald-400/20 bg-emerald-500/10 p-5 text-sm leading-6 text-emerald-50"
+              >
+                {space}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm leading-6 text-white/50">
+            No opportunity spaces were extracted. Regenerate with a tighter objective or add more notes around the constraint you want to break.
+          </div>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -169,19 +179,25 @@ export function ExploreBoard({ result }: { result: ExploreResult }) {
           </span>
         </div>
 
-        <div className="grid gap-4">
-          {result.alreadyThought.map((item, index) => (
-            <article key={`already-${index}`} className="rounded-3xl border border-white/10 bg-white/5 p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <h3 className="text-base font-medium text-white">{item.idea}</h3>
-                <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/60">
-                  {item.status}
-                </span>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-white/75">{item.evidence}</p>
-            </article>
-          ))}
-        </div>
+        {result.alreadyThought.length > 0 ? (
+          <div className="grid gap-4">
+            {result.alreadyThought.map((item, index) => (
+              <article key={`already-${index}`} className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <h3 className="text-base font-medium text-white">{item.idea}</h3>
+                  <span className="rounded-full border border-white/10 bg-black/30 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/60">
+                    {item.status}
+                  </span>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white/75">{item.evidence}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5 text-sm leading-6 text-white/50">
+            The system could not confidently identify ideas that are already yours. That usually means the notes around this objective are too sparse or too broad.
+          </div>
+        )}
       </section>
 
       {result.adjacentIdeas.length > 0 && (
@@ -207,25 +223,37 @@ export function ExploreBoard({ result }: { result: ExploreResult }) {
             Forced novelty
           </span>
         </div>
-        <div className="grid gap-5">
-          {result.newIdeas.map((idea, index) => (
-            <IdeaCard key={`new-${index}`} idea={idea} tone="new" />
-          ))}
-        </div>
+        {result.newIdeas.length > 0 ? (
+          <div className="grid gap-5">
+            {result.newIdeas.map((idea, index) => (
+              <IdeaCard key={`new-${index}`} idea={idea} tone="new" />
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-3xl border border-sky-400/20 bg-sky-500/10 p-5 text-sm leading-6 text-sky-100/80">
+            No sufficiently new ideas survived the fit and novelty filter. Tighten the objective or add notes that clarify the current constraints and assets.
+          </div>
+        )}
       </section>
 
       <section className="rounded-[2rem] border border-white/10 bg-white/5 p-6 md:p-7">
         <h2 className="text-xl font-semibold text-white">Questions That Unlock More Options</h2>
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
-          {result.questions.map((question, index) => (
-            <div
-              key={`question-${index}`}
-              className="rounded-3xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-white/80"
-            >
-              {question}
-            </div>
-          ))}
-        </div>
+        {result.questions.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {result.questions.map((question, index) => (
+              <div
+                key={`question-${index}`}
+                className="rounded-3xl border border-white/10 bg-black/30 p-4 text-sm leading-6 text-white/80"
+              >
+                {question}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="mt-5 text-sm leading-6 text-white/50">
+            No unlock questions were generated this time.
+          </p>
+        )}
       </section>
     </div>
   )
