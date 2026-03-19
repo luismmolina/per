@@ -148,7 +148,7 @@ export const DesktopWriter = ({
                 onChange={(event) => onChange(event.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Start writing..."
-                spellCheck={true}
+                spellCheck={false}
                 className="w-full resize-none overflow-hidden bg-transparent font-serif text-[19px] leading-[1.95] tracking-[0.01em] text-[#f5efe2] placeholder:text-[#a59c89]/50 focus:outline-none md:text-[22px] md:leading-[2.05]"
               />
             </div>
