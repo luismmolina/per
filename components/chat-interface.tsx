@@ -62,7 +62,7 @@ export const ChatInterface = ({
     const [showScrollButton, setShowScrollButton] = useState(false)
     const [inputHeight, setInputHeight] = useState(140)
     const [keyboardInset, setKeyboardInset] = useState(0)
-    const [visibleCount, setVisibleCount] = useState(8)
+    const [visibleCount, setVisibleCount] = useState(99999)
     const prevMessageCountRef = useRef(0)
     const isStreamingRef = useRef(false)
 

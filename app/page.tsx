@@ -136,10 +136,20 @@ export default function Home() {
         if (response.ok) {
           const data = await response.json()
           if (Array.isArray(data.messages)) {
-            const parsedMessages = data.messages.map((msg: any) => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp)
-            }))
+            const parsedMessages = data.messages
+              .filter((msg: any) => {
+                if (msg.type === 'ai-response') {
+                  const hasContent = typeof msg.content === 'string' && msg.content.trim().length > 0
+                  const hasThoughts = Array.isArray(msg.thoughts) && msg.thoughts.length > 0
+                  const hasCodeBlocks = Array.isArray(msg.codeBlocks) && msg.codeBlocks.length > 0
+                  return hasContent || hasThoughts || hasCodeBlocks
+                }
+                return true
+              })
+              .map((msg: any) => ({
+                ...msg,
+                timestamp: new Date(msg.timestamp)
+              }))
             setMessages(prev => mergeMessages(parsedMessages, prev))
           }
         }
