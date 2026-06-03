@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { loadConversations, saveConversations, clearConversations } from '../../../lib/storage'
-import { syncConversationNoteIndex } from '../../../lib/note-retrieval'
+
+let _syncNoteIndex: ((data: any) => Promise<any>) | null | undefined = undefined
+
+async function syncNoteIndex(data: any): Promise<boolean> {
+  if (_syncNoteIndex === undefined) {
+    try {
+      const mod = await import('../../../lib/note-retrieval')
+      _syncNoteIndex = mod.syncConversationNoteIndex
+    } catch {
+      console.warn('[conversations] note-retrieval unavailable — skipping index sync')
+      _syncNoteIndex = null
+    }
+  }
+  if (_syncNoteIndex) {
+    await _syncNoteIndex(data)
+    return true
+  }
+  return false
+}
 
 function getMessageKey(message: any) {
   if (message?.id) return `id:${message.id}`
@@ -221,7 +239,7 @@ export async function POST(req: NextRequest) {
 
     let retrievalSynced = true
     try {
-      await syncConversationNoteIndex(conversationData)
+      retrievalSynced = await syncNoteIndex(conversationData)
     } catch (error) {
       retrievalSynced = false
       console.error('Failed to sync note index after save:', error)
@@ -264,7 +282,7 @@ export async function PUT(req: NextRequest) {
 
     let retrievalSynced = true
     try {
-      await syncConversationNoteIndex(conversationData)
+      retrievalSynced = await syncNoteIndex(conversationData)
     } catch (error) {
       retrievalSynced = false
       console.error('Failed to sync note index after deleting a message:', error)
@@ -286,7 +304,7 @@ export async function DELETE() {
 
     let retrievalSynced = true
     try {
-      await syncConversationNoteIndex({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
+      retrievalSynced = await syncNoteIndex({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
     } catch (error) {
       retrievalSynced = false
       console.error('Failed to clear the note index after deleting conversations:', error)
