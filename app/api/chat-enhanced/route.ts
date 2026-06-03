@@ -112,6 +112,7 @@ How to Structure Your Answer:
 - **The Reasoning**: Walk through the logic or math first.
 - **The Core Truth**: What conclusion emerges from the reasoning?
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
+- **The Bottom Line**: End every response with a single, direct, concrete answer to the original question. No ambiguity, no hedging. If the user asked "should I do X?", the final line should be "Yes, do X" or "No, don't do X." If they asked for a number, give the number. The user should never have to hunt through the reasoning to find the actual answer — it must be stated plainly at the very end.
 `
 
     const model = getOpencodeModel()
