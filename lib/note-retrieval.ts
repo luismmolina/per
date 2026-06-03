@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
 import { type NoteRetrievalProfile } from './note-rerank'
+import { getOpencodeClient, getOpencodeModel } from './opencode'
 import { getSql } from './postgres'
 import {
   getMessageTimestampIso,
@@ -99,16 +100,12 @@ const STOP_WORDS = new Set([
   'your',
 ])
 
-const QUERY_EXPANSION_MODEL = 'z-ai/glm-5'
 const QUERY_EXPANSION_TIMEOUT_MS = 15000
 
 async function expandQueryWithLLM(
   userQuery: string,
   conversationSummary?: string,
 ): Promise<string | null> {
-  const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) return null
-
   const systemPrompt = [
     'You are a search-query expander. Your ONLY job is to take a short user question and rewrite it as a richer, broader search query.',
     'Rules:',
@@ -125,38 +122,26 @@ async function expandQueryWithLLM(
     : `Question: ${userQuery}`
 
   try {
-    const controller = new AbortController()
-    const timeout = setTimeout(() => controller.abort(), QUERY_EXPANSION_TIMEOUT_MS)
+    const client = getOpencodeClient()
+    const model = getOpencodeModel()
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: QUERY_EXPANSION_MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userContent },
-        ],
+    const response = await Promise.race([
+      client.messages.create({
+        model,
         max_tokens: 300,
-        temperature: 0.3,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userContent }],
       }),
-      signal: controller.signal,
-    })
+      new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Query expansion timed out')), QUERY_EXPANSION_TIMEOUT_MS),
+      ),
+    ])
 
-    clearTimeout(timeout)
-
-    if (!response.ok) {
-      console.warn(`[note-retrieval] Query expansion failed (${response.status})`)
-      return null
-    }
-
-    const data = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>
-    }
-    const expanded = data.choices?.[0]?.message?.content?.trim()
+    const expanded = response.content
+      .filter((block) => block.type === 'text')
+      .map((block) => 'text' in block ? block.text : '')
+      .join('')
+      .trim()
 
     if (expanded && expanded.length > userQuery.length) {
       console.log(`[note-retrieval] Query expanded: "${userQuery}" → "${expanded.slice(0, 120)}..."`)
