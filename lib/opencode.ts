@@ -12,7 +12,7 @@ export function getOpencodeClient(): Anthropic {
 
   client = new Anthropic({
     apiKey,
-    baseURL: 'https://opencode.ai/zen/go/v1',
+    baseURL: 'https://opencode.ai/zen/go',
   })
 
   return client
