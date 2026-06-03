@@ -225,6 +225,16 @@ export async function POST(req: NextRequest) {
     }
 
     const existing = await loadConversations()
+    const existingCount = existing?.messages?.length || 0
+    const newCount = messages.length
+
+    if (!forceOverwrite && existingCount > 0 && newCount < existingCount * 0.5) {
+      return NextResponse.json(
+        { success: false, error: `Save blocked: would reduce messages from ${existingCount} to ${newCount}. Use forceOverwrite to override.` },
+        { status: 409 }
+      )
+    }
+
     const messagesToSave = forceOverwrite
       ? messages
       : mergeMessages(existing?.messages || [], messages)
