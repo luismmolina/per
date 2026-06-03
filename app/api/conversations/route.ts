@@ -2,6 +2,47 @@ import { NextRequest, NextResponse } from 'next/server'
 import { loadConversations, saveConversations, clearConversations } from '../../../lib/storage'
 import { syncConversationNoteIndex } from '../../../lib/note-retrieval'
 
+function getMessageKey(message: any) {
+  if (message?.id) return `id:${message.id}`
+  return [
+    message?.type || 'unknown',
+    message?.timestamp || '',
+    message?.content || ''
+  ].join(':')
+}
+
+function getTimestampMs(message: any) {
+  const timestamp = new Date(message?.timestamp).getTime()
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function mergeMessages(existingMessages: any[], incomingMessages: any[]) {
+  const merged = [...existingMessages]
+  const indexByKey = new Map<string, number>()
+
+  merged.forEach((message, index) => {
+    indexByKey.set(getMessageKey(message), index)
+  })
+
+  for (const message of incomingMessages) {
+    const key = getMessageKey(message)
+    const existingIndex = indexByKey.get(key)
+
+    if (existingIndex === undefined) {
+      indexByKey.set(key, merged.length)
+      merged.push(message)
+      continue
+    }
+
+    merged[existingIndex] = {
+      ...merged[existingIndex],
+      ...message
+    }
+  }
+
+  return merged.sort((a, b) => getTimestampMs(a) - getTimestampMs(b))
+}
+
 // Fetch dishes data from external COGS API
 async function fetchDishesData() {
   try {
@@ -161,28 +202,19 @@ export async function POST(req: NextRequest) {
   try {
     const { messages, forceOverwrite } = await req.json()
 
-    // Safety check: Prevent accidental data loss
-    // Don't allow saving fewer messages than already exist (unless explicitly forced)
-    if (!forceOverwrite) {
-      const existing = await loadConversations()
-      const existingCount = existing?.messages?.length || 0
-      const newCount = messages?.length || 0
-
-      if (existingCount > 0 && newCount < existingCount) {
-        console.warn(`[SAFETY] Blocked save that would reduce messages from ${existingCount} to ${newCount}`)
-        return NextResponse.json({
-          success: false,
-          error: 'Save blocked: would result in data loss',
-          existingCount,
-          attemptedCount: newCount
-        }, { status: 409 })
-      }
+    if (!Array.isArray(messages)) {
+      return NextResponse.json({ success: false, error: 'messages must be an array' }, { status: 400 })
     }
 
+    const existing = await loadConversations()
+    const messagesToSave = forceOverwrite
+      ? messages
+      : mergeMessages(existing?.messages || [], messages)
+
     const conversationData = {
-      messages,
+      messages: messagesToSave,
       lastUpdated: new Date().toISOString(),
-      totalMessages: messages.length
+      totalMessages: messagesToSave.length
     }
 
     await saveConversations(conversationData)
@@ -195,7 +227,7 @@ export async function POST(req: NextRequest) {
       console.error('Failed to sync note index after save:', error)
     }
 
-    return NextResponse.json({ success: true, retrievalSynced })
+    return NextResponse.json({ success: true, retrievalSynced, messages: messagesToSave })
   } catch (error) {
     console.error('Failed to save conversations:', error)
     return NextResponse.json({ success: false, error: 'Failed to save conversations' }, { status: 500 })

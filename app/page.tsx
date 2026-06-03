@@ -36,6 +36,7 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
+  const hasLoadedConversationsRef = useRef(false)
   const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe' | 'explore'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
@@ -47,6 +48,38 @@ export default function Home() {
   const [writerLastSavedAt, setWriterLastSavedAt] = useState<Date | null>(null)
   const WRITER_DRAFT_STORAGE_KEY = 'desktop-writer-draft-v1'
   const { isDesktop } = useDesktopViewport()
+
+  const getMessageTimestampMs = useCallback((message: Pick<Message, 'timestamp'>) => {
+    const timestamp = message.timestamp instanceof Date
+      ? message.timestamp.getTime()
+      : new Date(message.timestamp).getTime()
+    return Number.isNaN(timestamp) ? 0 : timestamp
+  }, [])
+
+  const getMessageKey = useCallback((message: Pick<Message, 'id' | 'type' | 'timestamp' | 'content'>) => {
+    if (message.id) return `id:${message.id}`
+    const timestampMs = getMessageTimestampMs(message)
+    const timestamp = timestampMs > 0 ? new Date(timestampMs).toISOString() : ''
+    return `${message.type}:${timestamp}:${message.content}`
+  }, [getMessageTimestampMs])
+
+  const mergeMessages = useCallback((baseMessages: Message[], nextMessages: Message[]) => {
+    const merged = [...baseMessages]
+    const seen = new Set(merged.map(getMessageKey))
+    let addedMessage = false
+
+    for (const message of nextMessages) {
+      const key = getMessageKey(message)
+      if (seen.has(key)) continue
+      seen.add(key)
+      merged.push(message)
+      addedMessage = true
+    }
+
+    if (!addedMessage) return baseMessages
+
+    return merged.sort((a, b) => getMessageTimestampMs(a) - getMessageTimestampMs(b))
+  }, [getMessageKey, getMessageTimestampMs])
 
   // Consulting state
   const [consultingText, setConsultingText] = useState('')
@@ -102,36 +135,51 @@ export default function Home() {
         const response = await fetch('/api/conversations')
         if (response.ok) {
           const data = await response.json()
-          if (data.messages && data.messages.length > 0) {
+          if (Array.isArray(data.messages)) {
             const parsedMessages = data.messages.map((msg: any) => ({
               ...msg,
               timestamp: new Date(msg.timestamp)
             }))
-            setMessages(parsedMessages)
+            setMessages(prev => mergeMessages(parsedMessages, prev))
           }
         }
       } catch (error) {
         console.error('Failed to load conversations:', error)
+      } finally {
+        hasLoadedConversationsRef.current = true
       }
     }
     loadConversations()
-  }, [])
+  }, [mergeMessages])
 
   // Auto-save
   const debouncedSave = useCallback((messagesToSave: Message[]) => {
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        await fetch('/api/conversations', {
+        if (!hasLoadedConversationsRef.current) return
+
+        const response = await fetch('/api/conversations', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ messages: messagesToSave }),
         })
+
+        if (response.ok) {
+          const data = await response.json().catch(() => null)
+          if (Array.isArray(data?.messages)) {
+            const parsedMessages = data.messages.map((msg: any) => ({
+              ...msg,
+              timestamp: new Date(msg.timestamp)
+            }))
+            setMessages(prev => mergeMessages(parsedMessages, prev))
+          }
+        }
       } catch (error) {
         console.error('Failed to save conversations:', error)
       }
     }, 1000)
-  }, [])
+  }, [mergeMessages])
 
   useEffect(() => {
     if (messages.length > 0) debouncedSave(messages)
