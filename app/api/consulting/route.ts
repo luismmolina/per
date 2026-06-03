@@ -1,16 +1,13 @@
 import type { NextRequest } from 'next/server'
-import OpenAI from 'openai'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
+import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
     try {
-        const apiKey = process.env.OPENROUTER_API_KEY
-        if (!apiKey) {
-            return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not set.' }), { status: 500 })
-        }
+        const client = getOpencodeClient()
 
         const { currentDate, userTimezone, fetchAllNotes, peerOutputs } = await req.json()
 
@@ -39,11 +36,6 @@ export async function POST(req: NextRequest) {
         if (!notesText) {
             return new Response(JSON.stringify({ error: 'Notes are required to generate consulting advice.' }), { status: 400 })
         }
-
-        const openai = new OpenAI({
-            apiKey,
-            baseURL: 'https://openrouter.ai/api/v1',
-        })
 
         const todayLine = currentDate ? String(currentDate) : new Date().toString()
         const tzLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
@@ -156,38 +148,28 @@ ${peerOutputs?.deepRead || "(Not run)"}
 [REFRAME]:
 ${peerOutputs?.reframe || "(Not run)"}`
 
-        const model = process.env.OPENROUTER_MODEL || 'google/gemini-3.1-pro-preview'
+        const model = getOpencodeModel()
 
-        const stream = await openai.chat.completions.create({
+        const stream = client.messages.stream({
             model,
-            messages: [
-                { role: 'user', content: prompt }
-            ],
-            temperature: 0.6,
             max_tokens: 16000,
-            stream: true,
-            reasoning: {
-                effort: 'high'
-            }
-        } as any) as any
+            messages: [{ role: 'user', content: prompt }],
+        })
 
-        // Create a readable stream from the OpenAI stream
         const readableStream = new ReadableStream({
             async start(controller) {
                 const encoder = new TextEncoder()
-                try {
-                    for await (const chunk of stream) {
-                        const content = chunk.choices[0]?.delta?.content || ''
-                        if (content) {
-                            controller.enqueue(encoder.encode(content))
-                        }
-                    }
+                stream.on('text', (text) => {
+                    controller.enqueue(encoder.encode(text))
+                })
+                stream.on('end', () => {
                     controller.close()
-                } catch (err) {
+                })
+                stream.on('error', (err) => {
                     console.error('Streaming error:', err)
                     controller.error(err)
-                }
-            }
+                })
+            },
         })
 
         return new Response(readableStream, {

@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server'
-import OpenAI from 'openai'
 
 import type { ExploreResult } from '../../../lib/explore'
 import {
@@ -8,6 +7,7 @@ import {
   parseExploreModelJson,
 } from '../../../lib/explore-response'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
+import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -34,10 +34,7 @@ function clipPromptText(value: unknown, maxChars: number): string | null {
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) {
-      return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not set.' }), { status: 500 })
-    }
+    const client = getOpencodeClient()
 
     const {
       objective,
@@ -76,11 +73,6 @@ export async function POST(req: NextRequest) {
     if (!notesText) {
       return new Response(JSON.stringify({ error: 'Notes are required to generate exploration ideas.' }), { status: 400 })
     }
-
-    const openai = new OpenAI({
-      apiKey,
-      baseURL: 'https://openrouter.ai/api/v1',
-    })
 
     const todayLine = currentDate ? String(currentDate) : new Date().toString()
     const tzLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
@@ -208,18 +200,19 @@ OUTPUT TARGETS:
 RAW NOTES:
 ${notesText}`
 
-    const model = process.env.OPENROUTER_EXPLORE_MODEL || 'z-ai/glm-5'
+    const model = getOpencodeModel()
 
-    const response = await openai.chat.completions.create({
+    const response = await client.messages.create({
       model,
-      messages: [
-        { role: 'user', content: prompt },
-      ],
-      temperature: 0.8,
       max_tokens: 6000,
-    } as any)
+      messages: [{ role: 'user', content: prompt }],
+    })
 
-    const content = extractMessageContent(response.choices[0]?.message?.content)
+    const rawContent = response.content
+      .filter((block) => block.type === 'text')
+      .map((block) => (block as unknown as { text: string }).text)
+      .join('\n')
+    const content = extractMessageContent(rawContent)
     if (!content.trim()) {
       throw new Error('Explore route received an empty response from the model.')
     }

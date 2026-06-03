@@ -1,17 +1,13 @@
 import type { NextRequest } from 'next/server'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
+import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.OPENROUTER_API_KEY
-    if (!apiKey) {
-      console.error('API Key not found.')
-      return new Response('Error: OPENROUTER_API_KEY is not set.', { status: 500 })
-    }
-
+    const client = getOpencodeClient()
     const { message, conversationHistory = [], currentDate, userTimezone, specialistOutputs } = await req.json()
 
     if (!message) {
@@ -118,80 +114,41 @@ How to Structure Your Answer:
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
 `
 
-    const model = process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.6'
+    const model = getOpencodeModel()
 
-    const orResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: 'system', content: systemInstruction },
-          { role: 'user', content: message }
-        ],
-        stream: true,
-        // Extended thinking for deeper first-principles reasoning
-        thinking: {
-          type: 'enabled',
-          budget_tokens: 10000,
-        },
-      }),
-    })
-
-    if (!orResponse.ok || !orResponse.body) {
-      const errText = await orResponse.text().catch(() => orResponse.statusText)
-      throw new Error(`OpenRouter request failed (${orResponse.status}): ${errText}`)
-    }
-
-    // Pipe the SSE stream, extracting text content from each chunk
     const encoder = new TextEncoder()
-    const decoder = new TextDecoder()
     const responseStream = new ReadableStream({
       async start(controller) {
-        const reader = orResponse.body!.getReader()
-        let buffer = ''
-
         try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
+          const stream = client.messages.stream({
+            model,
+            max_tokens: 16000,
+            system: systemInstruction,
+            messages: [{ role: 'user', content: message }],
+          })
 
-            buffer += decoder.decode(value, { stream: true })
-            const lines = buffer.split('\n')
-            buffer = lines.pop() ?? ''
+          stream.on('text', (text) => {
+            const data = { type: 'text', content: text }
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+          })
 
-            for (const line of lines) {
-              const trimmed = line.trim()
-              if (!trimmed.startsWith('data:')) continue
-              const payload = trimmed.slice(5).trim()
-              if (!payload || payload === '[DONE]') continue
+          stream.on('end', () => {
+            controller.close()
+          })
 
-              try {
-                const chunk = JSON.parse(payload)
-                const content = chunk.choices?.[0]?.delta?.content
-                if (content) {
-                  const data = { type: 'text', content }
-                  controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-                }
-              } catch {
-                // skip malformed chunks
-              }
-            }
-          }
-
-          controller.close()
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error)
-          console.error(`Stream error caught: ${errorMessage}`, { error })
-          try {
+          stream.on('error', (error) => {
+            const errorMessage = error instanceof Error ? error.message : String(error)
+            console.error('Stream error caught:', errorMessage)
             const errorData = { type: 'error', content: 'An unexpected error occurred during the stream.', details: errorMessage }
             controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`))
-          } finally {
             controller.close()
-          }
+          })
+        } catch (err) {
+          const errorMessage = err instanceof Error ? err.message : String(err)
+          console.error('Stream setup error:', errorMessage)
+          const errorData = { type: 'error', content: 'An unexpected error occurred during the stream.', details: errorMessage }
+          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`))
+          controller.close()
         }
       },
     })

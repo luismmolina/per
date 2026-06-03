@@ -10,6 +10,7 @@
     "test": "node scripts/test-explore-response.cjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.100.1",
     "@neondatabase/serverless": "^0.9.5",
     "@upstash/redis": "^1.35.0",
     "autoprefixer": "^10.4.16",
