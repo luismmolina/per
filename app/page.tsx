@@ -1006,11 +1006,10 @@ export default function Home() {
 
   return (
     <main
-      className="relative flex min-h-screen w-full text-text-primary overflow-hidden"
-      style={{ minHeight: '100dvh' }}
+      className="relative flex h-[100dvh] max-h-[100dvh] w-full text-text-primary overflow-hidden"
     >
       <div className="aurora-bg" />
-      <div className="relative z-10 flex flex-1 flex-col">
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
 
         <AnimatePresence mode="wait">
           {activeTab === 'chat' && (
@@ -1020,7 +1019,7 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="flex-1 flex flex-col h-full"
+              className="flex min-h-0 flex-1 flex-col"
             >
               <ChatInterface
                 messages={messages}

@@ -39,6 +39,9 @@ interface ChatInterfaceProps {
     onSwitchToWrite?: () => void
 }
 
+const INITIAL_VISIBLE_MESSAGES = 10
+const LOAD_MORE_BATCH_SIZE = 10
+
 export const ChatInterface = ({
     messages,
     onSendMessage,
@@ -62,7 +65,7 @@ export const ChatInterface = ({
     const [showScrollButton, setShowScrollButton] = useState(false)
     const [inputHeight, setInputHeight] = useState(140)
     const [keyboardInset, setKeyboardInset] = useState(0)
-    const [visibleCount, setVisibleCount] = useState(99999)
+    const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE_MESSAGES)
     const prevMessageCountRef = useRef(0)
     const isStreamingRef = useRef(false)
 
@@ -96,7 +99,7 @@ export const ChatInterface = ({
     const hasMoreMessages = messages.length > visibleCount
 
     const handleLoadMore = () => {
-        setVisibleCount(prev => prev + 8)
+        setVisibleCount((prev) => prev + LOAD_MORE_BATCH_SIZE)
     }
 
     // Scroll button visibility
@@ -147,9 +150,9 @@ export const ChatInterface = ({
     const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 24)
 
     return (
-        <div className="relative h-full flex flex-col">
-            {/* Header */}
-            <div className="absolute top-0 left-0 right-0 z-40 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
+        <div className="relative flex min-h-0 flex-1 flex-col">
+            {/* Header — fixed so download stays visible while messages scroll */}
+            <div className="fixed top-0 left-0 right-0 z-40 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
                 <div className="max-w-3xl mx-auto flex items-center justify-between">
                     <span className="text-sm font-medium text-text-muted">My Notes</span>
                     <div className="flex items-center gap-2">
