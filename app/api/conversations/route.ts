@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { loadConversations, saveConversations, clearConversations } from '../../../lib/storage'
+import { estimateJsonBytes, logDbTransfer } from '../../../lib/db-diagnostics'
+import { computeNoteIndexFingerprint } from '../../../lib/note-retrieval'
+import {
+  appendConversationMessages,
+  clearConversations,
+  loadConversations,
+  saveConversations,
+  upsertConversationMessages,
+} from '../../../lib/storage'
 
 let _syncNoteIndex: ((data: any) => Promise<any>) | null | undefined = undefined
 
@@ -18,6 +26,30 @@ async function syncNoteIndex(data: any): Promise<boolean> {
     return true
   }
   return false
+}
+
+async function maybeSyncNoteIndex(
+  conversations: Record<string, unknown>,
+  previousFingerprint?: string,
+): Promise<boolean> {
+  const fingerprint = computeNoteIndexFingerprint(conversations as any)
+  if (fingerprint === previousFingerprint) {
+    logDbTransfer('conversations.syncNoteIndex', { syncSkipped: true })
+    return false
+  }
+
+  const conversationData = {
+    ...conversations,
+    noteIndexFingerprint: fingerprint,
+  }
+
+  if (conversations.noteIndexFingerprint !== fingerprint) {
+    await saveConversations(conversationData as any)
+  }
+
+  await syncNoteIndex(conversationData)
+  logDbTransfer('conversations.syncNoteIndex', { syncSkipped: false, noteIndexFingerprint: fingerprint })
+  return true
 }
 
 function getMessageKey(message: any) {
@@ -80,7 +112,6 @@ async function fetchDishesData() {
 
     const data = await response.json()
 
-    // Check if the response contains an error
     if (data.error) {
       console.warn('Dishes API returned error:', data.error)
       return null
@@ -100,7 +131,6 @@ async function fetchDishesData() {
   }
 }
 
-// Transform dishes data into notes format
 function transformDishesToNotes(dishesData: any) {
   if (!dishesData || !dishesData.dishes) {
     return []
@@ -108,15 +138,13 @@ function transformDishesToNotes(dishesData: any) {
 
   const notes = []
 
-  // Add overall dishes summary note
   notes.push({
     content: `📊 DISHES SUMMARY: ${dishesData.totalDishes} dishes in production. Last updated: ${dishesData.lastUpdated}`,
     timestamp: new Date(dishesData.lastUpdated),
     source: 'COGS API'
   })
 
-  // Add individual dish notes with calculation details
-  dishesData.dishes.forEach((dish: any, index: number) => {
+  dishesData.dishes.forEach((dish: any) => {
     const dishNote = {
       content: `🍽️ ${dish.name}: ${dish.cost.amount} ${dish.cost.unit} to produce (updated: ${dish.lastUpdated})`,
       timestamp: new Date(dish.lastUpdated),
@@ -125,7 +153,6 @@ function transformDishesToNotes(dishesData: any) {
 
     notes.push(dishNote)
 
-    // Add detailed calculation notes if available
     if (dish.calculationNotes) {
       notes.push({
         content: `📊 COST BREAKDOWN - ${dish.name}:\n\n${dish.calculationNotes}`,
@@ -135,7 +162,6 @@ function transformDishesToNotes(dishesData: any) {
     }
   })
 
-  // Add buffet statistics if available
   if (dishesData.buffetStats) {
     notes.push({
       content: `🍽️ BUFFET STATISTICS:
@@ -155,14 +181,14 @@ function transformDishesToNotes(dishesData: any) {
 export async function GET(req: NextRequest) {
   try {
     let conversations: any = await loadConversations()
+    logDbTransfer('conversations.GET', {
+      conversationsBytesLoaded: estimateJsonBytes(conversations),
+    })
 
-    // By default, return RAW conversations without mixing in COGS notes.
-    // Optionally allow includeCogs=true to return the derived notes view.
     const { searchParams } = new URL(req.url)
     const includeCogs = searchParams.get('includeCogs') === 'true'
 
     if (!includeCogs) {
-      // Ensure a stable shape
       if (!conversations || typeof conversations !== 'object' || !Array.isArray(conversations.messages)) {
         conversations = {
           messages: [],
@@ -173,7 +199,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json(conversations)
     }
 
-    // Derived notes view (non-persistent): user notes + COGS notes
     const userNotes = (conversations.messages || [])
       .filter((msg: any) => msg.type === 'note')
       .map((msg: any) => {
@@ -215,7 +240,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// POST - Save conversations
+// POST - Save conversations (full merge)
 export async function POST(req: NextRequest) {
   try {
     const { messages, forceOverwrite } = await req.json()
@@ -225,6 +250,12 @@ export async function POST(req: NextRequest) {
     }
 
     const existing = await loadConversations()
+    logDbTransfer('conversations.POST.load', {
+      conversationsBytesLoaded: estimateJsonBytes(existing),
+      incomingMessages: messages.length,
+      incomingBytes: estimateJsonBytes(messages),
+    })
+
     const existingCount = existing?.messages?.length || 0
     const newCount = messages.length
 
@@ -239,26 +270,94 @@ export async function POST(req: NextRequest) {
       ? messages
       : mergeMessages(existing?.messages || [], messages)
 
+    const noteIndexFingerprint = computeNoteIndexFingerprint({ messages: messagesToSave })
     const conversationData = {
       messages: messagesToSave,
       lastUpdated: new Date().toISOString(),
-      totalMessages: messagesToSave.length
+      totalMessages: messagesToSave.length,
+      noteIndexFingerprint,
     }
 
     await saveConversations(conversationData)
+    logDbTransfer('conversations.POST.save', {
+      conversationsBytesWritten: estimateJsonBytes(conversationData),
+    })
 
-    let retrievalSynced = true
+    let retrievalSynced = false
     try {
-      retrievalSynced = await syncNoteIndex(conversationData)
+      retrievalSynced = await maybeSyncNoteIndex(
+        conversationData,
+        typeof existing.noteIndexFingerprint === 'string' ? existing.noteIndexFingerprint : undefined,
+      )
     } catch (error) {
-      retrievalSynced = false
       console.error('Failed to sync note index after save:', error)
     }
 
-    return NextResponse.json({ success: true, retrievalSynced, messages: messagesToSave })
+    return NextResponse.json({ success: true, retrievalSynced })
   } catch (error) {
     console.error('Failed to save conversations:', error)
     return NextResponse.json({ success: false, error: 'Failed to save conversations' }, { status: 500 })
+  }
+}
+
+// PATCH - Append or upsert a small set of messages without sending the full history
+export async function PATCH(req: NextRequest) {
+  try {
+    const { messages, mode } = await req.json()
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return NextResponse.json({ success: false, error: 'messages must be a non-empty array' }, { status: 400 })
+    }
+
+    logDbTransfer('conversations.PATCH', {
+      mode: mode === 'upsert' ? 'upsert' : 'append',
+      incomingMessages: messages.length,
+      incomingBytes: estimateJsonBytes(messages),
+    })
+
+    const affectsNotes = messages.some((message: any) => message?.type === 'note')
+    const existingBeforePatch = await loadConversations()
+    const previousFingerprint = typeof existingBeforePatch.noteIndexFingerprint === 'string'
+      ? existingBeforePatch.noteIndexFingerprint
+      : undefined
+
+    let totalMessages = 0
+    let conversationData: Record<string, unknown>
+
+    if (mode === 'upsert') {
+      const upserted = await upsertConversationMessages(messages)
+      conversationData = upserted
+      totalMessages = upserted.totalMessages ?? upserted.messages.length
+      logDbTransfer('conversations.PATCH.upsert', {
+        conversationsBytesWritten: estimateJsonBytes(conversationData),
+      })
+    } else {
+      totalMessages = await appendConversationMessages(messages)
+      conversationData = await loadConversations()
+      logDbTransfer('conversations.PATCH.append', {
+        conversationsBytesWritten: estimateJsonBytes(messages),
+        totalMessages,
+      })
+    }
+
+    let retrievalSynced = false
+    if (affectsNotes) {
+      try {
+        retrievalSynced = await maybeSyncNoteIndex(
+          conversationData,
+          typeof previousFingerprint === 'string' ? previousFingerprint : undefined,
+        )
+      } catch (error) {
+        console.error('Failed to sync note index after patch:', error)
+      }
+    } else {
+      logDbTransfer('conversations.PATCH.syncNoteIndex', { syncSkipped: true, reason: 'no-notes' })
+    }
+
+    return NextResponse.json({ success: true, totalMessages, retrievalSynced })
+  } catch (error) {
+    console.error('Failed to patch conversations:', error)
+    return NextResponse.json({ success: false, error: 'Failed to patch conversations' }, { status: 500 })
   }
 }
 
@@ -273,28 +372,36 @@ export async function PUT(req: NextRequest) {
 
     const existing = await loadConversations()
     const existingMessages = existing?.messages || []
+    const deletedMessage = existingMessages.find((msg: any) => msg.id === messageId)
 
-    // Filter out the message to delete
     const updatedMessages = existingMessages.filter((msg: any) => msg.id !== messageId)
 
-    // Check if a message was actually removed
     if (updatedMessages.length === existingMessages.length) {
       return NextResponse.json({ success: false, error: 'Message not found' }, { status: 404 })
     }
 
+    const noteIndexFingerprint = computeNoteIndexFingerprint({ messages: updatedMessages })
     const conversationData = {
       messages: updatedMessages,
       lastUpdated: new Date().toISOString(),
-      totalMessages: updatedMessages.length
+      totalMessages: updatedMessages.length,
+      noteIndexFingerprint,
     }
 
     await saveConversations(conversationData)
 
-    let retrievalSynced = true
+    let retrievalSynced = false
     try {
-      retrievalSynced = await syncNoteIndex(conversationData)
+      const shouldSync = deletedMessage?.type === 'note'
+      if (shouldSync) {
+        retrievalSynced = await maybeSyncNoteIndex(
+          conversationData,
+          typeof existing.noteIndexFingerprint === 'string' ? existing.noteIndexFingerprint : undefined,
+        )
+      } else {
+        logDbTransfer('conversations.PUT.syncNoteIndex', { syncSkipped: true, reason: 'non-note-delete' })
+      }
     } catch (error) {
-      retrievalSynced = false
       console.error('Failed to sync note index after deleting a message:', error)
     }
 
@@ -310,13 +417,16 @@ export async function PUT(req: NextRequest) {
 // DELETE - Clear conversations
 export async function DELETE() {
   try {
+    const existing = await loadConversations()
     await clearConversations()
 
-    let retrievalSynced = true
+    let retrievalSynced = false
     try {
-      retrievalSynced = await syncNoteIndex({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
+      retrievalSynced = await maybeSyncNoteIndex(
+        { messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 },
+        typeof existing.noteIndexFingerprint === 'string' ? existing.noteIndexFingerprint : undefined,
+      )
     } catch (error) {
-      retrievalSynced = false
       console.error('Failed to clear the note index after deleting conversations:', error)
     }
 
@@ -325,4 +435,4 @@ export async function DELETE() {
     console.error('Failed to clear conversations:', error)
     return NextResponse.json({ success: false, error: 'Failed to clear conversations' }, { status: 500 })
   }
-} 
+}

@@ -1,4 +1,4 @@
-import { getSql } from './postgres'
+import { getFirestoreDb } from './firebase'
 
 export type ConversationMessageType = 'note' | 'question' | 'ai-response'
 
@@ -17,17 +17,52 @@ export interface ConversationData {
   [key: string]: unknown
 }
 
-const CONVERSATIONS_KEY = 'contextual-conversations'
+const CONVERSATIONS_DOC = 'contextual-conversations'
+const CONVERSATIONS_COLLECTION = 'conversations'
 
-async function ensureSchema() {
-  const sql = getSql()
-  await sql`
-    create table if not exists conversations (
-      id text primary key,
-      data jsonb not null,
-      updated_at timestamptz default now()
-    )
-  `
+function getMessageKey(message: StoredMessage) {
+  if (message?.id) return `id:${message.id}`
+  return [
+    message?.type || 'unknown',
+    message?.timestamp || '',
+    message?.content || '',
+  ].join(':')
+}
+
+function getTimestampMs(message: StoredMessage) {
+  const timestamp = new Date(message?.timestamp ?? '').getTime()
+  return Number.isNaN(timestamp) ? 0 : timestamp
+}
+
+function mergeStoredMessages(existingMessages: StoredMessage[], incomingMessages: StoredMessage[]) {
+  const merged = [...existingMessages]
+  const indexByKey = new Map<string, number>()
+
+  merged.forEach((message, index) => {
+    indexByKey.set(getMessageKey(message), index)
+  })
+
+  for (const message of incomingMessages) {
+    const key = getMessageKey(message)
+    const existingIndex = indexByKey.get(key)
+
+    if (existingIndex === undefined) {
+      indexByKey.set(key, merged.length)
+      merged.push(message)
+      continue
+    }
+
+    merged[existingIndex] = {
+      ...merged[existingIndex],
+      ...message,
+    }
+  }
+
+  return merged.sort((a, b) => getTimestampMs(a) - getTimestampMs(b))
+}
+
+function getConversationsRef() {
+  return getFirestoreDb().collection(CONVERSATIONS_COLLECTION).doc(CONVERSATIONS_DOC)
 }
 
 export function normalizeConversationData(value: unknown): ConversationData {
@@ -71,33 +106,59 @@ export function getNoteMessages(data: ConversationData): Array<StoredMessage & {
 }
 
 export async function loadConversations(): Promise<ConversationData> {
-  await ensureSchema()
-  const sql = getSql()
-  const rows = await sql`
-    select data from conversations where id = ${CONVERSATIONS_KEY} limit 1
-  `
-  const first = Array.isArray(rows) ? (rows[0] as { data?: unknown } | undefined) : undefined
-  return normalizeConversationData(first?.data)
+  const snapshot = await getConversationsRef().get()
+  if (!snapshot.exists) {
+    return { messages: [], totalMessages: 0 }
+  }
+
+  return normalizeConversationData(snapshot.data())
 }
 
 export async function saveConversations(data: ConversationData): Promise<void> {
-  await ensureSchema()
-  const sql = getSql()
   const normalized = normalizeConversationData(data)
-  const sqlWithJson = sql as unknown as { json?: (value: unknown) => unknown }
-  const jsonData = typeof sqlWithJson.json === 'function'
-    ? sqlWithJson.json(normalized)
-    : JSON.stringify(normalized)
+  const payload = {
+    ...normalized,
+    lastUpdated: normalized.lastUpdated ?? new Date().toISOString(),
+    totalMessages: normalized.totalMessages ?? normalized.messages.length,
+    updated_at: new Date().toISOString(),
+  }
 
-  await sql`
-    insert into conversations (id, data, updated_at)
-    values (${CONVERSATIONS_KEY}, ${jsonData}::jsonb, now())
-    on conflict (id) do update
-      set data = excluded.data,
-          updated_at = now()
-  `
+  await getConversationsRef().set(payload, { merge: false })
 }
 
 export async function clearConversations(): Promise<void> {
   await saveConversations({ messages: [], lastUpdated: new Date().toISOString(), totalMessages: 0 })
+}
+
+export async function appendConversationMessages(incoming: StoredMessage[]): Promise<number> {
+  if (!incoming.length) return 0
+
+  const ref = getConversationsRef()
+  const existing = await loadConversations()
+  const messages = [...existing.messages, ...incoming]
+  const lastUpdated = new Date().toISOString()
+
+  await ref.set({
+    ...existing,
+    messages,
+    lastUpdated,
+    totalMessages: messages.length,
+    updated_at: lastUpdated,
+  }, { merge: false })
+
+  return messages.length
+}
+
+export async function upsertConversationMessages(incoming: StoredMessage[]): Promise<ConversationData> {
+  const existing = await loadConversations()
+  const merged = mergeStoredMessages(existing.messages, incoming)
+  const data: ConversationData = {
+    ...existing,
+    messages: merged,
+    lastUpdated: new Date().toISOString(),
+    totalMessages: merged.length,
+  }
+
+  await saveConversations(data)
+  return data
 }

@@ -31,12 +31,83 @@ interface Message {
   thoughts?: string[]
 }
 
+const SPECIALIST_CONTEXT_MAX_CHARS = 4000
+const SAVE_DEBOUNCE_MS = 2000
+
+function truncateSpecialistContext(text: string | null | undefined): string | null {
+  if (!text?.trim()) return null
+  if (text.length <= SPECIALIST_CONTEXT_MAX_CHARS) return text
+  return `${text.slice(0, SPECIALIST_CONTEXT_MAX_CHARS)}\n\n[... truncated — full text stored locally]`
+}
+
+function serializeMessageForPersistence(message: Message) {
+  const timestamp = message.timestamp instanceof Date
+    ? message.timestamp.toISOString()
+    : new Date(message.timestamp).toISOString()
+
+  if (message.type === 'ai-response') {
+    return {
+      id: message.id,
+      type: message.type,
+      content: message.content,
+      timestamp,
+    }
+  }
+
+  return {
+    id: message.id,
+    type: message.type,
+    content: message.content,
+    timestamp,
+  }
+}
+
+type PersistedMessage = ReturnType<typeof serializeMessageForPersistence>
+
+function prepareMessagesForSave(messages: Message[]): PersistedMessage[] {
+  return messages
+    .filter((message) => {
+      if (message.type !== 'ai-response') return true
+      return typeof message.content === 'string' && message.content.trim().length > 0
+    })
+    .map(serializeMessageForPersistence)
+}
+
+function fingerprintMessages(messages: Message[]): string {
+  return JSON.stringify(prepareMessagesForSave(messages))
+}
+
+function getConversationSaveDelta(messages: Message[], savedMessageSnapshots: Map<string, string>) {
+  const prepared = prepareMessagesForSave(messages)
+  const newMessages: PersistedMessage[] = []
+  const updatedMessages: PersistedMessage[] = []
+
+  for (const message of prepared) {
+    const snapshot = JSON.stringify(message)
+    const previousSnapshot = savedMessageSnapshots.get(message.id)
+
+    if (!previousSnapshot) {
+      newMessages.push(message)
+      continue
+    }
+
+    if (previousSnapshot !== snapshot) {
+      updatedMessages.push(message)
+    }
+  }
+
+  return { newMessages, updatedMessages }
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null)
   const saveTimeoutRef = useRef<NodeJS.Timeout>()
   const hasLoadedConversationsRef = useRef(false)
+  const lastSavedFingerprintRef = useRef<string | null>(null)
+  const pendingSaveFingerprintRef = useRef<string | null>(null)
+  const savedMessageSnapshotsRef = useRef<Map<string, string>>(new Map())
   const [activeTab, setActiveTab] = useState<'chat' | 'write' | 'deepread' | 'consulting' | 'reframe' | 'explore'>('chat')
   const [longformText, setLongformText] = useState('')
   const [isGeneratingLongform, setIsGeneratingLongform] = useState(false)
@@ -150,6 +221,13 @@ export default function Home() {
                 ...msg,
                 timestamp: new Date(msg.timestamp)
               }))
+            lastSavedFingerprintRef.current = fingerprintMessages(parsedMessages)
+            savedMessageSnapshotsRef.current = new Map(
+              prepareMessagesForSave(parsedMessages).map((message) => [
+                message.id,
+                JSON.stringify(message),
+              ])
+            )
             setMessages(prev => mergeMessages(parsedMessages, prev))
           }
         }
@@ -162,38 +240,61 @@ export default function Home() {
     loadConversations()
   }, [mergeMessages])
 
-  // Auto-save
-  const debouncedSave = useCallback((messagesToSave: Message[]) => {
+  // Auto-save — only when data actually changed; skip during AI streaming
+  const debouncedSave = useCallback((messagesToSave: Message[], fingerprint: string) => {
+    pendingSaveFingerprintRef.current = fingerprint
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current)
     saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        if (!hasLoadedConversationsRef.current) return
+      const saveFingerprint = pendingSaveFingerprintRef.current
+      if (!saveFingerprint || !hasLoadedConversationsRef.current) return
+      if (saveFingerprint === lastSavedFingerprintRef.current) return
 
+      const { newMessages, updatedMessages } = getConversationSaveDelta(
+        messagesToSave,
+        savedMessageSnapshotsRef.current,
+      )
+
+      let method: 'PATCH' | 'POST' = 'POST'
+      let body: Record<string, unknown> = { messages: messagesToSave }
+
+      if (newMessages.length > 0 && updatedMessages.length === 0) {
+        method = 'PATCH'
+        body = { messages: newMessages }
+      } else if (newMessages.length > 0 || updatedMessages.length > 0) {
+        method = 'PATCH'
+        body = {
+          mode: 'upsert',
+          messages: [...newMessages, ...updatedMessages],
+        }
+      }
+
+      try {
         const response = await fetch('/api/conversations', {
-          method: 'POST',
+          method,
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ messages: messagesToSave }),
+          body: JSON.stringify(body),
         })
 
         if (response.ok) {
-          const data = await response.json().catch(() => null)
-          if (Array.isArray(data?.messages)) {
-            const parsedMessages = data.messages.map((msg: any) => ({
-              ...msg,
-              timestamp: new Date(msg.timestamp)
-            }))
-            setMessages(prev => mergeMessages(parsedMessages, prev))
+          lastSavedFingerprintRef.current = saveFingerprint
+          for (const message of prepareMessagesForSave(messagesToSave)) {
+            savedMessageSnapshotsRef.current.set(message.id, JSON.stringify(message))
           }
         }
       } catch (error) {
         console.error('Failed to save conversations:', error)
       }
-    }, 1000)
-  }, [mergeMessages])
+    }, SAVE_DEBOUNCE_MS)
+  }, [])
 
   useEffect(() => {
-    if (messages.length > 0) debouncedSave(messages)
-  }, [messages, debouncedSave])
+    if (!hasLoadedConversationsRef.current || messages.length === 0 || isLoading) return
+
+    const fingerprint = fingerprintMessages(messages)
+    if (fingerprint === lastSavedFingerprintRef.current) return
+
+    debouncedSave(messages, fingerprint)
+  }, [messages, debouncedSave, isLoading])
 
   // Load/save longform from localStorage
   useEffect(() => {
@@ -448,11 +549,10 @@ export default function Home() {
           conversationHistory: historyPayload,
           currentDate: new Date().toISOString(),
           userTimezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-          // Pass specialist AI outputs for cross-AI awareness
           specialistOutputs: {
-            deepRead: longformText || null,
-            consulting: consultingText || null,
-            reframe: reframeText || null
+            deepRead: truncateSpecialistContext(longformText),
+            consulting: truncateSpecialistContext(consultingText),
+            reframe: truncateSpecialistContext(reframeText)
           }
         })
       })

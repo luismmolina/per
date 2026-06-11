@@ -3,7 +3,15 @@ import { createHash } from 'node:crypto'
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
 import { type NoteRetrievalProfile } from './note-rerank'
 import { getOpencodeClient, getOpencodeModel } from './opencode'
-import { getSql } from './postgres'
+
+import { estimateJsonBytes, logDbTransfer } from './db-diagnostics'
+import {
+  deleteNoteEmbeddings,
+  fetchNoteContentsByIds,
+  listNoteEmbeddingHashes,
+  listNoteEmbeddingMetadata,
+  upsertNoteEmbeddings,
+} from './note-embeddings-store'
 import {
   getMessageTimestampIso,
   getNoteMessages,
@@ -22,8 +30,13 @@ interface NoteIndexSource {
   timestampIso: string
 }
 
-interface IndexedNoteRecord extends NoteIndexSource {
+interface IndexedNoteRecord {
+  noteId: string
+  contentHash: string
+  timestampIso: string
   embedding: number[]
+  contentLength: number
+  content?: string
 }
 
 interface RetrievalCandidate extends IndexedNoteRecord {
@@ -32,6 +45,8 @@ interface RetrievalCandidate extends IndexedNoteRecord {
   keywordScore: number
   combinedScore: number
 }
+
+type HydratedRetrievalCandidate = RetrievalCandidate & { content: string }
 
 interface RetrievalProfileConfig {
   candidateLimit: number
@@ -52,14 +67,6 @@ interface RetrievalProfileConfig {
   shortNoteMinScore?: number
   shortNoteBudgetRatio?: number
   buildQueries: (input: NoteContextRequest) => string[]
-}
-
-interface NoteIndexRow {
-  note_id: string
-  content: string
-  content_hash: string
-  note_timestamp: string | Date
-  embedding: unknown
 }
 
 const STOP_WORDS = new Set([
@@ -290,6 +297,12 @@ function hashString(value: string): string {
   return createHash('sha1').update(value).digest('hex')
 }
 
+export function computeNoteIndexFingerprint(conversations: ConversationData): string {
+  const notes = collectNoteSources(normalizeConversationData(conversations))
+  const serialized = notes.map((note) => `${note.noteId}:${note.contentHash}`).sort().join('|')
+  return hashString(serialized)
+}
+
 function buildNoteIndexSource(message: StoredMessage): NoteIndexSource | null {
   if (typeof message.content !== 'string') {
     return null
@@ -313,15 +326,6 @@ function buildNoteIndexSource(message: StoredMessage): NoteIndexSource | null {
   }
 }
 
-function normalizeTimestamp(value: string | Date): string {
-  const date = value instanceof Date ? value : new Date(value)
-  if (Number.isNaN(date.getTime())) {
-    return new Date(0).toISOString()
-  }
-
-  return date.toISOString()
-}
-
 function normalizeNowIso(value?: string): string {
   if (!value) {
     return new Date().toISOString()
@@ -333,48 +337,6 @@ function normalizeNowIso(value?: string): string {
   }
 
   return date.toISOString()
-}
-
-function parseEmbedding(value: unknown): number[] {
-  if (Array.isArray(value)) {
-    return value.filter((entry): entry is number => typeof entry === 'number')
-  }
-
-  if (typeof value === 'string') {
-    try {
-      const parsed = JSON.parse(value) as unknown
-      return Array.isArray(parsed) ? parsed.filter((entry): entry is number => typeof entry === 'number') : []
-    } catch {
-      return []
-    }
-  }
-
-  return []
-}
-
-function serializeJson(sql: ReturnType<typeof getSql>, value: unknown): unknown {
-  const sqlWithJson = sql as unknown as { json?: (input: unknown) => unknown }
-  return typeof sqlWithJson.json === 'function' ? sqlWithJson.json(value) : JSON.stringify(value)
-}
-
-async function ensureNoteIndexSchema() {
-  const sql = getSql()
-
-  await sql`
-    create table if not exists note_embeddings (
-      note_id text primary key,
-      content text not null,
-      content_hash text not null,
-      note_timestamp timestamptz not null,
-      embedding jsonb not null,
-      embedding_model text not null,
-      embedding_dimensions integer not null,
-      updated_at timestamptz default now()
-    )
-  `
-
-  await sql`create index if not exists note_embeddings_note_timestamp_idx on note_embeddings (note_timestamp desc)`
-  await sql`create index if not exists note_embeddings_updated_at_idx on note_embeddings (updated_at desc)`
 }
 
 function collectNoteSources(conversations: ConversationData): NoteIndexSource[] {
@@ -391,26 +353,12 @@ export async function syncConversationNoteIndex(conversations: ConversationData)
     return { deleted: 0, indexed: 0 }
   }
 
-  await ensureNoteIndexSchema()
-
   const notes = collectNoteSources(normalizeConversationData(conversations))
-  const sql = getSql()
-  const existingRows = await sql`select note_id, content_hash from note_embeddings`
-  const existingById = new Map<string, string>()
-
-  for (const row of existingRows as Array<{ note_id: string; content_hash: string }>) {
-    existingById.set(row.note_id, row.content_hash)
-  }
+  const existingById = await listNoteEmbeddingHashes()
 
   const currentIds = new Set(notes.map((note) => note.noteId))
-  let deleted = 0
-
-  for (const [noteId] of existingById) {
-    if (!currentIds.has(noteId)) {
-      await sql`delete from note_embeddings where note_id = ${noteId}`
-      deleted += 1
-    }
-  }
+  const noteIdsToDelete = [...existingById.keys()].filter((noteId) => !currentIds.has(noteId))
+  const deleted = await deleteNoteEmbeddings(noteIdsToDelete)
 
   const notesToIndex = notes.filter((note) => existingById.get(note.noteId) !== note.contentHash)
   if (!notesToIndex.length) {
@@ -428,69 +376,48 @@ export async function syncConversationNoteIndex(conversations: ConversationData)
   const embeddingModel = process.env.GEMINI_EMBEDDING_MODEL ?? 'models/gemini-embedding-2-preview'
   const embeddingDimensions = embeddings[0]?.length ?? 0
 
-  for (const [index, note] of notesToIndex.entries()) {
-    const embeddingPayload = serializeJson(sql, embeddings[index])
+  const indexed = await upsertNoteEmbeddings(
+    notesToIndex.map((note, index) => ({
+      noteId: note.noteId,
+      content: note.content,
+      contentHash: note.contentHash,
+      timestampIso: note.timestampIso,
+      embedding: embeddings[index],
+      embeddingModel,
+      embeddingDimensions,
+      contentLength: note.content.length,
+    })),
+  )
 
-    await sql`
-      insert into note_embeddings (
-        note_id,
-        content,
-        content_hash,
-        note_timestamp,
-        embedding,
-        embedding_model,
-        embedding_dimensions,
-        updated_at
-      )
-      values (
-        ${note.noteId},
-        ${note.content},
-        ${note.contentHash},
-        ${note.timestampIso},
-        ${embeddingPayload}::jsonb,
-        ${embeddingModel},
-        ${embeddingDimensions},
-        now()
-      )
-      on conflict (note_id) do update
-        set content = excluded.content,
-            content_hash = excluded.content_hash,
-            note_timestamp = excluded.note_timestamp,
-            embedding = excluded.embedding,
-            embedding_model = excluded.embedding_model,
-            embedding_dimensions = excluded.embedding_dimensions,
-            updated_at = now()
-    `
-  }
-
-  return { deleted, indexed: notesToIndex.length }
+  return { deleted, indexed }
 }
 
-async function loadIndexedNotes(): Promise<IndexedNoteRecord[]> {
-  await ensureNoteIndexSchema()
-  const sql = getSql()
-  const rows = await sql`
-    select note_id, content, content_hash, note_timestamp, embedding
-    from note_embeddings
-    order by note_timestamp desc
-  `
+async function loadIndexedNoteMetadata(): Promise<IndexedNoteRecord[]> {
+  const notes = await listNoteEmbeddingMetadata()
+  return notes.map((note) => ({
+    noteId: note.noteId,
+    contentHash: note.contentHash,
+    timestampIso: note.timestampIso,
+    embedding: note.embedding,
+    contentLength: note.contentLength,
+  }))
+}
 
-  return (rows as NoteIndexRow[])
-    .map((row) => {
-      const embedding = parseEmbedding(row.embedding)
-      if (!embedding.length) {
-        return null
-      }
-
+function hydrateCandidatesWithContent(
+  candidates: RetrievalCandidate[],
+  contentById: Map<string, string>,
+): HydratedRetrievalCandidate[] {
+  return candidates
+    .map((candidate) => {
+      const content = contentById.get(candidate.noteId)
+      if (!content) return null
       return {
-        noteId: row.note_id,
-        content: row.content,
-        contentHash: row.content_hash,
-        timestampIso: normalizeTimestamp(row.note_timestamp),
-        embedding,
+        ...candidate,
+        content,
+        contentLength: content.length,
       }
     })
-    .filter((note): note is IndexedNoteRecord => Boolean(note))
+    .filter((candidate): candidate is HydratedRetrievalCandidate => Boolean(candidate))
 }
 
 function summarizeConversationHistory(history: unknown[] | undefined): string {
@@ -610,7 +537,8 @@ function rankCandidates(
         ? Math.max(...queryEmbeddings.map((embedding) => Math.max(0, dotProduct(embedding, note.embedding))))
         : 0
       const recencyScore = computeRecencyScore(note.timestampIso, nowIso, profile)
-      const keywordScore = computeKeywordScore(note.content, queryTerms)
+      const contentLength = note.content?.length ?? note.contentLength
+      const keywordScore = note.content ? computeKeywordScore(note.content, queryTerms) : 0
       const baseCombinedScore =
         (similarityScore * profile.weights.similarity) +
         (recencyScore * profile.weights.recency) +
@@ -618,8 +546,8 @@ function rankCandidates(
 
       // Short notes get a density bonus — they provide context at negligible cost.
       // Bonus scales linearly: full boost at 0 chars, zero boost at shortNoteMaxChars.
-      const densityBonus = boostFactor > 0 && note.content.length < shortMax
-        ? boostFactor * (1 - note.content.length / shortMax)
+      const densityBonus = boostFactor > 0 && contentLength > 0 && contentLength < shortMax
+        ? boostFactor * (1 - contentLength / shortMax)
         : 0
       const combinedScore = baseCombinedScore + densityBonus
 
@@ -788,6 +716,10 @@ function ensureRecentCoverage(
 export async function getRelevantNotesContext(input: NoteContextRequest): Promise<NoteContextResult> {
   const profile = RETRIEVAL_PROFILES[input.profile]
   const conversations = await loadConversations()
+  logDbTransfer('getRelevantNotesContext.loadConversations', {
+    profile: input.profile,
+    conversationsBytesLoaded: estimateJsonBytes(conversations),
+  })
   const allNotes = collectNoteSources(conversations)
   const fullNotesText = formatNotesForPrompt(allNotes, profile.timestampStyle, input.userTimezone)
   const nowIso = normalizeNowIso(input.currentDate)
@@ -835,8 +767,7 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
   }
 
   try {
-    await syncConversationNoteIndex(conversations)
-    const indexedNotes = await loadIndexedNotes()
+    const indexedNotes = await loadIndexedNoteMetadata()
     const queries = profile.buildQueries(input)
 
     // Expand short user queries for better embedding coverage (chat only)
@@ -857,9 +788,36 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const mergedCandidates = mergeRecentCandidates(rankedCandidates, profile, nowIso)
     const limitedCandidates = mergedCandidates.slice(0, profile.candidateLimit)
 
+    const shortNoteMaxChars = profile.shortNoteMaxChars ?? 150
+    const shortNoteMinScore = profile.shortNoteMinScore ?? 0.12
+    const contentIds = new Set<string>()
+
+    for (const candidate of limitedCandidates) {
+      contentIds.add(candidate.noteId)
+    }
+
+    for (const candidate of rankedCandidates) {
+      if (
+        candidate.contentLength > 0 &&
+        candidate.contentLength <= shortNoteMaxChars &&
+        candidate.combinedScore >= shortNoteMinScore
+      ) {
+        contentIds.add(candidate.noteId)
+      }
+    }
+
+    const contentById = await fetchNoteContentsByIds([...contentIds])
+    const hydratedLimitedCandidates = hydrateCandidatesWithContent(limitedCandidates, contentById)
+    const hydratedRankedCandidates = hydrateCandidatesWithContent(rankedCandidates, contentById)
+
     // Pass 1: Primary selection — top-N notes by combined score
-    let selectedCandidates = limitedCandidates.slice(0, profile.selectionLimit)
-    selectedCandidates = ensureRecentCoverage(selectedCandidates, limitedCandidates, profile, nowIso)
+    let selectedCandidates: HydratedRetrievalCandidate[] = hydratedLimitedCandidates.slice(0, profile.selectionLimit)
+    selectedCandidates = ensureRecentCoverage(
+      selectedCandidates,
+      hydratedLimitedCandidates,
+      profile,
+      nowIso,
+    ) as HydratedRetrievalCandidate[]
 
     const primaryNotes = selectedCandidates
       .sort((left, right) => right.combinedScore - left.combinedScore)
@@ -878,8 +836,6 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     )
 
     // Pass 2: Short-note sweep — fill remaining budget with cheap, relevant short notes
-    const shortNoteMaxChars = profile.shortNoteMaxChars ?? 150
-    const shortNoteMinScore = profile.shortNoteMinScore ?? 0.12
     const shortNoteBudgetRatio = profile.shortNoteBudgetRatio ?? 0.15
     const primaryIds = new Set(budgetedPrimary.map((note) => note.noteId))
 
@@ -892,7 +848,7 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const maxShortBudget = Math.floor(profile.maxPromptChars * shortNoteBudgetRatio)
     const remainingBudget = Math.min(maxShortBudget, profile.maxPromptChars - primaryChars)
 
-    const shortNoteCandidates = rankedCandidates
+    const shortNoteCandidates = hydratedRankedCandidates
       .filter((candidate) =>
         !primaryIds.has(candidate.noteId) &&
         candidate.content.length <= shortNoteMaxChars &&

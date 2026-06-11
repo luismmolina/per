@@ -17,6 +17,9 @@ coverage/
 .env
 .env*.local
 
+# Firebase service account keys
+*firebase-adminsdk*.json
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

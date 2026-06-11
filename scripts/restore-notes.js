@@ -61,16 +61,46 @@ function parseNotesFile(filePath) {
   return notes;
 }
 
-// Function to save notes to the database (Postgres primary, file fallback)
+function hasFirebaseConfig() {
+  return Boolean(
+    process.env.FIREBASE_SERVICE_ACCOUNT_JSON ||
+      process.env.FIREBASE_SERVICE_ACCOUNT_PATH ||
+      (process.env.FIREBASE_PROJECT_ID &&
+        process.env.FIREBASE_CLIENT_EMAIL &&
+        process.env.FIREBASE_PRIVATE_KEY)
+  );
+}
+
+async function getFirestoreDb() {
+  const { cert, getApps, initializeApp } = await import("firebase-admin/app");
+  const { getFirestore } = await import("firebase-admin/firestore");
+
+  if (!getApps().length) {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+      initializeApp({ credential: cert(serviceAccount) });
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT_PATH) {
+      const fs = await import("fs");
+      const path = await import("path");
+      const absolutePath = path.resolve(process.cwd(), process.env.FIREBASE_SERVICE_ACCOUNT_PATH);
+      const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, "utf8"));
+      initializeApp({ credential: cert(serviceAccount) });
+    } else {
+      initializeApp({
+        credential: cert({
+          projectId: process.env.FIREBASE_PROJECT_ID,
+          clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+          privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, "\n"),
+        }),
+      });
+    }
+  }
+
+  return getFirestore();
+}
+
+// Function to save notes to the database (Firebase primary, file fallback)
 async function saveNotesToDatabase(notes) {
-  // Dynamic import to support CommonJS script
-  const getSql = async () => {
-    const mod = await import("@neondatabase/serverless");
-    mod.neonConfig.fetchConnectionCache = true;
-    const url = process.env.DATABASE_URL;
-    if (!url) throw new Error("DATABASE_URL not set");
-    return mod.neon(url);
-  };
 
   // File-based storage functions
   const LOCAL_FILE_PATH = path.join(
@@ -114,12 +144,14 @@ async function saveNotesToDatabase(notes) {
   try {
     // Load existing conversations
     let conversations;
-    if (process.env.DATABASE_URL) {
-      console.log("📝 Using Postgres for restoring notes...");
-      const sql = await getSql();
-      await sql`create table if not exists conversations (id text primary key, data jsonb not null, updated_at timestamptz default now())`;
-      const rows = await sql`select data from conversations where id = 'contextual-conversations' limit 1`;
-      conversations = rows[0]?.data || { messages: [] };
+    if (hasFirebaseConfig()) {
+      console.log("📝 Using Firebase for restoring notes...");
+      const db = await getFirestoreDb();
+      const snapshot = await db.collection("conversations").doc("contextual-conversations").get();
+      conversations = snapshot.exists ? snapshot.data() : { messages: [] };
+      if (!Array.isArray(conversations.messages)) {
+        conversations.messages = [];
+      }
     } else {
       console.log("📝 Using file storage for restoring notes...");
       conversations = await loadFromFile();
@@ -131,16 +163,10 @@ async function saveNotesToDatabase(notes) {
     conversations.totalMessages = conversations.messages.length;
 
     // Save back to database
-    if (process.env.DATABASE_URL) {
-      const sql = await getSql();
-      // @ts-ignore - json helper available at runtime
-      const jsonData = sql.json ? sql.json(conversations) : JSON.stringify(conversations);
-      await sql`
-        insert into conversations (id, data, updated_at)
-        values ('contextual-conversations', ${jsonData}::jsonb, now())
-        on conflict (id) do update set data = excluded.data, updated_at = now()
-      `;
-      console.log("✅ Successfully restored notes to Postgres");
+    if (hasFirebaseConfig()) {
+      const db = await getFirestoreDb();
+      await db.collection("conversations").doc("contextual-conversations").set(conversations, { merge: false });
+      console.log("✅ Successfully restored notes to Firebase");
     } else {
       await saveToFile(conversations);
       console.log("✅ Successfully restored notes to file storage");
