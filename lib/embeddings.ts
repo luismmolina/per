@@ -106,7 +106,7 @@ async function parseGeminiError(response: Response): Promise<string> {
 }
 
 export function isGeminiRetrievalEnabled(): boolean {
-  return process.env.ENABLE_GEMINI_NOTE_RETRIEVAL !== 'false' && Boolean(process.env.GEMINI_API_KEY)
+  return process.env.ENABLE_GEMINI_NOTE_RETRIEVAL === 'true' && Boolean(process.env.GEMINI_API_KEY)
 }
 
 export function getGeminiRerankModel(): string {

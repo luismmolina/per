@@ -768,6 +768,27 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
 
   try {
     const indexedNotes = await loadIndexedNoteMetadata()
+    if (!indexedNotes.length) {
+      return {
+        notesText: fullNotesText,
+        noteIds: allNotes.map((note) => note.noteId),
+        diagnostics: {
+          profile: input.profile,
+          availableNotes: allNotes.length,
+          indexedNotes: 0,
+          candidateNotes: allNotes.length,
+          selectedNotes: allNotes.length,
+          shortNotesIncluded: 0,
+          shortNoteChars: 0,
+          fullPromptChars: fullNotesText.length,
+          selectedPromptChars: fullNotesText.length,
+          promptReductionRatio: 0,
+          rerankerUsed: false,
+          fallbackUsed: true,
+        },
+      }
+    }
+
     const queries = profile.buildQueries(input)
 
     // Expand short user queries for better embedding coverage (chat only)
