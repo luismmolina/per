@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "test": "node scripts/test-explore-response.cjs",
-    "firebase:env": "node scripts/print-firebase-env.js"
+    "firebase:env": "node scripts/print-firebase-env.js",
+    "migrate:firebase": "node scripts/migrate-notes-to-firebase.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
