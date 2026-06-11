@@ -43,6 +43,7 @@ declare namespace NodeJS {
     FIREBASE_CLIENT_EMAIL?: string;
     FIREBASE_PRIVATE_KEY?: string;
     FIREBASE_SERVICE_ACCOUNT_JSON?: string;
+    FIREBASE_SERVICE_ACCOUNT_BASE64?: string;
     FIREBASE_SERVICE_ACCOUNT_PATH?: string;
     NODE_ENV: 'development' | 'production' | 'test';
     [key: string]: string | undefined;

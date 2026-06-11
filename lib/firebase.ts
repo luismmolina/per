@@ -23,6 +23,11 @@ function parseServiceAccount(raw: string): ServiceAccountCredentials {
 }
 
 function getServiceAccount(): ServiceAccountCredentials {
+  if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8')
+    return parseServiceAccount(decoded)
+  }
+
   if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     return parseServiceAccount(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)
   }
@@ -46,7 +51,7 @@ function getServiceAccount(): ServiceAccountCredentials {
   }
 
   throw new Error(
-    'Firebase Admin credentials missing. Set FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_SERVICE_ACCOUNT_JSON, or FIREBASE_PROJECT_ID + FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY.',
+    'Firebase Admin credentials missing. For Vercel use FIREBASE_SERVICE_ACCOUNT_BASE64 or FIREBASE_PROJECT_ID + FIREBASE_CLIENT_EMAIL + FIREBASE_PRIVATE_KEY. For local dev use FIREBASE_SERVICE_ACCOUNT_PATH.',
   )
 }
 
