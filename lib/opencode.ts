@@ -19,5 +19,5 @@ export function getOpencodeClient(): Anthropic {
 }
 
 export function getOpencodeModel(): string {
-  return process.env.OPENCODE_MODEL || 'qwen3.7-max'
+  return process.env.OPENCODE_MODEL || 'glm-5.2'
 }
