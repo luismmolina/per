@@ -1,7 +1,9 @@
 /**
- * Client-side audio compression utility
- * Compresses audio to stay under Vercel's 4.5MB body limit
- * Uses OfflineAudioContext for high-quality resampling
+ * Fallback client-side audio compression utility.
+ * Only used when the recorded Opus blob still exceeds Vercel's ~4MB target;
+ * re-encodes to uncompressed 16-bit PCM WAV so the upload fits under the
+ * 4.5MB request-body limit. Most of the time the recorded Opus container is
+ * small enough to upload as-is, so this path is skipped.
  */
 
 // Vercel has 4.5MB limit, we target 4MB to be safe
@@ -140,13 +142,18 @@ function encodeWav(samples: Float32Array, sampleRate: number): Blob {
 
 /**
  * Main compression function - compresses audio for Vercel upload
- * Always compresses to ensure it works, with validation
+ * Fallback: only re-encodes to WAV when the original Opus blob is oversized
  */
 export async function compressAudioForUpload(blob: Blob): Promise<CompressionResult> {
     const originalSize = blob.size
 
-    // Always compress to test the compression pipeline
-    // TODO: After testing, can add back the size check to skip small files
+    // The browser records Opus @32kbps mono, so most blobs are already small
+    // enough to upload as-is. The server transcodes to FLAC anyway; re-encoding
+    // to WAV here would only inflate the payload.
+    if (originalSize <= VERCEL_TARGET_BYTES) {
+        console.log(`[AudioCompressor] Blob already under target (${(originalSize / 1024 / 1024).toFixed(2)}MB); uploading original compressed Opus container as-is.`)
+        return { blob, originalSize, compressedSize: originalSize, compressionRatio: 1, wasCompressed: false }
+    }
 
     console.log(`[AudioCompressor] Compressing file of size ${(originalSize / 1024 / 1024).toFixed(2)}MB...`)
 
@@ -178,17 +185,11 @@ export async function compressAudioForUpload(blob: Blob): Promise<CompressionRes
             throw new Error('Audio appears to be silent')
         }
 
-        // Adaptive sample rate based on duration to stay under 4MB limit
-        // WAV at 16kHz mono 16-bit = 32KB/sec = ~1.92MB/min
-        // WAV at 8kHz mono 16-bit = 16KB/sec = ~0.96MB/min
-        // For 4MB: 16kHz = ~2min, 8kHz = ~4min safely
-        let targetSampleRate: number
-        if (durationSeconds > 240) {
-            targetSampleRate = 8000 // 4+ min -> 8kHz
-        } else if (durationSeconds > 120) {
-            targetSampleRate = 12000 // 2-4 min -> 12kHz
-        } else {
-            targetSampleRate = 16000 // < 2 min -> 16kHz
+        // WAV bytes ≈ duration * sampleRate * 2 (16-bit mono) + 44-byte header
+        const computedRate = Math.floor((VERCEL_TARGET_BYTES - 44) / (durationSeconds * 2))
+        const targetSampleRate = Math.min(16000, computedRate)
+        if (targetSampleRate < 8000) {
+            throw new Error(`Recording too long to compress under the upload limit (${durationSeconds.toFixed(0)}s)`)
         }
 
         console.log(`[AudioCompressor] Using ${targetSampleRate}Hz for ${durationSeconds.toFixed(0)}s audio`)
@@ -258,8 +259,8 @@ export function isAudioCompressionSupported(): boolean {
 
 /**
  * Get maximum recommended recording duration
- * With 8kHz, we can safely do ~4 minutes under 4MB
+ * Matches the 10-minute safety cap in useVoiceRecorder
  */
 export function getRecommendedMaxDurationMs(): number {
-    return 4 * 60 * 1000 // 4 minutes for safe compression
+    return 10 * 60 * 1000 // 10 minutes
 }

@@ -49,10 +49,15 @@ export interface UseVoiceRecorderResult {
   retryFailedChunk: () => void
 }
 
-export const MAX_VOICE_DURATION_MS = 20 * 60 * 1000 // 20 minutes
+// Opus @32kbps mono keeps 10 min of audio ≈ 2.4MB, well under Vercel's 4.5MB body limit; plenty for speech/Whisper.
+const AUDIO_BITS_PER_SECOND = 32_000
+// 10-minute safety cap so worst-case payload stays under the Vercel limit (see bitrate above).
+export const MAX_VOICE_DURATION_MS = 10 * 60 * 1000 // 10 minutes
 // Single-chunk uploads avoid malformed container errors emitted by Groq once MediaRecorder slices blobs mid-session.
 // Keep the constant for future reinstatement, but default to `null` so only the final stop event flushes audio.
 const CHUNK_TIMESLICE_MS: number | null = null
+// Guard just under Vercel's 4.5MB request-body limit.
+const MAX_UPLOAD_BYTES = 4.4 * 1024 * 1024
 const MAX_CHUNK_BYTES = 95 * 1024 * 1024 // stay safely under the 100 MB Groq dev-tier cap
 
 const safeId = () => {
@@ -165,6 +170,10 @@ export function useVoiceRecorder({
         console.warn('[VoiceRecorder] Audio compression failed, using original:', error)
         // Continue with original blob if compression fails
       }
+    }
+
+    if (audioBlob.size > MAX_UPLOAD_BYTES) {
+      throw new Error(`Recording is too large to upload (${(audioBlob.size / 1024 / 1024).toFixed(1)}MB). The server accepts up to 4.5MB — try a shorter recording.`)
     }
 
     const form = new FormData()
@@ -399,7 +408,9 @@ export function useVoiceRecorder({
       const preferredMime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'].find((candidate) =>
         MediaRecorder.isTypeSupported(candidate)
       )
-      const mediaRecorder = new MediaRecorder(stream, preferredMime ? { mimeType: preferredMime } : undefined)
+      const recorderOptions: MediaRecorderOptions = { audioBitsPerSecond: AUDIO_BITS_PER_SECOND }
+      if (preferredMime) recorderOptions.mimeType = preferredMime
+      const mediaRecorder = new MediaRecorder(stream, recorderOptions)
       mediaRecorderRef.current = mediaRecorder
 
       setVoiceSession({
@@ -497,7 +508,7 @@ export function useVoiceRecorder({
   useEffect(() => {
     if (!voiceSession?.isRecording) return
     if (voiceSession.elapsedMs < maxDurationMs) return
-    notifyError('Reached the 20 minute limit. Finishing your recording…')
+    notifyError('Reached the 10 minute limit. Finishing your recording…')
     stopVoiceRecording()
   }, [maxDurationMs, notifyError, stopVoiceRecording, voiceSession?.elapsedMs, voiceSession?.isRecording])
 

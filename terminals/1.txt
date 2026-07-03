@@ -3,7 +3,7 @@ pid: 13496
 cwd: "C:\Users\luism\OneDrive\legacy\Documentos\code\per"
 command: "cd \"C:\\Users\\luism\\OneDrive\\legacy\\Documentos\\code\\per\" && npm install postgres 2>&1"
 started_at: 2026-06-11T06:00:34.152Z
-running_for_ms: 1034994  
+running_for_ms: 72430003 
 ---
 
 added 1 package, and audited 570 packages in 31s
