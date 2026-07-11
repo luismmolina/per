@@ -1,14 +1,12 @@
 import type { NextRequest } from 'next/server'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
-import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
+import { streamOpencodeText } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
     try {
-        const client = getOpencodeClient()
-
         const { currentDate, userTimezone, fetchAllNotes, peerOutputs } = await req.json()
 
         let notesText = ''
@@ -139,34 +137,34 @@ ${peerOutputs?.deepRead || "(Not run)"}
 [A→B CONSULTING]:
 ${peerOutputs?.consulting || "(Not run)"}`
 
-        const model = getOpencodeModel()
-
-        const stream = client.messages.stream({
-            model,
-            max_tokens: 2000,
-            messages: [{ role: 'user', content: prompt }],
-        })
-
+        const encoder = new TextEncoder()
         const readableStream = new ReadableStream({
             async start(controller) {
-                const encoder = new TextEncoder()
-                stream.on('text', (text) => {
-                    controller.enqueue(encoder.encode(text))
-                })
-                stream.on('end', () => {
+                try {
+                    for await (const text of streamOpencodeText({
+                        max_tokens: 2000,
+                        messages: [{ role: 'user', content: prompt }],
+                    })) {
+                        controller.enqueue(encoder.encode(text))
+                    }
                     controller.close()
-                })
-                stream.on('error', (err) => {
+                } catch (err) {
                     console.error('Streaming error:', err)
-                    controller.error(err)
-                })
+                    const message = err instanceof Error ? err.message : 'Unknown error'
+                    try {
+                        controller.enqueue(encoder.encode(`\n\nError: ${message}`))
+                    } catch {
+                        // stream may already be closed
+                    }
+                    controller.close()
+                }
             },
         })
 
         return new Response(readableStream, {
             headers: {
                 'Content-Type': 'text/plain; charset=utf-8',
-                'Transfer-Encoding': 'chunked',
+                'Cache-Control': 'no-cache, no-transform',
             },
         })
     } catch (error) {

@@ -7,7 +7,7 @@ import {
   parseExploreModelJson,
 } from '../../../lib/explore-response'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
-import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
+import { createOpencodeText } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -34,8 +34,6 @@ function clipPromptText(value: unknown, maxChars: number): string | null {
 
 export async function POST(req: NextRequest) {
   try {
-    const client = getOpencodeClient()
-
     const {
       objective,
       currentDate,
@@ -200,18 +198,10 @@ OUTPUT TARGETS:
 RAW NOTES:
 ${notesText}`
 
-    const model = getOpencodeModel()
-
-    const response = await client.messages.create({
-      model,
+    const rawContent = await createOpencodeText({
       max_tokens: 6000,
       messages: [{ role: 'user', content: prompt }],
     })
-
-    const rawContent = response.content
-      .filter((block) => block.type === 'text')
-      .map((block) => (block as unknown as { text: string }).text)
-      .join('\n')
     const content = extractMessageContent(rawContent)
     if (!content.trim()) {
       throw new Error('Explore route received an empty response from the model.')

@@ -1,29 +1,13 @@
-import Anthropic from '@anthropic-ai/sdk'
+import OpenAI from 'openai'
 
-const OPENCODE_GO_BASE = 'https://opencode.ai/zen/go'
-const OPENCODE_MESSAGES_URL = `${OPENCODE_GO_BASE}/v1/messages`
+/**
+ * OpenCode Go — OpenAI-compatible chat completions.
+ * Docs: https://opencode.ai/docs/zen/  (endpoint + @ai-sdk/openai-compatible)
+ * Base must end at /v1 so the client hits .../v1/chat/completions.
+ */
+const OPENCODE_GO_BASE_URL = 'https://opencode.ai/zen/go/v1'
 
-let client: Anthropic | null = null
-
-export function getOpencodeClient(): Anthropic {
-  if (client) return client
-
-  const apiKey = process.env.OPENCODE_API_KEY
-  if (!apiKey) {
-    throw new Error('OPENCODE_API_KEY is not set.')
-  }
-
-  client = new Anthropic({
-    apiKey,
-    baseURL: OPENCODE_GO_BASE,
-  })
-
-  return client
-}
-
-export function getOpencodeModel(): string {
-  return process.env.OPENCODE_MODEL || 'glm-5.2'
-}
+let client: OpenAI | null = null
 
 function getApiKey(): string {
   const apiKey = process.env.OPENCODE_API_KEY
@@ -33,7 +17,23 @@ function getApiKey(): string {
   return apiKey
 }
 
-/** Parse OpenCode / Anthropic-style error JSON into a user-facing Error. */
+/** OpenAI SDK client pointed at OpenCode Go (chat/completions). */
+export function getOpencodeClient(): OpenAI {
+  if (client) return client
+
+  client = new OpenAI({
+    apiKey: getApiKey(),
+    baseURL: OPENCODE_GO_BASE_URL,
+  })
+
+  return client
+}
+
+export function getOpencodeModel(): string {
+  return process.env.OPENCODE_MODEL || 'glm-5.2'
+}
+
+/** Parse OpenCode / OpenAI-style error JSON into a user-facing Error. */
 export function formatOpencodeErrorPayload(payload: unknown, status?: number): Error {
   const fallback = status
     ? `OpenCode request failed (HTTP ${status}).`
@@ -45,11 +45,11 @@ export function formatOpencodeErrorPayload(payload: unknown, status?: number): E
 
   const root = payload as {
     type?: string
-    error?: { type?: string; message?: string }
+    error?: { type?: string; message?: string; code?: string }
     message?: string
   }
 
-  const errType = root.error?.type || root.type || ''
+  const errType = root.error?.type || root.type || root.error?.code || ''
   const errMessage = root.error?.message || root.message || ''
 
   if (errType === 'GoUsageLimitError' || /usage limit/i.test(errMessage)) {
@@ -73,40 +73,68 @@ export function formatOpencodeErrorPayload(payload: unknown, status?: number): E
   return new Error(fallback)
 }
 
-async function buildOpencodeHttpError(response: Response): Promise<Error> {
-  let text = ''
-  try {
-    text = await response.text()
-  } catch {
-    // ignore
-  }
+function rethrowOpenAIError(error: unknown): never {
+  if (error && typeof error === 'object') {
+    const maybe = error as {
+      status?: number
+      error?: { type?: string; message?: string; code?: string }
+      message?: string
+    }
 
-  if (text) {
-    try {
-      return formatOpencodeErrorPayload(JSON.parse(text), response.status)
-    } catch {
-      return new Error(`OpenCode request failed (HTTP ${response.status}): ${text.slice(0, 400)}`)
+    if (maybe.error || maybe.status) {
+      throw formatOpencodeErrorPayload(
+        { error: maybe.error, message: maybe.message },
+        maybe.status,
+      )
     }
   }
 
-  if (response.status === 429) {
-    return new Error(
-      'OpenCode rate limit or monthly usage limit hit (HTTP 429). Check your OpenCode Go usage and billing.',
-    )
+  if (error instanceof Error) {
+    // Anthropic-style opaque stream failure from older paths
+    if (/without sending any chunks/i.test(error.message)) {
+      throw new Error(
+        'OpenCode stream ended without any text. Often a Go usage limit, billing issue, or model timeout — check OpenCode workspace billing/Go limits.',
+      )
+    }
+    throw error
   }
 
-  return new Error(`OpenCode request failed (HTTP ${response.status}).`)
+  throw new Error(String(error))
 }
 
 export type OpencodeChatMessage = {
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'system'
   content: string
 }
 
+function buildChatMessages(options: {
+  system?: string
+  messages: OpencodeChatMessage[]
+}): OpenAI.Chat.ChatCompletionMessageParam[] {
+  const messages: OpenAI.Chat.ChatCompletionMessageParam[] = []
+
+  if (options.system) {
+    messages.push({ role: 'system', content: options.system })
+  }
+
+  for (const message of options.messages) {
+    if (message.role === 'system') {
+      messages.push({ role: 'system', content: message.content })
+      continue
+    }
+    if (message.role === 'assistant') {
+      messages.push({ role: 'assistant', content: message.content })
+      continue
+    }
+    messages.push({ role: 'user', content: message.content })
+  }
+
+  return messages
+}
+
 /**
- * Stream text from OpenCode Go via the Anthropic-compatible messages API.
- * Uses raw fetch so HTTP errors (429 usage limit, credits, etc.) surface clearly
- * instead of the SDK's opaque "request ended without sending any chunks".
+ * Stream text from OpenCode Go via OpenAI-compatible chat/completions.
+ * POST https://opencode.ai/zen/go/v1/chat/completions
  */
 export async function* streamOpencodeText(options: {
   model?: string
@@ -114,80 +142,29 @@ export async function* streamOpencodeText(options: {
   system?: string
   messages: OpencodeChatMessage[]
 }): AsyncGenerator<string, void, unknown> {
+  const openai = getOpencodeClient()
   const model = options.model ?? getOpencodeModel()
-  const body: Record<string, unknown> = {
-    model,
-    max_tokens: options.max_tokens,
-    stream: true,
-    messages: options.messages,
-  }
-  if (options.system) {
-    body.system = options.system
-  }
-
-  const response = await fetch(OPENCODE_MESSAGES_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': getApiKey(),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-      accept: 'text/event-stream',
-    },
-    body: JSON.stringify(body),
-  })
-
-  if (!response.ok) {
-    throw await buildOpencodeHttpError(response)
-  }
-
-  if (!response.body) {
-    throw new Error('OpenCode returned an empty response body.')
-  }
-
-  const reader = response.body.getReader()
-  const decoder = new TextDecoder()
-  let buffer = ''
   let yieldedText = false
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    const stream = await openai.chat.completions.create({
+      model,
+      max_tokens: options.max_tokens,
+      stream: true,
+      messages: buildChatMessages(options),
+    })
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
-
-    for (const rawLine of lines) {
-      const line = rawLine.trimEnd()
-      if (!line.startsWith('data:')) continue
-
-      const data = line.replace(/^data:\s*/, '').trim()
-      if (!data || data === '[DONE]') continue
-
-      let parsed: unknown
-      try {
-        parsed = JSON.parse(data)
-      } catch {
-        continue
-      }
-
-      if (!parsed || typeof parsed !== 'object') continue
-      const event = parsed as {
-        type?: string
-        error?: { type?: string; message?: string }
-        delta?: { type?: string; text?: string }
-        message?: string
-      }
-
-      if (event.type === 'error' || event.error) {
-        throw formatOpencodeErrorPayload(event)
-      }
-
-      if (event.type === 'content_block_delta' && event.delta?.type === 'text_delta' && event.delta.text) {
+    for await (const chunk of stream) {
+      const delta = chunk.choices?.[0]?.delta
+      // Some OpenCode models put reasoning separately; prefer visible content.
+      const content = delta?.content
+      if (typeof content === 'string' && content.length > 0) {
         yieldedText = true
-        yield event.delta.text
+        yield content
       }
     }
+  } catch (error) {
+    rethrowOpenAIError(error)
   }
 
   if (!yieldedText) {
@@ -197,50 +174,31 @@ export async function* streamOpencodeText(options: {
   }
 }
 
-/** Non-streaming completion (query expansion, short tasks). */
+/** Non-streaming completion (query expansion, explore, short tasks). */
 export async function createOpencodeText(options: {
   model?: string
   max_tokens: number
   system?: string
   messages: OpencodeChatMessage[]
 }): Promise<string> {
+  const openai = getOpencodeClient()
   const model = options.model ?? getOpencodeModel()
-  const body: Record<string, unknown> = {
-    model,
-    max_tokens: options.max_tokens,
-    stream: false,
-    messages: options.messages,
-  }
-  if (options.system) {
-    body.system = options.system
-  }
 
-  const response = await fetch(OPENCODE_MESSAGES_URL, {
-    method: 'POST',
-    headers: {
-      'x-api-key': getApiKey(),
-      'anthropic-version': '2023-06-01',
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  })
+  try {
+    const response = await openai.chat.completions.create({
+      model,
+      max_tokens: options.max_tokens,
+      stream: false,
+      messages: buildChatMessages(options),
+    })
 
-  if (!response.ok) {
-    throw await buildOpencodeHttpError(response)
+    const text = response.choices?.[0]?.message?.content
+    if (typeof text === 'string' && text.trim()) {
+      return text.trim()
+    }
+
+    throw new Error('OpenCode returned an empty completion.')
+  } catch (error) {
+    rethrowOpenAIError(error)
   }
-
-  const payload = (await response.json()) as {
-    content?: Array<{ type?: string; text?: string }>
-    error?: { type?: string; message?: string }
-  }
-
-  if (payload.error) {
-    throw formatOpencodeErrorPayload(payload)
-  }
-
-  return (payload.content ?? [])
-    .filter((block) => block.type === 'text' && typeof block.text === 'string')
-    .map((block) => block.text as string)
-    .join('')
-    .trim()
 }
