@@ -1,8 +1,8 @@
 'use client'
 
 import React, { useState, useRef, useEffect } from 'react'
-import { Send, Plus, Mic, StopCircle, BookOpen, Compass, Brain, Sparkles } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { Send, Plus, Mic, Square, Radio, Crosshair } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 interface InputAreaProps {
@@ -14,10 +14,8 @@ interface InputAreaProps {
     children?: React.ReactNode
     keyboardOffset?: number
     onHeightChange?: (height: number) => void
-    onSwitchToDeepRead?: () => void
-    onSwitchToConsulting?: () => void
-    onSwitchToReframe?: () => void
-    onSwitchToExplore?: () => void
+    onSwitchToSignal?: () => void
+    onSwitchToMove?: () => void
 }
 
 export const InputArea = ({
@@ -29,21 +27,18 @@ export const InputArea = ({
     children,
     keyboardOffset = 0,
     onHeightChange,
-    onSwitchToDeepRead,
-    onSwitchToConsulting,
-    onSwitchToReframe,
-    onSwitchToExplore
+    onSwitchToSignal,
+    onSwitchToMove
 }: InputAreaProps) => {
     const textareaRef = useRef<HTMLTextAreaElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [isFocused, setIsFocused] = useState(false)
     const [value, setValue] = useState('')
 
-    // Auto-resize textarea
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.style.height = 'auto'
-            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 150) + 'px'
+            textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 140) + 'px'
         }
     }, [value])
 
@@ -57,12 +52,10 @@ export const InputArea = ({
         }
     }
 
-    // Enter key now inserts line breaks (no auto-send)
     const handleKeyDown = (_e: React.KeyboardEvent) => {
-        // Do nothing special - let Enter create newlines naturally
+        // Enter inserts newlines
     }
 
-    // Report the current height so the message list can keep clear space.
     useEffect(() => {
         if (!containerRef.current || !onHeightChange) return
         const element = containerRef.current
@@ -77,34 +70,33 @@ export const InputArea = ({
         }
 
         const observer = new ResizeObserver(() => notifyHeight())
-
         notifyHeight()
         observer.observe(element)
-
         return () => observer.disconnect()
     }, [onHeightChange])
 
     const bottomOffset = Math.max(0, keyboardOffset)
+    const isTyping = Boolean(value.trim())
 
     return (
-        <motion.div
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
+        <div
             ref={containerRef}
-            className="fixed left-0 right-0 z-50 px-4 pt-3 bg-gradient-to-t from-black via-black/95 to-transparent"
+            className="fixed left-0 right-0 z-50 px-3 pt-2"
             style={{
                 bottom: bottomOffset,
-                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)'
+                paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 0.65rem)',
+                background: 'linear-gradient(to top, #000 70%, rgba(0,0,0,0.92) 88%, transparent)',
             }}
         >
-            <div className={cn(
-                "max-w-3xl mx-auto rounded-2xl p-3 transition-all duration-300",
-                isFocused ? "bg-gradient-to-r from-primary/30 via-accent-purple/30 to-primary/30 shadow-[0_0_40px_-10px_rgba(59,130,246,0.4)]" : "bg-white/5 border border-white/10"
-            )}>
+            <div
+                className={cn(
+                    'max-w-3xl mx-auto border bg-background-secondary transition-colors',
+                    isFocused ? 'border-line-strong' : 'border-line'
+                )}
+            >
                 {children}
-                <div className="bg-black/70 backdrop-blur-xl rounded-xl flex flex-col gap-3 p-3 relative overflow-hidden">
 
-                    {/* Text Input - Full width on top */}
+                <div className="flex flex-col gap-2 p-2.5">
                     <textarea
                         ref={textareaRef}
                         value={value}
@@ -112,123 +104,83 @@ export const InputArea = ({
                         onKeyDown={handleKeyDown}
                         onFocus={() => setIsFocused(true)}
                         onBlur={() => setIsFocused(false)}
-                        placeholder="Type or ask..."
+                        placeholder="Note or query…"
                         rows={1}
-                        className="w-full bg-transparent text-text-primary placeholder-text-muted text-base py-2 px-1 focus:outline-none resize-none max-h-[150px] custom-scrollbar"
-                        style={{ minHeight: '44px' }}
+                        className="w-full bg-transparent text-[15px] text-text-primary placeholder:text-text-muted py-2 px-1.5 focus:outline-none resize-none max-h-[140px] custom-scrollbar leading-relaxed"
+                        style={{ minHeight: '40px' }}
                     />
 
-                    {/* Action buttons row - Below textarea */}
-                    <div className="flex items-center justify-between gap-2 overflow-hidden">
-                        {/* Scrollable Tools Section */}
-                        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 min-w-0 pr-2">
-                            {/* Voice Button */}
+                    <div className="flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-1.5 min-w-0 overflow-x-auto no-scrollbar">
                             <button
                                 onClick={isListening ? onVoiceStop : onVoiceStart}
                                 className={cn(
-                                    "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all duration-300 text-sm font-medium shrink-0",
-                                    isListening
-                                        ? "bg-red-500/20 text-red-400 animate-pulse"
-                                        : "bg-white/5 hover:bg-white/10 text-text-secondary hover:text-text-primary border border-white/10"
+                                    't-btn shrink-0',
+                                    isListening ? 't-btn-live' : 't-btn-primary'
                                 )}
+                                aria-label={isListening ? 'Stop recording' : 'Start voice'}
                             >
-                                {isListening ? <StopCircle className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-                                <span className="hidden sm:inline">{isListening ? 'Stop' : 'Voice'}</span>
+                                {isListening ? <Square className="w-3.5 h-3.5 fill-current" /> : <Mic className="w-3.5 h-3.5" />}
+                                <span>{isListening ? 'Stop' : 'Voice'}</span>
                             </button>
 
-                            {/* Deep Read Button - hidden when typing */}
-                            {onSwitchToDeepRead && !value.trim() && (
+                            {onSwitchToSignal && !isTyping && (
                                 <button
-                                    onClick={onSwitchToDeepRead}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-white/5 hover:bg-white/10 text-text-secondary hover:text-white border border-white/10 transition-all text-sm font-medium shrink-0"
-                                    title="Open Deep Read"
+                                    onClick={onSwitchToSignal}
+                                    className="t-btn t-btn-ghost shrink-0"
+                                    title="Signal"
                                 >
-                                    <BookOpen className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Deep Read</span>
+                                    <Radio className="w-3.5 h-3.5" />
+                                    <span>Signal</span>
                                 </button>
                             )}
 
-                            {/* A→B Advisor Button - hidden when typing */}
-                            {onSwitchToConsulting && !value.trim() && (
+                            {onSwitchToMove && !isTyping && (
                                 <button
-                                    onClick={onSwitchToConsulting}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 hover:text-teal-200 border border-teal-500/20 transition-all text-sm font-medium shrink-0"
-                                    title="Open A→B Advisor"
+                                    onClick={onSwitchToMove}
+                                    className="t-btn t-btn-ghost shrink-0"
+                                    title="Move"
                                 >
-                                    <Compass className="w-4 h-4" />
-                                    <span className="hidden sm:inline">A→B</span>
+                                    <Crosshair className="w-3.5 h-3.5" />
+                                    <span>Move</span>
                                 </button>
                             )}
-
-                            {/* Reframe Button - hidden when typing */}
-                            {onSwitchToReframe && !value.trim() && (
-                                <button
-                                    onClick={onSwitchToReframe}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-violet-500/10 hover:bg-violet-500/20 text-violet-300 hover:text-violet-200 border border-violet-500/20 transition-all text-sm font-medium shrink-0"
-                                    title="Open Reframe"
-                                >
-                                    <Brain className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Reframe</span>
-                                </button>
-                            )}
-
-                            {onSwitchToExplore && !value.trim() && (
-                                <button
-                                    onClick={onSwitchToExplore}
-                                    className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-sky-500/10 hover:bg-sky-500/20 text-sky-200 hover:text-sky-100 border border-sky-500/20 transition-all text-sm font-medium shrink-0"
-                                    title="Open Explore"
-                                >
-                                    <Sparkles className="w-4 h-4" />
-                                    <span className="hidden sm:inline">Explore</span>
-                                </button>
-                            )}
-
                         </div>
 
-                        {/* Note and Ask buttons - Fixed Right */}
-                        <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <AnimatePresence mode="wait">
-                                {value.trim() ? (
+                                {isTyping ? (
                                     <motion.div
-                                        initial={{ opacity: 0, x: 20 }}
+                                        initial={{ opacity: 0, x: 8 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 20 }}
-                                        className="flex gap-2"
+                                        exit={{ opacity: 0, x: 8 }}
+                                        className="flex gap-1.5"
                                     >
                                         <button
                                             onClick={() => handleSend('note')}
-                                            className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-accent-green/10 text-accent-green hover:bg-accent-green/20 transition-colors text-sm font-medium border border-accent-green/20 shrink-0"
-                                            title="Save as Note"
+                                            className="t-btn t-btn-ghost"
+                                            title="Save note"
                                             disabled={isLoading}
                                         >
-                                            <Plus className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Note</span>
+                                            <Plus className="w-3.5 h-3.5" />
+                                            <span>Note</span>
                                         </button>
                                         <button
                                             onClick={() => handleSend('question')}
-                                            className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-white shadow-lg shadow-primary/30 hover:scale-105 active:scale-95 transition-all text-sm font-medium shrink-0"
-                                            title="Ask AI"
+                                            className="t-btn t-btn-primary"
+                                            title="Ask"
                                             disabled={isLoading}
                                         >
-                                            <Send className="w-4 h-4" />
-                                            <span className="hidden sm:inline">Ask</span>
+                                            <Send className="w-3.5 h-3.5" />
+                                            <span>Ask</span>
                                         </button>
                                     </motion.div>
-                                ) : (
-                                    <motion.div
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 0.5 }}
-                                        exit={{ opacity: 0 }}
-                                        className="text-xs text-text-muted pr-2 hidden sm:block whitespace-nowrap"
-                                    >
-                                        Type to save a note or ask AI
-                                    </motion.div>
-                                )}
+                                ) : null}
                             </AnimatePresence>
                         </div>
                     </div>
                 </div>
             </div>
-        </motion.div>
+        </div>
     )
 }

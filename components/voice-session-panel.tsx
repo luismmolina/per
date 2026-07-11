@@ -9,79 +9,65 @@ interface VoiceSessionPanelProps {
   onRetry: () => void
 }
 
-const VOICE_PROMPTS = [
-  { label: 'Name the feeling', example: '"I am scared to..." / "I feel anxious about..."' },
-  { label: 'Say why', example: '"...because I imagine..."' },
-  { label: 'Question the story', example: '"But is that actually true?"' },
-  { label: 'End with one action', example: '"The smallest next step is..."' },
-]
-
 export function VoiceSessionPanel({ session, onRetry }: VoiceSessionPanelProps) {
   const isRecording = session.status === 'recording'
   const isProcessing = session.status === 'processing'
   const isError = session.status === 'error'
-  const statusText = isRecording ? 'Recording' : isProcessing ? 'Transcribing' : isError ? 'Retry needed' : 'Idle'
-  const subText = isRecording
-    ? 'Mic is live. Speak naturally.'
+
+  const statusText = isRecording
+    ? 'REC'
     : isProcessing
-      ? 'Sending audio for transcription...'
+      ? 'XFER'
       : isError
-        ? session.lastError || 'Upload failed.'
-        : ''
+        ? 'ERR'
+        : 'IDLE'
 
   return (
-    <div className="bg-neutral-900 border border-amoled-border rounded-2xl p-4 space-y-3 shadow-xl relative z-50">
-      {/* Voice Note Prompt Card - shows when recording */}
-      {isRecording && (
-        <div className="bg-neutral-800/50 border border-accent-purple/30 rounded-xl p-3 mb-2">
-          <p className="text-xs font-semibold text-accent-purple mb-2">Before you speak:</p>
-          <ul className="space-y-1.5">
-            {VOICE_PROMPTS.map((prompt, idx) => (
-              <li key={idx} className="text-xs">
-                <span className="text-white font-medium">{prompt.label}.</span>{' '}
-                <span className="text-amoled-textMuted">{prompt.example}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      <div className="flex items-center justify-between">
-
-        <div className="flex items-center gap-3">
+    <div className="border border-line bg-background-secondary px-2.5 py-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
           {isRecording ? (
-            <div className="flex items-center gap-1 h-4 text-accent-red">
+            <div className="flex items-center gap-0.5 h-3 text-accent-red">
               <div className="audio-bar" style={{ animationDelay: '0ms' }} />
-              <div className="audio-bar" style={{ animationDelay: '200ms' }} />
-              <div className="audio-bar" style={{ animationDelay: '400ms' }} />
-              <div className="audio-bar" style={{ animationDelay: '100ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '150ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '300ms' }} />
+              <div className="audio-bar" style={{ animationDelay: '80ms' }} />
             </div>
           ) : (
             <span
-              className={`inline-flex h-2.5 w-2.5 rounded-full ${isProcessing ? 'bg-accent-purple animate-pulse' : 'bg-accent-amber'
-                }`}
-            ></span>
+              className={`inline-flex h-1.5 w-1.5 shrink-0 ${
+                isProcessing
+                  ? 'bg-accent-amber animate-pulse'
+                  : isError
+                    ? 'bg-accent-red'
+                    : 'bg-text-muted'
+              }`}
+            />
           )}
-          <div>
-            <p className="text-sm font-semibold text-white">Voice capture</p>
-            <p className="text-xs text-amoled-textMuted">{statusText}</p>
-          </div>
+          <span className="font-mono text-[10px] tracking-[0.14em] uppercase text-text-secondary">
+            {statusText}
+          </span>
+          {isError && session.lastError && (
+            <span className="truncate font-mono text-[10px] text-accent-red/90">
+              {session.lastError}
+            </span>
+          )}
         </div>
-        <span className="font-mono text-lg text-accent-purple">{formatDuration(session.elapsedMs)}</span>
+
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="font-mono text-[13px] tabular-nums text-text-primary">
+            {formatDuration(session.elapsedMs)}
+          </span>
+          {isError && (
+            <button
+              onClick={onRetry}
+              className="t-btn t-btn-ghost !min-h-0 !py-1 !px-2 !text-[10px]"
+            >
+              Retry
+            </button>
+          )}
+        </div>
       </div>
-
-      {subText && <p className="text-sm text-amoled-textMuted">{subText}</p>}
-
-      {isError && (
-        <div className="flex items-center justify-between">
-          <span className="text-xs text-accent-amber">Tap retry to upload the failed chunk.</span>
-          <button
-            onClick={onRetry}
-            className="px-3 py-1 rounded-lg bg-accent-purple/20 text-white text-xs font-semibold hover:bg-accent-purple/30 transition-colors"
-          >
-            Retry upload
-          </button>
-        </div>
-      )}
     </div>
   )
 }

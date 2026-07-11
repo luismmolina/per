@@ -162,11 +162,13 @@ async function expandQueryWithLLM(
   }
 }
 
+// Keep prompts lean for Vercel Hobby / OpenCode latency.
+// When embeddings retrieval is off, these caps still apply (recent notes preferred).
 const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> = {
   chat: {
     candidateLimit: 150,
     selectionLimit: 40,
-    maxPromptChars: 50000,
+    maxPromptChars: 28000,
     guaranteedRecentCount: 6,
     recentWindowDays: 14,
     recencyHalfLifeDays: 21,
@@ -186,48 +188,53 @@ const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> =
       return queries.filter(Boolean)
     },
   },
+  // Signal route (insights + mental loops + errors)
   longform: {
-    candidateLimit: 150,
-    selectionLimit: 40,
-    maxPromptChars: 200000,
-    guaranteedRecentCount: 24,
+    candidateLimit: 160,
+    selectionLimit: 48,
+    maxPromptChars: 40000,
+    guaranteedRecentCount: 28,
     recentWindowDays: 90,
-    recencyHalfLifeDays: 60,
+    recencyHalfLifeDays: 45,
     timestampStyle: 'datetime',
-    weights: { similarity: 0.68, recency: 0.12, keyword: 0.20 },
+    forceRecentCoverage: true,
+    weights: { similarity: 0.64, recency: 0.18, keyword: 0.18 },
     shortNoteMaxChars: 200,
     shortNoteScoreBoost: 0.08,
     shortNoteMinScore: 0.10,
-    shortNoteBudgetRatio: 0.10,
+    shortNoteBudgetRatio: 0.12,
     buildQueries: (input) => [
-      `Recurring patterns, lessons, contradictions, and self-knowledge in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
+      `Recurring patterns, lessons, contradictions, self-knowledge, and things the user keeps forgetting.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Wins, failures, turning points, repeated mistakes, and proof-backed insights in the notes.',
-      'Recent changes, constraints, emotional themes, and things the user keeps forgetting.',
+      `Recent guilt, regret, self-judgment, worry, mental loops, and the facts that dissolve them.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
+      'Recent changes, constraints, emotional friction, and second-guessing of decisions in the notes.',
     ],
   },
+  // Move route (A→B + novel options)
   consulting: {
-    candidateLimit: 80,
-    selectionLimit: 40,
-    maxPromptChars: 45000,
-    guaranteedRecentCount: 10,
-    recentWindowDays: 30,
+    candidateLimit: 120,
+    selectionLimit: 48,
+    maxPromptChars: 32000,
+    guaranteedRecentCount: 12,
+    recentWindowDays: 45,
     recencyHalfLifeDays: 30,
     timestampStyle: 'datetime',
-    weights: { similarity: 0.70, recency: 0.12, keyword: 0.18 },
-    shortNoteMaxChars: 150,
-    shortNoteScoreBoost: 0.14,
+    weights: { similarity: 0.66, recency: 0.12, keyword: 0.22 },
+    shortNoteMaxChars: 180,
+    shortNoteScoreBoost: 0.12,
     shortNoteMinScore: 0.10,
-    shortNoteBudgetRatio: 0.18,
+    shortNoteBudgetRatio: 0.16,
     buildQueries: (input) => [
       `Current situation, goals, desired state, constraints, and bottlenecks in the notes.${input.currentDate ? ` Current date: ${input.currentDate}.` : ''}`,
       'Numbers, revenue, profit, operations, leverage, and what has already worked in the notes.',
-      'Strategic blockers, unresolved decisions, risks, and opportunities in the notes.',
+      'Ideas already proposed, experiments tried, pricing, promotions, product mix, and unresolved strategic decisions in the notes.',
+      'Underused assets, idle capacity, partnerships, group/B2B angles, low-labor revenue, and overlooked profit levers the notes could support.',
     ],
   },
   explore: {
     candidateLimit: 110,
     selectionLimit: 48,
-    maxPromptChars: 65000,
+    maxPromptChars: 32000,
     guaranteedRecentCount: 12,
     recentWindowDays: 45,
     recencyHalfLifeDays: 35,
@@ -672,6 +679,65 @@ function selectNotesWithinBudget(
   return selectedNotes
 }
 
+/** Prefer newest notes under the profile char budget (used when embeddings retrieval is off/unavailable). */
+function selectRecentNotesWithinBudget(
+  notes: NoteIndexSource[],
+  profile: RetrievalProfileConfig,
+  userTimezone?: string,
+): NoteIndexSource[] {
+  const newestFirst = [...notes].sort(
+    (left, right) => new Date(right.timestampIso).getTime() - new Date(left.timestampIso).getTime(),
+  )
+  const selected = selectNotesWithinBudget(
+    newestFirst,
+    profile.timestampStyle,
+    userTimezone,
+    profile.maxPromptChars,
+  )
+  return selected.sort(
+    (left, right) => new Date(left.timestampIso).getTime() - new Date(right.timestampIso).getTime(),
+  )
+}
+
+function buildBudgetedFallbackResult(
+  allNotes: NoteIndexSource[],
+  profile: RetrievalProfileConfig,
+  profileName: NoteRetrievalProfile,
+  userTimezone?: string,
+): NoteContextResult {
+  const selected = selectRecentNotesWithinBudget(allNotes, profile, userTimezone)
+  const notesText = selected
+    .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, userTimezone)}] ${note.content}`)
+    .join('\n')
+  const fullPromptChars = formatNotesForPrompt(allNotes, profile.timestampStyle, userTimezone).length
+  const promptReductionRatio = fullPromptChars > 0
+    ? Math.max(0, 1 - (notesText.length / fullPromptChars))
+    : 0
+
+  console.log(
+    `[note-retrieval] ${profileName} fallback budget: ${selected.length}/${allNotes.length} notes, ${notesText.length}/${fullPromptChars} chars (${Math.round(promptReductionRatio * 100)}% reduction)`,
+  )
+
+  return {
+    notesText,
+    noteIds: selected.map((note) => note.noteId),
+    diagnostics: {
+      profile: profileName,
+      availableNotes: allNotes.length,
+      indexedNotes: 0,
+      candidateNotes: allNotes.length,
+      selectedNotes: selected.length,
+      shortNotesIncluded: 0,
+      shortNoteChars: 0,
+      fullPromptChars,
+      selectedPromptChars: notesText.length,
+      promptReductionRatio,
+      rerankerUsed: false,
+      fallbackUsed: true,
+    },
+  }
+}
+
 function ensureRecentCoverage(
   selected: RetrievalCandidate[],
   mergedCandidates: RetrievalCandidate[],
@@ -746,47 +812,13 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
   }
 
   if (!isGeminiRetrievalEnabled()) {
-    return {
-      notesText: fullNotesText,
-      noteIds: allNotes.map((note) => note.noteId),
-      diagnostics: {
-        profile: input.profile,
-        availableNotes: allNotes.length,
-        indexedNotes: 0,
-        candidateNotes: allNotes.length,
-        selectedNotes: allNotes.length,
-        shortNotesIncluded: 0,
-        shortNoteChars: 0,
-        fullPromptChars: fullNotesText.length,
-        selectedPromptChars: fullNotesText.length,
-        promptReductionRatio: 0,
-        rerankerUsed: false,
-        fallbackUsed: true,
-      },
-    }
+    return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
   }
 
   try {
     const indexedNotes = await loadIndexedNoteMetadata()
     if (!indexedNotes.length) {
-      return {
-        notesText: fullNotesText,
-        noteIds: allNotes.map((note) => note.noteId),
-        diagnostics: {
-          profile: input.profile,
-          availableNotes: allNotes.length,
-          indexedNotes: 0,
-          candidateNotes: allNotes.length,
-          selectedNotes: allNotes.length,
-          shortNotesIncluded: 0,
-          shortNoteChars: 0,
-          fullPromptChars: fullNotesText.length,
-          selectedPromptChars: fullNotesText.length,
-          promptReductionRatio: 0,
-          rerankerUsed: false,
-          fallbackUsed: true,
-        },
-      }
+      return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
     }
 
     const queries = profile.buildQueries(input)
@@ -930,25 +962,7 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
       },
     }
   } catch (error) {
-    console.error(`[note-retrieval] Falling back to full note context for ${input.profile}:`, error)
-
-    return {
-      notesText: fullNotesText,
-      noteIds: allNotes.map((note) => note.noteId),
-      diagnostics: {
-        profile: input.profile,
-        availableNotes: allNotes.length,
-        indexedNotes: 0,
-        candidateNotes: allNotes.length,
-        selectedNotes: allNotes.length,
-        shortNotesIncluded: 0,
-        shortNoteChars: 0,
-        fullPromptChars: fullNotesText.length,
-        selectedPromptChars: fullNotesText.length,
-        promptReductionRatio: 0,
-        rerankerUsed: false,
-        fallbackUsed: true,
-      },
-    }
+    console.error(`[note-retrieval] Falling back to budgeted note context for ${input.profile}:`, error)
+    return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
   }
 }

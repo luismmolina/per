@@ -4,51 +4,29 @@ import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
+export const maxDuration = 300
 
-export async function POST(req: NextRequest) {
-  try {
-    const client = getOpencodeClient()
-    const { message, conversationHistory = [], currentDate, userTimezone, specialistOutputs } = await req.json()
-
-    if (!message) {
-      return new Response('Error: Message is required.', { status: 400 })
-    }
-
-    const currentDateLine = currentDate ? String(currentDate) : new Date().toString();
-    const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
-    let notesContext = ''
-
-    try {
-      const retrieval = await getRelevantNotesContext({
-        profile: 'chat',
-        userQuery: String(message),
-        conversationHistory: Array.isArray(conversationHistory) ? conversationHistory : [],
-        currentDate: currentDate ? String(currentDate) : undefined,
-        userTimezone: typeof userTimezone === 'string' ? userTimezone : undefined,
-      })
-
-      notesContext = retrieval.notesText || '(No saved notes yet.)'
-
-      console.log(
-        `[chat-enhanced] note retrieval selected ${retrieval.diagnostics.selectedNotes}/${retrieval.diagnostics.availableNotes} notes (${Math.round(retrieval.diagnostics.promptReductionRatio * 100)}% reduction)`,
-      )
-    } catch (err) {
-      console.error('Failed to load notes for chat context:', err)
-      notesContext = "(System: Failed to load long-term notes. Rely only on conversation history.)"
-    }
-
-    // Updated Prompt: First Principles & Logic Oriented
-    let systemInstruction = `You are a First-Principles Thinking Partner. You do not provide motivation, fluff, or standard customer-service platitudes. You provide clarity, rigorous logic, and strategy based on facts.
+function buildSystemInstruction(input: {
+  currentDateLine: string
+  timezoneLine: string
+  notesContext: string
+  message: string
+  specialistOutputs?: {
+    deepRead?: string
+    consulting?: string
+  }
+}): string {
+  return `You are a First-Principles Thinking Partner. You do not provide motivation, fluff, or standard customer-service platitudes. You provide clarity, rigorous logic, and strategy based on facts.
 
 CONTEXT:
-- Today: ${currentDateLine}
-- ${timezoneLine}
+- Today: ${input.currentDateLine}
+- ${input.timezoneLine}
 
     LONG-TERM MEMORY (RETRIEVED USER NOTES):
-    ${notesContext}
+    ${input.notesContext}
 
 USER QUERY:
-${message}
+${input.message}
 
 ═══════════════════════════════════════════════════════════════
 SPECIALIST AI ANALYSES (Lower trust than raw notes)
@@ -66,14 +44,11 @@ YOUR JOB:
 - Explicitly note if you DISAGREE with a specialist and why
 - Do not repeat their conclusions — add new value
 
-[DEEP READ]:
-${specialistOutputs?.deepRead || "(Not run)"}
+[SIGNAL — insights + mental loops + errors]:
+${input.specialistOutputs?.deepRead || '(Not run)'}
 
-[A→B CONSULTING]:
-${specialistOutputs?.consulting || "(Not run)"}
-
-[REFRAME]:
-${specialistOutputs?.reframe || "(Not run)"}
+[MOVE — A→B path + new options]:
+${input.specialistOutputs?.consulting || '(Not run)'}
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL: FIRST PRINCIPLES & MATH FIRST
@@ -114,58 +89,121 @@ How to Structure Your Answer:
 - **The Strategic Shift**: How should the user view this differently? or What is the next move?
 - **The Bottom Line**: End every response with a single, direct, concrete answer to the original question. No ambiguity, no hedging. If the user asked "should I do X?", the final line should be "Yes, do X" or "No, don't do X." If they asked for a number, give the number. The user should never have to hunt through the reasoning to find the actual answer — it must be stated plainly at the very end.
 `
+}
 
-    const model = getOpencodeModel()
-
-    const encoder = new TextEncoder()
-    const responseStream = new ReadableStream({
-      async start(controller) {
-        try {
-          const stream = client.messages.stream({
-            model,
-            max_tokens: 16000,
-            system: systemInstruction,
-            messages: [{ role: 'user', content: message }],
-          })
-
-          stream.on('text', (text) => {
-            const data = { type: 'text', content: text }
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
-          })
-
-          stream.on('end', () => {
-            controller.close()
-          })
-
-          stream.on('error', (error) => {
-            const errorMessage = error instanceof Error ? error.message : String(error)
-            console.error('Stream error caught:', errorMessage)
-            const errorData = { type: 'error', content: 'An unexpected error occurred during the stream.', details: errorMessage }
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`))
-            controller.close()
-          })
-        } catch (err) {
-          const errorMessage = err instanceof Error ? err.message : String(err)
-          console.error('Stream setup error:', errorMessage)
-          const errorData = { type: 'error', content: 'An unexpected error occurred during the stream.', details: errorMessage }
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify(errorData)}\n\n`))
-          controller.close()
-        }
-      },
-    })
-
-    return new Response(responseStream, {
-      headers: {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-      },
-    })
-  } catch (e) {
-    console.error('Enhanced chat API error:', e)
-    const errorMessage = e instanceof Error ? e.message : String(e)
-    return new Response(`Error: ${errorMessage}`, { status: 500 })
+export async function POST(req: NextRequest) {
+  let body: {
+    message?: unknown
+    conversationHistory?: unknown
+    currentDate?: unknown
+    userTimezone?: unknown
+    specialistOutputs?: {
+      deepRead?: string
+      consulting?: string
+    }
   }
+
+  try {
+    body = await req.json()
+  } catch {
+    return new Response('Error: Invalid JSON body.', { status: 400 })
+  }
+
+  const { message, conversationHistory = [], currentDate, userTimezone, specialistOutputs } = body
+
+  if (!message) {
+    return new Response('Error: Message is required.', { status: 400 })
+  }
+
+  const encoder = new TextEncoder()
+  const sendEvent = (
+    controller: ReadableStreamDefaultController<Uint8Array>,
+    data: Record<string, unknown>,
+  ) => {
+    controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+  }
+
+  // Open SSE immediately so note retrieval does not block TTFB.
+  const responseStream = new ReadableStream({
+    async start(controller) {
+      try {
+        const client = getOpencodeClient()
+        const currentDateLine = currentDate ? String(currentDate) : new Date().toString()
+        const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
+        let notesContext = ''
+
+        sendEvent(controller, { type: 'status', content: 'Loading notes…' })
+
+        try {
+          const retrieval = await getRelevantNotesContext({
+            profile: 'chat',
+            userQuery: String(message),
+            conversationHistory: Array.isArray(conversationHistory) ? conversationHistory : [],
+            currentDate: currentDate ? String(currentDate) : undefined,
+            userTimezone: typeof userTimezone === 'string' ? userTimezone : undefined,
+          })
+
+          notesContext = retrieval.notesText || '(No saved notes yet.)'
+
+          console.log(
+            `[chat-enhanced] note retrieval selected ${retrieval.diagnostics.selectedNotes}/${retrieval.diagnostics.availableNotes} notes (${Math.round(retrieval.diagnostics.promptReductionRatio * 100)}% reduction)`,
+          )
+        } catch (err) {
+          console.error('Failed to load notes for chat context:', err)
+          notesContext = '(System: Failed to load long-term notes. Rely only on conversation history.)'
+        }
+
+        sendEvent(controller, { type: 'status', content: 'Thinking…' })
+
+        const systemInstruction = buildSystemInstruction({
+          currentDateLine,
+          timezoneLine,
+          notesContext,
+          message: String(message),
+          specialistOutputs,
+        })
+
+        const model = getOpencodeModel()
+        const stream = client.messages.stream({
+          model,
+          max_tokens: 4000,
+          system: systemInstruction,
+          messages: [{ role: 'user', content: String(message) }],
+        })
+
+        await new Promise<void>((resolve, reject) => {
+          stream.on('text', (text) => {
+            sendEvent(controller, { type: 'text', content: text })
+          })
+          stream.on('end', () => resolve())
+          stream.on('error', (error) => reject(error))
+        })
+
+        controller.close()
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        console.error('Stream setup error:', errorMessage)
+        try {
+          sendEvent(controller, {
+            type: 'error',
+            content: 'An unexpected error occurred during the stream.',
+            details: errorMessage,
+          })
+        } catch {
+          // stream may already be closed
+        }
+        controller.close()
+      }
+    },
+  })
+
+  return new Response(responseStream, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
+  })
 }
 
 export async function OPTIONS() {

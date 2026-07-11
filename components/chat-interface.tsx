@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
 import { ArrowDown, ChevronUp, Download, FileText } from 'lucide-react'
@@ -32,10 +32,8 @@ interface ChatInterfaceProps {
     onVoiceStart?: () => void
     onVoiceStop?: () => void
     onDownloadNotes?: () => void
-    onSwitchToDeepRead?: () => void
-    onSwitchToConsulting?: () => void
-    onSwitchToReframe?: () => void
-    onSwitchToExplore?: () => void
+    onSwitchToSignal?: () => void
+    onSwitchToMove?: () => void
     onSwitchToWrite?: () => void
 }
 
@@ -54,10 +52,8 @@ export const ChatInterface = ({
     onVoiceStart,
     onVoiceStop,
     onDownloadNotes,
-    onSwitchToDeepRead,
-    onSwitchToConsulting,
-    onSwitchToReframe,
-    onSwitchToExplore,
+    onSwitchToSignal,
+    onSwitchToMove,
     onSwitchToWrite
 }: ChatInterfaceProps) => {
     const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -69,27 +65,26 @@ export const ChatInterface = ({
     const prevMessageCountRef = useRef(0)
     const isStreamingRef = useRef(false)
 
+    const noteCount = useMemo(
+        () => messages.filter((m) => m.type === 'note').length,
+        [messages]
+    )
+
     const scrollToBottom = (behavior: ScrollBehavior = 'smooth') => {
         messagesEndRef.current?.scrollIntoView({ behavior })
     }
 
-    // Auto-scroll on new messages - but smarter to avoid shaking during streaming
     useEffect(() => {
         const currentCount = messages.length
         const isNewMessage = currentCount > prevMessageCountRef.current
 
-        // During streaming (isLoading), use instant scroll to avoid animation conflicts
-        // Only scroll on actual new messages, not content updates
         if (isNewMessage) {
-            // Use 'auto' (instant) during loading to prevent animation stacking
             scrollToBottom(isLoading ? 'auto' : 'smooth')
             prevMessageCountRef.current = currentCount
         } else if (isLoading && !isStreamingRef.current) {
-            // First time we start loading, scroll to bottom
             isStreamingRef.current = true
             scrollToBottom('auto')
         } else if (!isLoading && isStreamingRef.current) {
-            // Streaming ended, do a final smooth scroll
             isStreamingRef.current = false
             scrollToBottom('smooth')
         }
@@ -102,7 +97,6 @@ export const ChatInterface = ({
         setVisibleCount((prev) => prev + LOAD_MORE_BATCH_SIZE)
     }
 
-    // Scroll button visibility
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
@@ -117,7 +111,6 @@ export const ChatInterface = ({
         return () => container.removeEventListener('scroll', handleScroll)
     }, [])
 
-    // Track keyboard inset so the input hugs the top of the keyboard on mobile.
     useEffect(() => {
         const viewport = window.visualViewport
         if (!viewport) return
@@ -136,7 +129,6 @@ export const ChatInterface = ({
         }
     }, [])
 
-    // Keep the latest messages visible when the keyboard opens.
     useEffect(() => {
         const container = containerRef.current
         if (!container) return
@@ -147,54 +139,63 @@ export const ChatInterface = ({
         }
     }, [keyboardInset])
 
-    const contentBottomPadding = Math.max(140, inputHeight + keyboardInset + 24)
+    const contentBottomPadding = Math.max(130, inputHeight + keyboardInset + 16)
+    const headerPad = 'calc(env(safe-area-inset-top, 0px) + 0.55rem)'
 
     return (
-        <div className="relative flex min-h-0 flex-1 flex-col">
-            {/* Header — fixed so download stays visible while messages scroll */}
-            <div className="fixed top-0 left-0 right-0 z-40 px-4 py-3 md:px-6 backdrop-blur-xl bg-black/60 border-b border-white/5">
-                <div className="max-w-3xl mx-auto flex items-center justify-between">
-                    <span className="text-sm font-medium text-text-muted">My Notes</span>
-                    <div className="flex items-center gap-2">
+        <div className="relative flex min-h-0 flex-1 flex-col bg-black">
+            <header
+                className="fixed top-0 left-0 right-0 z-40 border-b border-line bg-black/95 backdrop-blur-md"
+                style={{ paddingTop: headerPad }}
+            >
+                <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-3 pb-2.5">
+                    <div className="min-w-0 flex items-baseline gap-2">
+                        <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-text-primary">
+                            Notes
+                        </span>
+                        <span className="font-mono text-[10px] tabular-nums text-text-muted">
+                            {noteCount}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
                         {onSwitchToWrite && (
                             <button
                                 onClick={onSwitchToWrite}
-                                className="hidden lg:flex items-center gap-2 rounded-full border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-100 transition-all hover:bg-amber-500/20"
-                                title="Open Writer"
+                                className="t-btn t-btn-ghost hidden lg:inline-flex"
+                                title="Writer"
                             >
                                 <FileText className="h-3.5 w-3.5" />
-                                <span>Writer</span>
+                                <span>Write</span>
                             </button>
                         )}
-
                         {onDownloadNotes && (
                             <button
                                 onClick={onDownloadNotes}
-                                className="p-2 rounded-full border border-white/10 text-text-muted hover:text-white hover:border-white/20 hover:bg-white/5 transition-all"
-                                title="Download Notes"
+                                className="t-btn t-btn-ghost"
+                                title="Export all notes"
                             >
-                                <Download className="w-4 h-4" />
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Export</span>
                             </button>
                         )}
                     </div>
                 </div>
-            </div>
+            </header>
 
-            {/* Messages Area */}
             <div
                 ref={containerRef}
-                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-4 pt-20"
-                style={{ paddingBottom: contentBottomPadding }}
+                className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar px-3"
+                style={{
+                    paddingTop: 'calc(env(safe-area-inset-top, 0px) + 3.25rem)',
+                    paddingBottom: contentBottomPadding,
+                }}
             >
                 <div className="max-w-3xl mx-auto">
                     {hasMoreMessages && (
-                        <div className="flex justify-center mb-6">
-                            <button
-                                onClick={handleLoadMore}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-text-muted hover:bg-white/10 hover:text-primary transition-all text-xs font-medium"
-                            >
+                        <div className="flex justify-center mb-4 pt-2">
+                            <button onClick={handleLoadMore} className="t-btn t-btn-ghost">
                                 <ChevronUp className="w-3 h-3" />
-                                Load older messages
+                                <span>Older</span>
                             </button>
                         </div>
                     )}
@@ -212,40 +213,32 @@ export const ChatInterface = ({
                     </AnimatePresence>
 
                     {isLoading && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="flex items-center gap-2 text-text-muted ml-4"
-                        >
-                            <div className="flex space-x-1">
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0s' }} />
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
-                                <div className="w-2 h-2 bg-primary/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }} />
-                            </div>
-                            <span className="text-xs">AI is thinking...</span>
-                        </motion.div>
+                        <div className="flex items-center gap-2 py-3 font-mono text-[10px] tracking-[0.12em] uppercase text-text-muted">
+                            <span className="inline-block h-1.5 w-1.5 bg-accent-amber animate-pulse" />
+                            Processing
+                        </div>
                     )}
 
-                    <div ref={messagesEndRef} className="h-4" />
+                    <div ref={messagesEndRef} className="h-3" />
                 </div>
             </div>
 
-            {/* Scroll to Bottom Button */}
             <AnimatePresence>
                 {showScrollButton && (
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
                         onClick={() => scrollToBottom()}
-                        className="absolute bottom-24 right-6 p-3 rounded-full bg-glass backdrop-blur-md border border-glass-border text-primary shadow-lg z-40 hover:bg-glass-hover transition-colors"
+                        className="absolute right-3 z-40 t-btn t-btn-ghost p-2.5"
+                        style={{ bottom: Math.max(100, inputHeight + 12) }}
+                        aria-label="Scroll to bottom"
                     >
-                        <ArrowDown className="w-5 h-5" />
+                        <ArrowDown className="w-4 h-4" />
                     </motion.button>
                 )}
             </AnimatePresence>
 
-            {/* Input Area */}
             <InputArea
                 onSend={onSendMessage}
                 isLoading={isLoading}
@@ -254,10 +247,8 @@ export const ChatInterface = ({
                 onVoiceStop={onVoiceStop}
                 keyboardOffset={keyboardInset}
                 onHeightChange={setInputHeight}
-                onSwitchToDeepRead={onSwitchToDeepRead}
-                onSwitchToConsulting={onSwitchToConsulting}
-                onSwitchToReframe={onSwitchToReframe}
-                onSwitchToExplore={onSwitchToExplore}
+                onSwitchToSignal={onSwitchToSignal}
+                onSwitchToMove={onSwitchToMove}
             >
                 {inputChildren}
             </InputArea>
