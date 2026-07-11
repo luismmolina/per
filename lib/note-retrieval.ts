@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
 import { type NoteRetrievalProfile } from './note-rerank'
-import { getOpencodeClient, getOpencodeModel } from './opencode'
+import { createOpencodeText } from './opencode'
 
 import { estimateJsonBytes, logDbTransfer } from './db-diagnostics'
 import {
@@ -129,12 +129,8 @@ async function expandQueryWithLLM(
     : `Question: ${userQuery}`
 
   try {
-    const client = getOpencodeClient()
-    const model = getOpencodeModel()
-
-    const response = await Promise.race([
-      client.messages.create({
-        model,
+    const expanded = await Promise.race([
+      createOpencodeText({
         max_tokens: 300,
         system: systemPrompt,
         messages: [{ role: 'user', content: userContent }],
@@ -143,12 +139,6 @@ async function expandQueryWithLLM(
         setTimeout(() => reject(new Error('Query expansion timed out')), QUERY_EXPANSION_TIMEOUT_MS),
       ),
     ])
-
-    const expanded = response.content
-      .filter((block) => block.type === 'text')
-      .map((block) => 'text' in block ? block.text : '')
-      .join('')
-      .trim()
 
     if (expanded && expanded.length > userQuery.length) {
       console.log(`[note-retrieval] Query expanded: "${userQuery}" → "${expanded.slice(0, 120)}..."`)

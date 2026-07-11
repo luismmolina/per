@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
-import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
+import { streamOpencodeText } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -168,7 +168,6 @@ export async function POST(req: NextRequest) {
       const enqueue = (text: string) => controller.enqueue(encoder.encode(text))
 
       try {
-        const client = getOpencodeClient()
         let notesText = ''
 
         if (fetchAllNotes) {
@@ -207,20 +206,12 @@ export async function POST(req: NextRequest) {
           peerDeepRead: peerOutputs?.deepRead || null,
         })
 
-        const model = getOpencodeModel()
-        const stream = client.messages.stream({
-          model,
+        for await (const text of streamOpencodeText({
           max_tokens: 3500,
           messages: [{ role: 'user', content: prompt }],
-        })
-
-        await new Promise<void>((resolve, reject) => {
-          stream.on('text', (text) => {
-            enqueue(text)
-          })
-          stream.on('end', () => resolve())
-          stream.on('error', (err) => reject(err))
-        })
+        })) {
+          enqueue(text)
+        }
 
         controller.close()
       } catch (error) {

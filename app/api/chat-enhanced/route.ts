@@ -1,6 +1,6 @@
 import type { NextRequest } from 'next/server'
 import { getRelevantNotesContext } from '../../../lib/note-retrieval'
-import { getOpencodeClient, getOpencodeModel } from '../../../lib/opencode'
+import { streamOpencodeText } from '../../../lib/opencode'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -127,7 +127,6 @@ export async function POST(req: NextRequest) {
   const responseStream = new ReadableStream({
     async start(controller) {
       try {
-        const client = getOpencodeClient()
         const currentDateLine = currentDate ? String(currentDate) : new Date().toString()
         const timezoneLine = userTimezone ? `USER TIMEZONE: ${userTimezone}` : 'USER TIMEZONE: Not provided'
         let notesContext = ''
@@ -163,21 +162,13 @@ export async function POST(req: NextRequest) {
           specialistOutputs,
         })
 
-        const model = getOpencodeModel()
-        const stream = client.messages.stream({
-          model,
+        for await (const text of streamOpencodeText({
           max_tokens: 4000,
           system: systemInstruction,
           messages: [{ role: 'user', content: String(message) }],
-        })
-
-        await new Promise<void>((resolve, reject) => {
-          stream.on('text', (text) => {
-            sendEvent(controller, { type: 'text', content: text })
-          })
-          stream.on('end', () => resolve())
-          stream.on('error', (error) => reject(error))
-        })
+        })) {
+          sendEvent(controller, { type: 'text', content: text })
+        }
 
         controller.close()
       } catch (err) {
