@@ -1,11 +1,12 @@
 import OpenAI from 'openai'
 
 /**
- * OpenCode Go — OpenAI-compatible chat completions.
- * Docs: https://opencode.ai/docs/zen/  (endpoint + @ai-sdk/openai-compatible)
+ * OpenCode Zen — OpenAI-compatible chat completions.
+ * Docs: https://opencode.ai/docs/zen/
  * Base must end at /v1 so the client hits .../v1/chat/completions.
+ * Grok 4.5 lives on Zen (not Go): https://opencode.ai/zen/v1/chat/completions
  */
-const OPENCODE_GO_BASE_URL = 'https://opencode.ai/zen/go/v1'
+const OPENCODE_ZEN_BASE_URL = 'https://opencode.ai/zen/v1'
 
 let client: OpenAI | null = null
 
@@ -17,20 +18,20 @@ function getApiKey(): string {
   return apiKey
 }
 
-/** OpenAI SDK client pointed at OpenCode Go (chat/completions). */
+/** OpenAI SDK client pointed at OpenCode Zen (chat/completions). */
 export function getOpencodeClient(): OpenAI {
   if (client) return client
 
   client = new OpenAI({
     apiKey: getApiKey(),
-    baseURL: OPENCODE_GO_BASE_URL,
+    baseURL: OPENCODE_ZEN_BASE_URL,
   })
 
   return client
 }
 
 export function getOpencodeModel(): string {
-  return process.env.OPENCODE_MODEL || 'glm-5.2'
+  return process.env.OPENCODE_MODEL || 'grok-4.5'
 }
 
 /** Parse OpenCode / OpenAI-style error JSON into a user-facing Error. */
@@ -55,14 +56,14 @@ export function formatOpencodeErrorPayload(payload: unknown, status?: number): E
   if (errType === 'GoUsageLimitError' || /usage limit/i.test(errMessage)) {
     return new Error(
       errMessage ||
-        'OpenCode Go monthly usage limit reached. Enable balance usage in your OpenCode workspace, or wait for the limit to reset.',
+        'OpenCode usage limit reached. Check billing or wait for the limit to reset.',
     )
   }
 
   if (errType === 'CreditsError' || /insufficient balance/i.test(errMessage)) {
     return new Error(
       errMessage ||
-        'OpenCode balance is insufficient. Add credits in your OpenCode workspace billing settings.',
+        'OpenCode balance is insufficient. Add credits in your OpenCode Zen billing settings.',
     )
   }
 
@@ -93,7 +94,7 @@ function rethrowOpenAIError(error: unknown): never {
     // Anthropic-style opaque stream failure from older paths
     if (/without sending any chunks/i.test(error.message)) {
       throw new Error(
-        'OpenCode stream ended without any text. Often a Go usage limit, billing issue, or model timeout — check OpenCode workspace billing/Go limits.',
+        'OpenCode stream ended without any text. Often a billing issue or model timeout — check OpenCode Zen billing.',
       )
     }
     throw error
@@ -133,8 +134,8 @@ function buildChatMessages(options: {
 }
 
 /**
- * Stream text from OpenCode Go via OpenAI-compatible chat/completions.
- * POST https://opencode.ai/zen/go/v1/chat/completions
+ * Stream text from OpenCode Zen via OpenAI-compatible chat/completions.
+ * POST https://opencode.ai/zen/v1/chat/completions
  */
 export async function* streamOpencodeText(options: {
   model?: string
@@ -169,7 +170,7 @@ export async function* streamOpencodeText(options: {
 
   if (!yieldedText) {
     throw new Error(
-      'OpenCode stream ended without any text. This is often a usage limit, billing issue, or model timeout — check OpenCode workspace billing/Go limits.',
+      'OpenCode stream ended without any text. This is often a billing issue or model timeout — check OpenCode Zen billing.',
     )
   }
 }
