@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { createPortal } from 'react-dom'
 import { Database, Download, Loader2, RefreshCw, X } from 'lucide-react'
 
 export interface FactLedgerStatusPayload {
@@ -50,6 +50,11 @@ export function FactsStatusPanel() {
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [lastSyncMessage, setLastSyncMessage] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const refresh = useCallback(async () => {
     try {
@@ -75,6 +80,16 @@ export function FactsStatusPanel() {
     return () => window.clearInterval(id)
   }, [refresh])
 
+  // Lock body scroll while panel is open
+  useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [open])
+
   const postSyncBatch = async (limit: number) => {
     const res = await fetch('/api/facts/sync', {
       method: 'POST',
@@ -97,7 +112,6 @@ export function FactsStatusPanel() {
     }
   }
 
-  /** One batch of dirty notes (newest first). Same as the old single Extract click. */
   const runSyncBatch = async () => {
     setSyncing(true)
     setLastSyncMessage(null)
@@ -115,10 +129,6 @@ export function FactsStatusPanel() {
     }
   }
 
-  /**
-   * Loop batches until remaining is 0 (or max rounds). This is what people expect after a
-   * version bump — not a single 12-note pass, and not only the 3 notes on save.
-   */
   const runCatchUp = async () => {
     setSyncing(true)
     setLastSyncMessage(null)
@@ -132,12 +142,12 @@ export function FactsStatusPanel() {
         const data = await postSyncBatch(BATCH_LIMIT)
         totalProcessed += data.processed ?? 0
         totalFacts += data.factsWritten ?? 0
-        const remaining = data.remainingDirty ?? 0
+        const rem = data.remainingDirty ?? 0
         setLastSyncMessage(
           `Catch-up r${round}: +${data.processed ?? 0} notes (${totalProcessed} total), ${totalFacts} facts` +
-            (remaining > 0 ? ` · ${remaining} left` : ' · complete'),
+            (rem > 0 ? ` · ${rem} left` : ' · complete'),
         )
-        if (!remaining || !(data.processed ?? 0)) break
+        if (!rem || !(data.processed ?? 0)) break
       }
       await refresh()
     } catch (error) {
@@ -153,16 +163,13 @@ export function FactsStatusPanel() {
   const percent = status?.percentComplete ?? 0
   const disabled = status && !status.enabled
 
-  // Compact on mobile so the header row does not collide with export buttons.
   const badgeLabelShort = loading
     ? '…'
     : disabled
       ? 'off'
       : total === 0
         ? '—'
-        : remaining === 0
-          ? `${processed}/${total}`
-          : `${processed}/${total}`
+        : `${processed}/${total}`
 
   const badgeLabelFull = loading
     ? 'Signal …'
@@ -180,55 +187,40 @@ export function FactsStatusPanel() {
       ? 'text-accent-amber border-accent-amber/30'
       : 'text-accent-green border-accent-green/30'
 
-  return (
-    <div className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        className={`t-btn t-btn-ghost inline-flex max-w-[7.25rem] items-center gap-1 border px-2 sm:max-w-none sm:gap-1.5 sm:px-3 ${badgeTone}`}
-        title={badgeLabelFull}
-        aria-label={badgeLabelFull}
-      >
-        <Database className="h-3.5 w-3.5 shrink-0" />
-        <span className="min-w-0 truncate font-mono text-[10px] tracking-wide tabular-nums">
-          <span className="sm:hidden">{badgeLabelShort}</span>
-          <span className="hidden sm:inline">{badgeLabelFull}</span>
-        </span>
-        {!loading && !disabled && total > 0 && (
-          <span className="hidden font-mono text-[9px] text-text-muted tabular-nums sm:inline">
-            {percent}%
-          </span>
-        )}
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <>
+  const panel =
+    open && mounted
+      ? createPortal(
+          <div className="fixed inset-0 z-[200] flex items-start justify-center sm:justify-end p-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] sm:pr-3">
+            {/* Solid dimmer — no blur stacking with header glass */}
             <button
               type="button"
-              className="fixed inset-0 z-40 cursor-default bg-black/40"
+              className="absolute inset-0 z-0 bg-black/80"
               aria-label="Close signal panel"
               onClick={() => setOpen(false)}
             />
-            <motion.div
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full z-50 mt-2 w-[min(100vw-1.5rem,22rem)] border border-line bg-background-raised/98 p-3 shadow-xl backdrop-blur-md"
+
+            {/* Opaque card — solid fill, no backdrop-blur, no alpha */}
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="signal-ledger-title"
+              className="relative z-10 flex w-full max-w-[22rem] max-h-[min(78dvh,36rem)] flex-col overflow-hidden border border-white/15 bg-[#0a0a0a] shadow-[0_16px_48px_rgba(0,0,0,0.85)]"
             >
-              <div className="mb-2 flex items-start justify-between gap-2">
-                <div>
-                  <div className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-primary">
+              <div className="flex shrink-0 items-start justify-between gap-2 border-b border-white/10 bg-[#0a0a0a] px-3 py-2.5">
+                <div className="min-w-0">
+                  <div
+                    id="signal-ledger-title"
+                    className="font-mono text-[11px] uppercase tracking-[0.14em] text-text-primary"
+                  >
                     Signal ledger
                   </div>
                   <div className="mt-0.5 font-mono text-[10px] text-text-muted">
-                    Facts extracted from notes → CURRENT STATE for AI
+                    Facts → CURRENT STATE for AI
                   </div>
                 </div>
                 <button
                   type="button"
-                  className="t-btn t-btn-ghost p-1.5"
+                  className="t-btn t-btn-ghost shrink-0 p-1.5"
                   onClick={() => setOpen(false)}
                   aria-label="Close"
                 >
@@ -236,69 +228,120 @@ export function FactsStatusPanel() {
                 </button>
               </div>
 
-              {loadError && (
-                <p className="mb-2 font-mono text-[11px] text-accent-red">{loadError}</p>
-              )}
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#0a0a0a] px-3 py-3 custom-scrollbar">
+                {loadError && (
+                  <p className="mb-2 font-mono text-[11px] text-accent-red">{loadError}</p>
+                )}
 
-              {status && !status.enabled && (
-                <p className="mb-2 font-mono text-[11px] text-accent-amber">
-                  Extraction off. Set GEMINI_API_KEY or OPENCODE_API_KEY (and ENABLE_NOTE_FACTS≠false).
-                </p>
-              )}
-
-              {status && (
-                <>
-                  <div className="mb-2 h-1.5 w-full overflow-hidden bg-line-faint">
-                    <div
-                      className="h-full bg-accent-amber transition-all duration-300"
-                      style={{ width: `${Math.min(100, percent)}%` }}
-                    />
-                  </div>
-
-                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px]">
-                    <div className="flex justify-between gap-2 col-span-2">
-                      <dt className="text-text-muted">Current extractor</dt>
-                      <dd className="tabular-nums text-text-primary">
-                        {processed} / {total} ({percent}%)
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">Remaining</dt>
-                      <dd className="tabular-nums text-accent-amber">{remaining}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">Stale version</dt>
-                      <dd className="tabular-nums text-text-secondary">{status.staleVersion}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">Index done*</dt>
-                      <dd className="tabular-nums text-text-primary">{status.byStatus.done}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">No signal</dt>
-                      <dd className="tabular-nums text-text-primary">{status.byStatus.skipped}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">Failed</dt>
-                      <dd className="tabular-nums text-accent-red">{status.byStatus.failed}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">State keys</dt>
-                      <dd className="tabular-nums text-text-primary">{status.currentStateCount}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2 col-span-2">
-                      <dt className="text-text-muted">Extractor</dt>
-                      <dd className="text-text-secondary">{status.extractorVersion}</dd>
-                    </div>
-                  </dl>
-                  <p className="mt-1 font-mono text-[9px] text-text-muted">
-                    *Index done can include older extractor versions until Catch up rewrites them.
+                {status && !status.enabled && (
+                  <p className="mb-2 font-mono text-[11px] text-accent-amber">
+                    Extraction off. Set GEMINI_API_KEY or OPENCODE_API_KEY (and ENABLE_NOTE_FACTS≠false).
                   </p>
+                )}
 
-                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                {status && (
+                  <>
+                    <div className="mb-2 h-1.5 w-full overflow-hidden bg-white/10">
+                      <div
+                        className="h-full bg-accent-amber transition-all duration-300"
+                        style={{ width: `${Math.min(100, percent)}%` }}
+                      />
+                    </div>
+
+                    <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px]">
+                      <div className="col-span-2 flex justify-between gap-2">
+                        <dt className="text-text-muted">Current extractor</dt>
+                        <dd className="tabular-nums text-text-primary">
+                          {processed} / {total} ({percent}%)
+                        </dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">Remaining</dt>
+                        <dd className="tabular-nums text-accent-amber">{remaining}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">Stale version</dt>
+                        <dd className="tabular-nums text-text-secondary">{status.staleVersion}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">Index done*</dt>
+                        <dd className="tabular-nums text-text-primary">{status.byStatus.done}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">No signal</dt>
+                        <dd className="tabular-nums text-text-primary">{status.byStatus.skipped}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">Failed</dt>
+                        <dd className="tabular-nums text-accent-red">{status.byStatus.failed}</dd>
+                      </div>
+                      <div className="flex justify-between gap-2">
+                        <dt className="text-text-muted">State keys</dt>
+                        <dd className="tabular-nums text-text-primary">{status.currentStateCount}</dd>
+                      </div>
+                      <div className="col-span-2 flex justify-between gap-2">
+                        <dt className="text-text-muted">Extractor</dt>
+                        <dd className="text-text-secondary">{status.extractorVersion}</dd>
+                      </div>
+                    </dl>
+                    <p className="mt-1 font-mono text-[9px] text-text-muted">
+                      *Index done can include older extractor versions until Catch up rewrites them.
+                    </p>
+
+                    {lastSyncMessage && (
+                      <p className="mt-2 font-mono text-[10px] text-text-secondary">{lastSyncMessage}</p>
+                    )}
+
+                    {remaining > 0 && status.enabled && (
+                      <p className="mt-2 font-mono text-[10px] leading-relaxed text-text-muted">
+                        Saving a note only extracts up to 3 dirty notes. Use{' '}
+                        <span className="text-text-secondary">Catch up all</span> to reprocess
+                        everything (newest first).
+                      </p>
+                    )}
+
+                    {status.sampleState.length > 0 && (
+                      <div className="mt-3 border-t border-white/10 pt-2">
+                        <div className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-muted">
+                          Sample CURRENT STATE
+                        </div>
+                        <ul className="max-h-40 space-y-2 overflow-y-auto custom-scrollbar font-mono text-[10px] text-text-secondary">
+                          {status.sampleState.slice(0, 12).map((row) => (
+                            <li key={`${row.entity}|${row.attribute}|${row.asOf}`}>
+                              <div className="leading-snug text-text-primary">
+                                {row.claim?.trim()
+                                  || `${row.entity} / ${row.attribute}: ${row.value}${row.unit ? ` ${row.unit}` : ''}`}
+                              </div>
+                              <div className="text-text-muted">
+                                {formatAsOf(row.asOf)} · {row.polarity}
+                                {row.previous?.claim
+                                  ? ` · was: ${row.previous.claim}`
+                                  : row.previous
+                                    ? ` · was ${row.previous.value}`
+                                    : ''}
+                              </div>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    {status.sampleState.length === 0 && remaining === total && total > 0 && (
+                      <p className="mt-3 font-mono text-[10px] text-text-muted">
+                        No facts yet. Run Catch up all to fill CURRENT STATE from your notes.
+                      </p>
+                    )}
+                  </>
+                )}
+              </div>
+
+              {/* Sticky action bar — always solid, always tappable */}
+              {status && (
+                <div className="shrink-0 border-t border-white/10 bg-[#0c0c0c] p-2.5">
+                  <div className="grid grid-cols-2 gap-1.5">
                     <button
                       type="button"
-                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
+                      className="t-btn t-btn-ghost w-full"
                       onClick={() => void refresh()}
                       disabled={loading || syncing}
                     >
@@ -307,33 +350,33 @@ export function FactsStatusPanel() {
                     </button>
                     <button
                       type="button"
-                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
+                      className="t-btn t-btn-ghost w-full"
                       onClick={() => {
                         window.location.href = '/api/download-signal'
                       }}
-                      title="Download CURRENT STATE + all extracted facts as a text file"
+                      title="Download CURRENT STATE + all extracted facts"
                     >
                       <Download className="h-3.5 w-3.5" />
                       <span>Export</span>
                     </button>
                     <button
                       type="button"
-                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
+                      className="t-btn t-btn-ghost w-full"
                       onClick={() => void runSyncBatch()}
                       disabled={!status.enabled || syncing || remaining === 0}
-                      title="Process next 12 dirty notes only (newest first)"
+                      title="Process next 12 dirty notes only"
                     >
                       <span>{syncing ? '…' : '1 batch'}</span>
                     </button>
                     <button
                       type="button"
-                      className="t-btn t-btn-primary flex-1 min-w-[7rem]"
+                      className="t-btn t-btn-primary w-full"
                       onClick={() => void runCatchUp()}
                       disabled={!status.enabled || syncing || remaining === 0}
                       title={
                         remaining === 0
                           ? 'All notes processed for this extractor version'
-                          : 'Loop batches until all dirty notes are re-extracted (version bumps, new notes)'
+                          : 'Loop batches until all dirty notes are re-extracted'
                       }
                     >
                       {syncing ? (
@@ -346,58 +389,36 @@ export function FactsStatusPanel() {
                       </span>
                     </button>
                   </div>
-
-                  {lastSyncMessage && (
-                    <p className="mt-2 font-mono text-[10px] text-text-secondary">{lastSyncMessage}</p>
-                  )}
-
-                  {remaining > 0 && status.enabled && (
-                    <p className="mt-2 font-mono text-[10px] leading-relaxed text-text-muted">
-                      Saving a note only extracts up to 3 dirty notes (newest first) — not a full
-                      reprocess. After an extractor upgrade (e.g. facts-v3), use{' '}
-                      <span className="text-text-secondary">Catch up all</span> so every note is
-                      rewritten. Newest notes run first.
-                    </p>
-                  )}
-
-                  {status.sampleState.length > 0 && (
-                    <div className="mt-3 border-t border-line pt-2">
-                      <div className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-muted">
-                        Sample CURRENT STATE
-                      </div>
-                      <ul className="max-h-48 space-y-2 overflow-y-auto custom-scrollbar font-mono text-[10px] text-text-secondary">
-                        {status.sampleState.slice(0, 12).map((row) => (
-                          <li key={`${row.entity}|${row.attribute}|${row.asOf}`}>
-                            <div className="text-text-primary leading-snug">
-                              {row.claim?.trim()
-                                || `${row.entity} / ${row.attribute}: ${row.value}${row.unit ? ` ${row.unit}` : ''}`}
-                            </div>
-                            <div className="text-text-muted">
-                              {formatAsOf(row.asOf)} · {row.polarity}
-                              {row.previous?.claim
-                                ? ` · was: ${row.previous.claim}`
-                                : row.previous
-                                  ? ` · was ${row.previous.value}`
-                                  : ''}
-                            </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {status.sampleState.length === 0 && remaining === total && total > 0 && (
-                    <p className="mt-3 font-mono text-[10px] text-text-muted">
-                      No facts yet. Run Extract batch — the first pass will fill CURRENT STATE from
-                      your newest notes.
-                    </p>
-                  )}
-                </>
+                </div>
               )}
-            </motion.div>
-          </>
+            </div>
+          </div>,
+          document.body,
+        )
+      : null
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className={`t-btn t-btn-ghost inline-flex max-w-[7.25rem] items-center gap-1 border px-2 sm:max-w-none sm:gap-1.5 sm:px-3 ${badgeTone}`}
+        title={badgeLabelFull}
+        aria-label={badgeLabelFull}
+        aria-expanded={open}
+      >
+        <Database className="h-3.5 w-3.5 shrink-0" />
+        <span className="min-w-0 truncate font-mono text-[10px] tracking-wide tabular-nums">
+          <span className="sm:hidden">{badgeLabelShort}</span>
+          <span className="hidden sm:inline">{badgeLabelFull}</span>
+        </span>
+        {!loading && !disabled && total > 0 && (
+          <span className="hidden font-mono text-[9px] text-text-muted tabular-nums sm:inline">
+            {percent}%
+          </span>
         )}
-      </AnimatePresence>
-    </div>
+      </button>
+      {panel}
+    </>
   )
 }
