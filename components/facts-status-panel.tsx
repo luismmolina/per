@@ -106,7 +106,18 @@ export function FactsStatusPanel() {
   const percent = status?.percentComplete ?? 0
   const disabled = status && !status.enabled
 
-  const badgeLabel = loading
+  // Compact on mobile so the header row does not collide with export buttons.
+  const badgeLabelShort = loading
+    ? '…'
+    : disabled
+      ? 'off'
+      : total === 0
+        ? '—'
+        : remaining === 0
+          ? `${processed}/${total}`
+          : `${processed}/${total}`
+
+  const badgeLabelFull = loading
     ? 'Signal …'
     : disabled
       ? 'Signal off'
@@ -127,13 +138,19 @@ export function FactsStatusPanel() {
       <button
         type="button"
         onClick={() => setOpen((value) => !value)}
-        className={`t-btn t-btn-ghost inline-flex items-center gap-1.5 border ${badgeTone}`}
-        title="Fact extraction progress (signal from notes)"
+        className={`t-btn t-btn-ghost inline-flex max-w-[7.25rem] items-center gap-1 border px-2 sm:max-w-none sm:gap-1.5 sm:px-3 ${badgeTone}`}
+        title={badgeLabelFull}
+        aria-label={badgeLabelFull}
       >
         <Database className="h-3.5 w-3.5 shrink-0" />
-        <span className="font-mono text-[10px] tracking-wide tabular-nums">{badgeLabel}</span>
+        <span className="min-w-0 truncate font-mono text-[10px] tracking-wide tabular-nums">
+          <span className="sm:hidden">{badgeLabelShort}</span>
+          <span className="hidden sm:inline">{badgeLabelFull}</span>
+        </span>
         {!loading && !disabled && total > 0 && (
-          <span className="font-mono text-[9px] text-text-muted tabular-nums">{percent}%</span>
+          <span className="hidden font-mono text-[9px] text-text-muted tabular-nums sm:inline">
+            {percent}%
+          </span>
         )}
       </button>
 

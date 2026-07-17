@@ -151,8 +151,8 @@ export const ChatInterface = ({
                 className="fixed top-0 left-0 right-0 z-40 border-b border-line bg-black/95 backdrop-blur-md"
                 style={{ paddingTop: headerPad }}
             >
-                <div className="max-w-3xl mx-auto flex items-center justify-between gap-3 px-3 pb-2.5">
-                    <div className="min-w-0 flex items-baseline gap-2">
+                <div className="mx-auto flex max-w-3xl items-center justify-between gap-2 px-3 pb-2.5">
+                    <div className="flex min-w-0 shrink items-baseline gap-1.5">
                         <span className="font-mono text-[11px] tracking-[0.16em] uppercase text-text-primary">
                             Notes
                         </span>
@@ -160,7 +160,7 @@ export const ChatInterface = ({
                             {noteCount}
                         </span>
                     </div>
-                    <div className="flex items-center gap-1.5 shrink-0">
+                    <div className="flex min-w-0 items-center justify-end gap-1 sm:gap-1.5">
                         <FactsStatusPanel />
                         {onSwitchToWrite && (
                             <button
@@ -175,20 +175,22 @@ export const ChatInterface = ({
                         {onDownloadNotes && (
                             <button
                                 onClick={onDownloadNotes}
-                                className="t-btn t-btn-ghost"
+                                className="t-btn t-btn-ghost shrink-0 px-2 sm:px-3"
                                 title="Export all raw notes"
+                                aria-label="Export all raw notes"
                             >
-                                <Download className="w-3.5 h-3.5" />
+                                <Download className="h-3.5 w-3.5" />
                                 <span className="hidden sm:inline">Notes</span>
                             </button>
                         )}
                         {onDownloadSignal && (
                             <button
                                 onClick={onDownloadSignal}
-                                className="t-btn t-btn-ghost"
+                                className="t-btn t-btn-ghost shrink-0 px-2 sm:px-3"
                                 title="Export processed signal (CURRENT STATE + facts)"
+                                aria-label="Export processed signal"
                             >
-                                <Download className="w-3.5 h-3.5" />
+                                <Download className="h-3.5 w-3.5" />
                                 <span className="hidden sm:inline">Signal</span>
                             </button>
                         )}
