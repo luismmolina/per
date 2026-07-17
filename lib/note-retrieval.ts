@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
-import { prependWorldStateToNotes } from './facts'
+import { combineWorldStateAndNotes, loadWorldStateForPromptBudget } from './facts'
 import { type NoteRetrievalProfile } from './note-rerank'
 import { createOpencodeText } from './opencode'
 
@@ -154,7 +154,8 @@ async function expandQueryWithLLM(
 }
 
 // Keep prompts lean for Vercel Hobby / OpenCode latency.
-// When embeddings retrieval is off, these caps still apply (recent notes preferred).
+// maxPromptChars is a SHARED budget: CURRENT STATE (compressed facts) is reserved first,
+// then remaining chars go to raw notes. State does not stack on top of a full note window.
 const RETRIEVAL_PROFILES: Record<NoteRetrievalProfile, RetrievalProfileConfig> = {
   chat: {
     candidateLimit: 150,
@@ -670,11 +671,12 @@ function selectNotesWithinBudget(
   return selectedNotes
 }
 
-/** Prefer newest notes under the profile char budget (used when embeddings retrieval is off/unavailable). */
+/** Prefer newest notes under a char budget (used when embeddings retrieval is off/unavailable). */
 function selectRecentNotesWithinBudget(
   notes: NoteIndexSource[],
   profile: RetrievalProfileConfig,
   userTimezone?: string,
+  maxPromptChars?: number,
 ): NoteIndexSource[] {
   const newestFirst = [...notes].sort(
     (left, right) => new Date(right.timestampIso).getTime() - new Date(left.timestampIso).getTime(),
@@ -683,7 +685,7 @@ function selectRecentNotesWithinBudget(
     newestFirst,
     profile.timestampStyle,
     userTimezone,
-    profile.maxPromptChars,
+    maxPromptChars ?? profile.maxPromptChars,
   )
   return selected.sort(
     (left, right) => new Date(left.timestampIso).getTime() - new Date(right.timestampIso).getTime(),
@@ -696,18 +698,25 @@ async function buildBudgetedFallbackResult(
   profileName: NoteRetrievalProfile,
   userTimezone?: string,
 ): Promise<NoteContextResult> {
-  const selected = selectRecentNotesWithinBudget(allNotes, profile, userTimezone)
+  // Shared budget: compressed state first, raw notes fill the remainder.
+  const budget = await loadWorldStateForPromptBudget(profile.maxPromptChars)
+  const selected = selectRecentNotesWithinBudget(
+    allNotes,
+    profile,
+    userTimezone,
+    budget.notesBudgetChars,
+  )
   const rawNotesText = selected
     .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, userTimezone)}] ${note.content}`)
     .join('\n')
-  const notesText = await prependWorldStateToNotes(rawNotesText)
+  const notesText = combineWorldStateAndNotes(budget.worldState, rawNotesText)
   const fullPromptChars = formatNotesForPrompt(allNotes, profile.timestampStyle, userTimezone).length
   const promptReductionRatio = fullPromptChars > 0
-    ? Math.max(0, 1 - (rawNotesText.length / fullPromptChars))
+    ? Math.max(0, 1 - (notesText.length / fullPromptChars))
     : 0
 
   console.log(
-    `[note-retrieval] ${profileName} fallback budget: ${selected.length}/${allNotes.length} notes, ${rawNotesText.length}/${fullPromptChars} chars (${Math.round(promptReductionRatio * 100)}% reduction)`,
+    `[note-retrieval] ${profileName} fallback budget: state ${budget.stateChars}ch + notes ${rawNotesText.length}ch (${selected.length}/${allNotes.length}) → total ${notesText.length}/${profile.maxPromptChars} shared (corpus ${fullPromptChars}, ${Math.round(promptReductionRatio * 100)}% reduction)`,
   )
 
   return {
@@ -783,7 +792,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
   const nowIso = normalizeNowIso(input.currentDate)
 
   if (!allNotes.length) {
-    const notesText = await prependWorldStateToNotes('')
+    const budget = await loadWorldStateForPromptBudget(profile.maxPromptChars)
+    const notesText = combineWorldStateAndNotes(budget.worldState, '')
     return {
       notesText,
       noteIds: [],
@@ -865,6 +875,10 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
       nowIso,
     ) as HydratedRetrievalCandidate[]
 
+    // Shared memory budget: CURRENT STATE first, raw notes only use leftover chars.
+    const budget = await loadWorldStateForPromptBudget(profile.maxPromptChars)
+    const notesBudgetChars = budget.notesBudgetChars
+
     const primaryNotes = selectedCandidates
       .sort((left, right) => right.combinedScore - left.combinedScore)
       .map<NoteIndexSource>((candidate) => ({
@@ -878,10 +892,10 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
       primaryNotes,
       profile.timestampStyle,
       input.userTimezone,
-      profile.maxPromptChars,
+      notesBudgetChars,
     )
 
-    // Pass 2: Short-note sweep — fill remaining budget with cheap, relevant short notes
+    // Pass 2: Short-note sweep — fill remaining note budget with cheap, relevant short notes
     const shortNoteBudgetRatio = profile.shortNoteBudgetRatio ?? 0.15
     const primaryIds = new Set(budgetedPrimary.map((note) => note.noteId))
 
@@ -891,8 +905,8 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
       primaryChars += line.length + 1
     }
 
-    const maxShortBudget = Math.floor(profile.maxPromptChars * shortNoteBudgetRatio)
-    const remainingBudget = Math.min(maxShortBudget, profile.maxPromptChars - primaryChars)
+    const maxShortBudget = Math.floor(notesBudgetChars * shortNoteBudgetRatio)
+    const remainingBudget = Math.min(maxShortBudget, Math.max(0, notesBudgetChars - primaryChars))
 
     const shortNoteCandidates = hydratedRankedCandidates
       .filter((candidate) =>
@@ -925,16 +939,16 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const rawNotesText = allSelected
       .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, input.userTimezone)}] ${note.content}`)
       .join('\n')
-    const notesText = await prependWorldStateToNotes(rawNotesText)
+    const notesText = combineWorldStateAndNotes(budget.worldState, rawNotesText)
 
     const selectedNoteIds = allSelected.map((note) => note.noteId)
 
     const promptReductionRatio = fullNotesText.length > 0
-      ? Math.max(0, 1 - (rawNotesText.length / fullNotesText.length))
+      ? Math.max(0, 1 - (notesText.length / fullNotesText.length))
       : 0
 
     console.log(
-      `[note-retrieval] ${input.profile}: ${selectedNoteIds.length}/${allNotes.length} notes selected (${sweepNotes.length} short-note sweep, +${sweepChars} chars), ${Math.round(promptReductionRatio * 100)}% prompt reduction`,
+      `[note-retrieval] ${input.profile}: state ${budget.stateChars}ch + notes ${rawNotesText.length}ch (${selectedNoteIds.length}/${allNotes.length}, sweep ${sweepNotes.length}) → total ${notesText.length}/${profile.maxPromptChars} shared (${Math.round(promptReductionRatio * 100)}% vs full corpus)`,
     )
 
     return {

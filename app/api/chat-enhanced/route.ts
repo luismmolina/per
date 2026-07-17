@@ -23,9 +23,9 @@ CONTEXT:
 - ${input.timezoneLine}
 
     LONG-TERM MEMORY:
-    The block below may start with CURRENT STATE (structured facts) then recent notes.
-    For quantities, prices, ROAS, policies, and metrics: prefer CURRENT STATE over prose.
-    Notes explain context; state is the signal layer for numbers.
+    Shared budget: CURRENT STATE (compressed facts) first, then remaining room for recent notes.
+    For quantities, prices, ROAS, policies, and metrics: prefer CURRENT STATE over prose notes.
+    Notes are narrative/context only; do not re-count a number if CURRENT STATE already has it.
 
     ${input.notesContext}
 

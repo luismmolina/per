@@ -15,6 +15,12 @@ export {
   getFactLedgerStatus,
 } from './sync'
 export type { FactLedgerStatus } from './sync'
-export { formatWorldStateForPrompt, prependWorldStateToNotes } from './format'
+export {
+  formatWorldStateForPrompt,
+  loadWorldStateForPromptBudget,
+  combineWorldStateAndNotes,
+  prependWorldStateToNotes,
+} from './format'
+export type { WorldStateBudget } from './format'
 export { listCurrentState, listFactIndexRecords, listAllFactEvents } from './store'
 export { buildStateKey } from './extract'

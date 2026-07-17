@@ -1,7 +1,18 @@
 import { listCurrentState } from './store'
 import type { CurrentStateRecord } from './types'
 
+/** Hard ceiling for the CURRENT STATE block alone (within shared total budget). */
 const DEFAULT_MAX_STATE_CHARS = 12000
+
+/** Approximate size of section headers when combining state + notes. */
+const COMBINE_OVERHEAD_CHARS = 320
+
+/**
+ * Never let state consume the entire memory budget — keep room for narrative notes.
+ * Fraction of the *shared* total reserved as max for compressed facts.
+ */
+const MAX_STATE_FRACTION_OF_TOTAL = 0.45
+
 const DEFAULT_MAX_RECENT_CHANGES = 25
 
 function formatDate(iso: string): string {
@@ -113,19 +124,84 @@ export async function formatWorldStateForPrompt(options?: {
   return parts.join('\n')
 }
 
+export interface WorldStateBudget {
+  worldState: string
+  /** Chars remaining for raw note lines after state + section headers. */
+  notesBudgetChars: number
+  /** Shared total budget this split was computed for. */
+  totalBudgetChars: number
+  stateChars: number
+}
+
 /**
- * Prepend world state to a notes context string for any AI route.
+ * Split a *shared* memory budget between CURRENT STATE and raw notes.
+ * State is loaded first; notes only fill what is left so we do not stack
+ * full note windows on top of compressed facts.
  */
-export async function prependWorldStateToNotes(notesText: string): Promise<string> {
-  const worldState = await formatWorldStateForPrompt()
-  if (!worldState) return notesText
+export async function loadWorldStateForPromptBudget(
+  totalBudgetChars: number,
+): Promise<WorldStateBudget> {
+  const safeTotal = Math.max(0, Math.floor(totalBudgetChars))
+  const maxStateChars = Math.min(
+    DEFAULT_MAX_STATE_CHARS,
+    Math.max(0, Math.floor(safeTotal * MAX_STATE_FRACTION_OF_TOTAL)),
+  )
+
+  const worldState = maxStateChars > 0
+    ? await formatWorldStateForPrompt({ maxStateChars })
+    : ''
+
+  if (!worldState) {
+    return {
+      worldState: '',
+      notesBudgetChars: safeTotal,
+      totalBudgetChars: safeTotal,
+      stateChars: 0,
+    }
+  }
+
+  const stateChars = worldState.length
+  const notesBudgetChars = Math.max(0, safeTotal - stateChars - COMBINE_OVERHEAD_CHARS)
+
+  return {
+    worldState,
+    notesBudgetChars,
+    totalBudgetChars: safeTotal,
+    stateChars,
+  }
+}
+
+/**
+ * Combine pre-loaded world state with already-budgeted note text.
+ * Prefer loadWorldStateForPromptBudget → select notes → this, so totals stay bounded.
+ */
+export function combineWorldStateAndNotes(worldState: string, notesText: string): string {
+  if (!worldState?.trim()) {
+    return notesText
+  }
 
   const notesBlock = notesText?.trim()
     ? `═══════════════════════════════════════════════════════════════
-RECENT / SELECTED NOTES (narrative evidence — lower trust than CURRENT STATE for quantities)
+RECENT / SELECTED NOTES (narrative only — quantities prefer CURRENT STATE above)
 ═══════════════════════════════════════════════════════════════
 ${notesText}`
-    : '(No recent notes in budget.)'
+    : '(No additional notes in remaining budget after CURRENT STATE.)'
 
   return `${worldState}\n\n${notesBlock}`
+}
+
+/**
+ * @deprecated Prefer loadWorldStateForPromptBudget + select notes under notesBudgetChars +
+ * combineWorldStateAndNotes so compressed state does not increase total context.
+ * Kept for any external callers: uses a default shared total of 28k.
+ */
+export async function prependWorldStateToNotes(notesText: string): Promise<string> {
+  const { worldState, notesBudgetChars } = await loadWorldStateForPromptBudget(28_000)
+  // Caller already selected notes without knowing the budget — only combine, cannot shrink.
+  // Truncate raw notes if they exceed the remaining budget so we still do not explode context.
+  let trimmed = notesText?.trim() ?? ''
+  if (trimmed.length > notesBudgetChars) {
+    trimmed = `${trimmed.slice(0, Math.max(0, notesBudgetChars - 1)).trimEnd()}…`
+  }
+  return combineWorldStateAndNotes(worldState, trimmed)
 }
