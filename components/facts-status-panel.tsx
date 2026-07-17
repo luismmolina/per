@@ -118,9 +118,10 @@ export function FactsStatusPanel() {
     try {
       const data = await postSyncBatch(BATCH_LIMIT)
       if (!data.status) await refresh()
+      const rem = data.remainingDirty ?? 0
       setLastSyncMessage(
         `Batch: +${data.processed ?? 0} notes, ${data.factsWritten ?? 0} facts` +
-          (data.remainingDirty > 0 ? ` · ${data.remainingDirty} left` : ' · complete'),
+          (rem > 0 ? ` · ${rem} left` : ' · complete'),
       )
     } catch (error) {
       setLastSyncMessage(error instanceof Error ? error.message : String(error))
