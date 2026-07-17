@@ -13,9 +13,9 @@
 | Framework | **Next.js 14** (App Router) |
 | Language | **TypeScript** (strict mode) |
 | Frontend | **React 18**, Tailwind CSS, Framer Motion, Lucide React icons |
-| AI | **Google Gemini** (via `openai` SDK — configurable model via `GEMINI_MODEL` env var) |
+| AI | **OpenCode Zen** (Grok) for chat/specialists; optional **Gemini** for fact extraction |
 | Voice | **Groq Whisper** large-v3-turbo (`groq-sdk`) |
-| Database | **Neon Postgres** (`@neondatabase/serverless`) — conversations stored as JSON documents |
+| Database | **Firebase/Firestore** — conversations + fact ledger (`note_fact_index`, `fact_events`, `current_state`) |
 | Markdown | `react-markdown` + `remark-gfm` |
 | Utilities | `clsx`, `tailwind-merge`, `ffmpeg-static` (audio processing) |
 
@@ -65,6 +65,7 @@ types/
 3. **Voice notes** are recorded in the browser, sent to `/api/transcribe` (Groq Whisper), and auto-saved as notes.
 4. **Deep Read** calls `/api/longform` which fetches all notes from the DB and generates a long-form synthesis, streamed back to the client.
 5. **Production costs** are fetched via `/api/dishes-proxy` from `https://cogs-two.vercel.app/api/dishes/prices` and included in AI context.
+6. **Fact ledger** extracts atomic facts from notes (on save + `/api/facts/sync` backfill) into Firestore `fact_events` / `current_state`. AI prompts always get CURRENT STATE before recent notes. Embeddings retrieval is optional and off by default.
 
 ## Building and Running
 

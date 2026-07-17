@@ -49,7 +49,8 @@ QUALITY BAR
 ════════════════════════════════════
 
 - Every claim either cites a note fact/number or is explicitly labeled as inference.
-- If you cannot quantify a gap, metric, or EV term from notes, say "unquantified in notes" — do not fake precision.
+- If you cannot quantify a gap, metric, or EV term from notes or CURRENT STATE, say "unquantified in notes" — do not fake precision.
+- Prefer CURRENT STATE for prices, ROAS, costs, and policies over older prose.
 - "New options" must be materially different from ideas already in the notes. Their own ideas go under Radar, never under New.
 - Prefer options that fit documented constraints (labor, cash, capacity, location, skills).
 - One Action beats three mediocre ideas. If only one option is genuinely new, output one.

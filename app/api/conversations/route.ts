@@ -10,6 +10,7 @@ import {
 } from '../../../lib/storage'
 
 let _syncNoteIndex: ((data: any) => Promise<any>) | null | undefined = undefined
+let _syncNoteFacts: ((data: any, options?: { maxNotes?: number }) => Promise<any>) | null | undefined = undefined
 
 async function syncNoteIndex(data: any): Promise<boolean> {
   if (_syncNoteIndex === undefined) {
@@ -28,6 +29,23 @@ async function syncNoteIndex(data: any): Promise<boolean> {
   return false
 }
 
+async function syncNoteFacts(data: any, maxNotes = 3): Promise<boolean> {
+  if (_syncNoteFacts === undefined) {
+    try {
+      const mod = await import('../../../lib/facts')
+      _syncNoteFacts = mod.syncConversationNoteFacts
+    } catch {
+      console.warn('[conversations] facts module unavailable — skipping fact sync')
+      _syncNoteFacts = null
+    }
+  }
+  if (_syncNoteFacts) {
+    await _syncNoteFacts(data, { maxNotes })
+    return true
+  }
+  return false
+}
+
 async function maybeSyncNoteIndex(
   conversations: Record<string, unknown>,
   previousFingerprint?: string,
@@ -35,6 +53,12 @@ async function maybeSyncNoteIndex(
   const fingerprint = computeNoteIndexFingerprint(conversations as any)
   if (fingerprint === previousFingerprint) {
     logDbTransfer('conversations.syncNoteIndex', { syncSkipped: true })
+    // Still extract facts for any dirty notes (independent of embedding fingerprint)
+    try {
+      await syncNoteFacts(conversations, 3)
+    } catch (error) {
+      console.error('Failed to sync note facts:', error)
+    }
     return false
   }
 
@@ -48,6 +72,11 @@ async function maybeSyncNoteIndex(
   }
 
   await syncNoteIndex(conversationData)
+  try {
+    await syncNoteFacts(conversationData, 3)
+  } catch (error) {
+    console.error('Failed to sync note facts after index sync:', error)
+  }
   logDbTransfer('conversations.syncNoteIndex', { syncSkipped: false, noteIndexFingerprint: fingerprint })
   return true
 }

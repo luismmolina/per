@@ -22,7 +22,11 @@ CONTEXT:
 - Today: ${input.currentDateLine}
 - ${input.timezoneLine}
 
-    LONG-TERM MEMORY (RETRIEVED USER NOTES):
+    LONG-TERM MEMORY:
+    The block below may start with CURRENT STATE (structured facts) then recent notes.
+    For quantities, prices, ROAS, policies, and metrics: prefer CURRENT STATE over prose.
+    Notes explain context; state is the signal layer for numbers.
+
     ${input.notesContext}
 
 USER QUERY:

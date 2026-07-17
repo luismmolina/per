@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 
 import { embedTexts, isGeminiRetrievalEnabled } from './embeddings'
+import { prependWorldStateToNotes } from './facts'
 import { type NoteRetrievalProfile } from './note-rerank'
 import { createOpencodeText } from './opencode'
 
@@ -689,23 +690,24 @@ function selectRecentNotesWithinBudget(
   )
 }
 
-function buildBudgetedFallbackResult(
+async function buildBudgetedFallbackResult(
   allNotes: NoteIndexSource[],
   profile: RetrievalProfileConfig,
   profileName: NoteRetrievalProfile,
   userTimezone?: string,
-): NoteContextResult {
+): Promise<NoteContextResult> {
   const selected = selectRecentNotesWithinBudget(allNotes, profile, userTimezone)
-  const notesText = selected
+  const rawNotesText = selected
     .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, userTimezone)}] ${note.content}`)
     .join('\n')
+  const notesText = await prependWorldStateToNotes(rawNotesText)
   const fullPromptChars = formatNotesForPrompt(allNotes, profile.timestampStyle, userTimezone).length
   const promptReductionRatio = fullPromptChars > 0
-    ? Math.max(0, 1 - (notesText.length / fullPromptChars))
+    ? Math.max(0, 1 - (rawNotesText.length / fullPromptChars))
     : 0
 
   console.log(
-    `[note-retrieval] ${profileName} fallback budget: ${selected.length}/${allNotes.length} notes, ${notesText.length}/${fullPromptChars} chars (${Math.round(promptReductionRatio * 100)}% reduction)`,
+    `[note-retrieval] ${profileName} fallback budget: ${selected.length}/${allNotes.length} notes, ${rawNotesText.length}/${fullPromptChars} chars (${Math.round(promptReductionRatio * 100)}% reduction)`,
   )
 
   return {
@@ -781,8 +783,9 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
   const nowIso = normalizeNowIso(input.currentDate)
 
   if (!allNotes.length) {
+    const notesText = await prependWorldStateToNotes('')
     return {
-      notesText: '',
+      notesText,
       noteIds: [],
       diagnostics: {
         profile: input.profile,
@@ -793,7 +796,7 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
         shortNotesIncluded: 0,
         shortNoteChars: 0,
         fullPromptChars: 0,
-        selectedPromptChars: 0,
+        selectedPromptChars: notesText.length,
         promptReductionRatio: 0,
         rerankerUsed: false,
         fallbackUsed: false,
@@ -802,13 +805,13 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
   }
 
   if (!isGeminiRetrievalEnabled()) {
-    return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
+    return await buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
   }
 
   try {
     const indexedNotes = await loadIndexedNoteMetadata()
     if (!indexedNotes.length) {
-      return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
+      return await buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
     }
 
     const queries = profile.buildQueries(input)
@@ -919,14 +922,15 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     const allSelected = [...budgetedPrimary, ...sweepNotes]
       .sort((left, right) => new Date(left.timestampIso).getTime() - new Date(right.timestampIso).getTime())
 
-    const notesText = allSelected
+    const rawNotesText = allSelected
       .map((note) => `[${formatTimestampForPrompt(note.timestampIso, profile.timestampStyle, input.userTimezone)}] ${note.content}`)
       .join('\n')
+    const notesText = await prependWorldStateToNotes(rawNotesText)
 
     const selectedNoteIds = allSelected.map((note) => note.noteId)
 
     const promptReductionRatio = fullNotesText.length > 0
-      ? Math.max(0, 1 - (notesText.length / fullNotesText.length))
+      ? Math.max(0, 1 - (rawNotesText.length / fullNotesText.length))
       : 0
 
     console.log(
@@ -953,6 +957,6 @@ export async function getRelevantNotesContext(input: NoteContextRequest): Promis
     }
   } catch (error) {
     console.error(`[note-retrieval] Falling back to budgeted note context for ${input.profile}:`, error)
-    return buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
+    return await buildBudgetedFallbackResult(allNotes, profile, input.profile, input.userTimezone)
   }
 }

@@ -34,6 +34,7 @@ declare namespace NodeJS {
     GEMINI_EMBEDDING_DIMENSIONS?: string;
     GEMINI_RERANK_MODEL?: string;
     ENABLE_GEMINI_NOTE_RETRIEVAL?: string;
+    ENABLE_NOTE_FACTS?: string;
     OPENROUTER_API_KEY?: string;
     OPENROUTER_MODEL?: string;
     OPENROUTER_EXPLORE_MODEL?: string;

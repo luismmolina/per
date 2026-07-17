@@ -9,7 +9,8 @@
     "lint": "next lint",
     "test": "node scripts/test-explore-response.cjs",
     "firebase:env": "node scripts/print-firebase-env.js",
-    "migrate:firebase": "node scripts/migrate-notes-to-firebase.js"
+    "migrate:firebase": "node scripts/migrate-notes-to-firebase.js",
+    "facts:sync": "node scripts/backfill-note-facts.js"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.100.1",
