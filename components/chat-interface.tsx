@@ -33,6 +33,7 @@ interface ChatInterfaceProps {
     onVoiceStart?: () => void
     onVoiceStop?: () => void
     onDownloadNotes?: () => void
+    onDownloadSignal?: () => void
     onSwitchToSignal?: () => void
     onSwitchToMove?: () => void
     onSwitchToWrite?: () => void
@@ -53,6 +54,7 @@ export const ChatInterface = ({
     onVoiceStart,
     onVoiceStop,
     onDownloadNotes,
+    onDownloadSignal,
     onSwitchToSignal,
     onSwitchToMove,
     onSwitchToWrite
@@ -174,10 +176,20 @@ export const ChatInterface = ({
                             <button
                                 onClick={onDownloadNotes}
                                 className="t-btn t-btn-ghost"
-                                title="Export all notes"
+                                title="Export all raw notes"
                             >
                                 <Download className="w-3.5 h-3.5" />
-                                <span>Export</span>
+                                <span className="hidden sm:inline">Notes</span>
+                            </button>
+                        )}
+                        {onDownloadSignal && (
+                            <button
+                                onClick={onDownloadSignal}
+                                className="t-btn t-btn-ghost"
+                                title="Export processed signal (CURRENT STATE + facts)"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                <span className="hidden sm:inline">Signal</span>
                             </button>
                         )}
                     </div>

@@ -581,6 +581,10 @@ export default function Home() {
     window.location.href = '/api/download-notes'
   }
 
+  const handleDownloadSignal = () => {
+    window.location.href = '/api/download-signal'
+  }
+
   const handleGenerateLongform = async () => {
     // If we have no local messages, it's possible they just haven't loaded,
     // but the server logic (fetchAllNotes: true) handles the empty case too.
@@ -788,6 +792,7 @@ export default function Home() {
                 onVoiceStart={toggleRecording}
                 onVoiceStop={toggleRecording}
                 onDownloadNotes={handleDownloadNotes}
+                onDownloadSignal={handleDownloadSignal}
                 onSwitchToSignal={() => setActiveTab('signal')}
                 onSwitchToMove={() => setActiveTab('move')}
                 onSwitchToWrite={isDesktop ? handleOpenWriter : undefined}

@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Database, Loader2, RefreshCw, X } from 'lucide-react'
+import { Database, Download, Loader2, RefreshCw, X } from 'lucide-react'
 
 export interface FactLedgerStatusPayload {
   enabled: boolean
@@ -223,10 +223,10 @@ export function FactsStatusPanel() {
                     </div>
                   </dl>
 
-                  <div className="mt-3 flex items-center gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <button
                       type="button"
-                      className="t-btn t-btn-ghost flex-1"
+                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
                       onClick={() => void refresh()}
                       disabled={loading || syncing}
                     >
@@ -235,7 +235,18 @@ export function FactsStatusPanel() {
                     </button>
                     <button
                       type="button"
-                      className="t-btn t-btn-primary flex-1"
+                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
+                      onClick={() => {
+                        window.location.href = '/api/download-signal'
+                      }}
+                      title="Download CURRENT STATE + all extracted facts as a text file"
+                    >
+                      <Download className="h-3.5 w-3.5" />
+                      <span>Export</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="t-btn t-btn-primary flex-1 min-w-[7rem]"
                       onClick={() => void runSyncBatch()}
                       disabled={!status.enabled || syncing || remaining === 0}
                       title={
