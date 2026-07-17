@@ -129,6 +129,7 @@ export async function recomputeCurrentStateForKeys(stateKeys: string[]): Promise
       stateKey: current.stateKey,
       entity: current.entity,
       attribute: current.attribute,
+      claim: current.claim,
       valueText: current.valueText,
       valueNum: current.valueNum,
       unit: current.unit,
@@ -138,6 +139,7 @@ export async function recomputeCurrentStateForKeys(stateKeys: string[]): Promise
       sourceNoteId: current.sourceNoteId,
       sourceFactId: current.factId,
       previousValueText: previous?.valueText ?? null,
+      previousClaim: previous?.claim ?? null,
       previousAsOf: previous?.asOf ?? null,
       previousSourceNoteId: previous?.sourceNoteId ?? null,
       updatedAt: new Date().toISOString(),
@@ -236,11 +238,12 @@ export interface FactLedgerStatus {
   sampleState: Array<{
     entity: string
     attribute: string
+    claim: string
     value: string
     unit: string | null
     polarity: string
     asOf: string
-    previous: { value: string; asOf: string | null } | null
+    previous: { value: string; claim: string | null; asOf: string | null } | null
   }>
 }
 
@@ -293,12 +296,17 @@ export async function getFactLedgerStatus(
     sampleState: state.slice(0, 40).map((row) => ({
       entity: row.entity,
       attribute: row.attribute,
+      claim: row.claim,
       value: row.valueText,
       unit: row.unit,
       polarity: row.polarity,
       asOf: row.asOf,
       previous: row.previousValueText
-        ? { value: row.previousValueText, asOf: row.previousAsOf ?? null }
+        ? {
+            value: row.previousValueText,
+            claim: row.previousClaim ?? null,
+            asOf: row.previousAsOf ?? null,
+          }
         : null,
     })),
   }

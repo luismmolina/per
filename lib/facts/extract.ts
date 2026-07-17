@@ -28,13 +28,20 @@ const EXTRACT_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          claim: {
+            type: 'string',
+            description:
+              'ONE full sentence that stands alone: who/what product, what the number means, the value, and unit. A stranger reading only this sentence must understand the fact.',
+          },
           entity: {
             type: 'string',
-            description: 'Stable subject, e.g. Costa Coral, TikTok ads, Buffet Básico, Luis',
+            description:
+              'Specific subject people would search for, e.g. Costa Coral, Buffet Básico, TikTok ads Costa Coral, Health worker system product — never a vague label alone',
           },
           attribute: {
             type: 'string',
-            description: 'Snake or dotted metric/policy name, e.g. daily_sales, buffet.tacos_per_guest, ROAS, price',
+            description:
+              'Specific metric/policy name that includes role of the value, e.g. subscription_price_monthly, buffet.basico_price, tiktok.ROAS — never bare "price"',
           },
           valueText: {
             type: 'string',
@@ -65,11 +72,11 @@ const EXTRACT_SCHEMA = {
           },
           rawSpan: {
             type: 'string',
-            description: 'Short quote from the note supporting the fact',
-            nullable: true,
+            description:
+              '1-3 sentences copied/paraphrased tightly from the note that preserve WHAT the number is about — not a fragment like "a monthly of 1999 pesos"',
           },
         },
-        required: ['entity', 'attribute', 'valueText', 'polarity'],
+        required: ['claim', 'entity', 'attribute', 'valueText', 'polarity', 'rawSpan'],
       },
     },
     skipReason: {
@@ -156,16 +163,24 @@ SPECIAL: This text looks like a pasted AI analysis / economic model of older dat
 `
     : ''
 
-  return `You extract atomic FACTS from a personal business/life journal note. Signal only — no fluff.
+  return `You extract MEANINGFUL atomic FACTS from a personal business/life journal. Compress fluff, never strip meaning.
 
 NOTE TIMESTAMP (default asOf if no date in text): ${input.noteTimestampIso}
 CHUNK: ${input.chunkIndex + 1}/${input.chunkTotal}
 ${derivedBlock}
 
+PRIMARY RULE — claim is the product:
+- Every fact MUST include "claim": one full sentence a stranger can understand WITHOUT reading the note.
+- Bad claim: "Price is 1999" / "monthly is 1999 pesos"
+- Good claim: "The Health worker system product is priced at 1,999 MXN per month (subscription)."
+- Bad rawSpan: "a monthly of 1999 pesos"
+- Good rawSpan: include the product/topic + the number + what kind of price (monthly fee, buffet ticket, ad spend, etc.)
+
 RULES:
 1. Extract ONLY concrete claims: numbers, prices, metrics, policies, decisions, stable identity, hard constraints.
 2. Skip emotions, motivation, vague worry, pure brainstorming without numbers, and pure process chatter.
-3. polarity:
+3. If a number appears but you cannot say WHAT it is for (product, channel, metric role), DO NOT extract it — omit rather than emit a hollow triple.
+4. polarity:
    - measurement: observed / sold / measured / POS / "today we…"
    - decision: "I decided", "we will", "we no longer allow", implemented policy
    - estimate: "around", "I think", "suspect", approximate
@@ -173,19 +188,30 @@ RULES:
    - hypothesis: possible explanation
    - constraint: hard limit (no alcohol license, closed Tuesdays, etc.)
    - identity: stable person/business identity (name, location, role)
-4. entity: stable name (Costa Coral, TikTok ads, Buffet Básico, Buffet Premium, Luis, staff names).
-5. attribute: short snake/dot name (price, daily_sales, ROAS, monthly_sales, buffet.tacos_per_guest, beverage_share, staff_count, policy.no_mixed_tables).
-6. If a note says "was X now Y" or "reduced from A to B", emit TWO facts (old + new) with clear values.
-7. currency is usually MXN. ROAS as multiplier (10x → valueNum 10, unit "x"). Percents as 0-100 or ratio — keep valueText faithful.
-8. Max 15 facts per chunk. Prefer fewer high-signal facts.
-9. If nothing extractable, return facts: [].
+5. entity: specific (Costa Coral, Buffet Básico, TikTok ads for Costa Coral, "Health worker system" product). Include enough to disambiguate.
+6. attribute: specific role of the value (subscription_price_monthly, buffet.basico_price, daily_sales, tiktok.ROAS) — NEVER bare "price" or "amount" alone.
+7. valueText/valueNum/unit hold the quantity; claim holds the meaning.
+8. If a note says "was X now Y", emit TWO facts (old + new), each with a full claim.
+9. Currency is usually MXN. ROAS as multiplier (10x → valueNum 10, unit "x").
+10. Max 12 facts per chunk. Prefer fewer high-meaning facts over many hollow numbers.
+11. If nothing extractable with clear meaning, return facts: [].
+
+EXAMPLES:
+Note fragment: "I decided the health worker system will be a monthly of 1999 pesos"
+→ claim: "Decided the Health worker system product subscription price is 1,999 MXN per month."
+→ entity: "Health worker system", attribute: "subscription_price_monthly", valueText: "1999", unit: "MXN", polarity: decision
+→ rawSpan: full clause naming the product and that it is a monthly price of 1999 pesos
+
+Note fragment: "today we sold $8737"
+→ claim: "Costa Coral sold 8,737 MXN today."
+→ entity: "Costa Coral", attribute: "daily_sales", ...
 
 NOTE TEXT:
 """
 ${input.content}
 """
 
-Return JSON only matching the schema: { "facts": [...], "skipReason": "..." }.`
+Return JSON only: { "facts": [...], "skipReason": "..." }.`
 }
 
 function clampConfidence(value: unknown): number {
@@ -200,13 +226,86 @@ function normalizePolarity(value: unknown): FactPolarity {
   return 'estimate'
 }
 
+const HOLLOW_ATTRIBUTES = new Set([
+  'price',
+  'amount',
+  'value',
+  'cost',
+  'number',
+  'total',
+  'monthly',
+  'price.monthly',
+  'price_monthly',
+])
+
+function isHollowAttribute(attribute: string): boolean {
+  const a = attribute.toLowerCase().replace(/\s+/g, '_')
+  return HOLLOW_ATTRIBUTES.has(a)
+}
+
+function claimLooksMeaningful(claim: string, valueText: string, entity: string): boolean {
+  if (claim.length < 28) return false
+  // Must not be just "X is Y"
+  const lower = claim.toLowerCase()
+  if (/^(price|amount|value|cost|it|this)\s+(is|=)\s+/i.test(claim)) return false
+  // Prefer that claim mentions the entity or a substantial word from it
+  const entityToken = entity.split(/\s+/).find((t) => t.length >= 4)?.toLowerCase()
+  const mentionsEntity = entityToken ? lower.includes(entityToken) : true
+  const mentionsValue = valueText ? lower.includes(valueText.toLowerCase().replace(/,/g, '')) : true
+  // Need either entity mention or a clear "what for" pattern (per month, buffet, ROAS, sold…)
+  const hasRole =
+    /(per month|monthly|buffet|roas|sold|sales|subscription|price of|fee|spend|cogs|taco|guest|staff|rent|ads?)\b/i.test(
+      claim,
+    )
+  return (mentionsEntity || hasRole) && (mentionsValue || hasRole)
+}
+
 function normalizeDraft(raw: ExtractedFactDraft): ExtractedFactDraft | null {
   const entity = normalizeLabel(String(raw.entity ?? ''))
-  const attribute = normalizeLabel(String(raw.attribute ?? ''))
+  let attribute = normalizeLabel(String(raw.attribute ?? ''))
   const valueText = normalizeLabel(String(raw.valueText ?? ''))
+  let claim = normalizeLabel(String(raw.claim ?? ''))
+  let rawSpan = raw.rawSpan ? normalizeLabel(String(raw.rawSpan)).slice(0, 500) : ''
 
   if (!entity || !attribute || !valueText) return null
   if (valueText.length > 240) return null
+
+  // Upgrade hollow attributes when claim has enough meaning
+  if (isHollowAttribute(attribute)) {
+    if (/month|mensual|subscription|suscrip/i.test(claim + ' ' + rawSpan)) {
+      attribute = 'subscription_price_monthly'
+    } else if (/buffet|b[aá]sico|premium/i.test(claim + ' ' + rawSpan + ' ' + entity)) {
+      attribute = 'menu_price'
+    } else {
+      // Still hollow and no upgrade path — reject rather than store garbage
+      if (!claimLooksMeaningful(claim, valueText, entity)) return null
+      attribute = 'price_unspecified'
+    }
+  }
+
+  // Synthesize a minimal claim only if model forgot it but rawSpan is rich
+  if (!claim || claim.length < 20) {
+    if (rawSpan.length >= 40) {
+      claim = rawSpan.length > 220 ? `${rawSpan.slice(0, 217)}…` : rawSpan
+    } else {
+      return null
+    }
+  }
+
+  if (!claimLooksMeaningful(claim, valueText, entity)) {
+    // One more chance: merge entity + value into a sentence if rawSpan helps
+    if (rawSpan.length >= 40) {
+      claim = `${entity}: ${rawSpan}`.slice(0, 280)
+      if (!claimLooksMeaningful(claim, valueText, entity)) return null
+    } else {
+      return null
+    }
+  }
+
+  // rawSpan must not be a meaningless fragment
+  if (!rawSpan || rawSpan.length < 20) {
+    rawSpan = claim
+  }
 
   let valueNum: number | null = null
   if (typeof raw.valueNum === 'number' && Number.isFinite(raw.valueNum)) {
@@ -216,13 +315,14 @@ function normalizeDraft(raw: ExtractedFactDraft): ExtractedFactDraft | null {
   return {
     entity,
     attribute,
+    claim: claim.slice(0, 320),
     valueText,
     valueNum,
     unit: raw.unit ? normalizeLabel(String(raw.unit)) : null,
     polarity: normalizePolarity(raw.polarity),
     asOf: raw.asOf ? String(raw.asOf) : null,
     confidence: clampConfidence(raw.confidence),
-    rawSpan: raw.rawSpan ? String(raw.rawSpan).slice(0, 280) : null,
+    rawSpan: rawSpan.slice(0, 500),
   }
 }
 
@@ -259,9 +359,9 @@ async function extractChunkWithModel(prompt: string): Promise<ExtractResponse> {
   }
 
   const text = await createOpencodeText({
-    max_tokens: 2500,
+    max_tokens: 3500,
     system:
-      'You are a precise fact extractor. Reply with a single JSON object only. No markdown, no commentary.',
+      'You extract meaningful facts. Every fact needs a full standalone claim sentence. Reply with a single JSON object only. No markdown, no commentary.',
     messages: [{ role: 'user', content: prompt }],
   })
 
@@ -292,6 +392,7 @@ function draftToEvent(
       [
         input.noteId,
         stateKey,
+        draft.claim,
         draft.valueText,
         asOf,
         draft.polarity,
@@ -308,6 +409,7 @@ function draftToEvent(
     entity: draft.entity,
     attribute: draft.attribute,
     stateKey,
+    claim: draft.claim,
     valueText: draft.valueText,
     valueNum: draft.valueNum ?? null,
     unit: draft.unit ?? null,

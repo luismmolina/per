@@ -1,5 +1,5 @@
 /** Extractor version — bump to reprocess all notes with a new prompt/schema. */
-export const FACT_EXTRACTOR_VERSION = 'facts-v1'
+export const FACT_EXTRACTOR_VERSION = 'facts-v2'
 
 export type FactPolarity =
   | 'measurement'
@@ -33,6 +33,8 @@ export interface FactEvent {
   attribute: string
   /** Stable key: normalized entity|attribute */
   stateKey: string
+  /** Standalone one-sentence claim — must be understandable without the note */
+  claim: string
   valueText: string
   valueNum: number | null
   unit: string | null
@@ -48,6 +50,7 @@ export interface CurrentStateRecord {
   stateKey: string
   entity: string
   attribute: string
+  claim: string
   valueText: string
   valueNum: number | null
   unit: string | null
@@ -57,6 +60,7 @@ export interface CurrentStateRecord {
   sourceNoteId: string
   sourceFactId: string
   previousValueText?: string | null
+  previousClaim?: string | null
   previousAsOf?: string | null
   previousSourceNoteId?: string | null
   updatedAt: string
@@ -65,6 +69,8 @@ export interface CurrentStateRecord {
 export interface ExtractedFactDraft {
   entity: string
   attribute: string
+  /** One full sentence: who/what, what changed, the number, and enough context to stand alone */
+  claim: string
   valueText: string
   valueNum?: number | null
   unit?: string | null

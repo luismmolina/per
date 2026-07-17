@@ -18,13 +18,15 @@ function formatValue(record: Pick<CurrentStateRecord, 'valueText' | 'unit'>): st
 }
 
 function formatStateLine(record: CurrentStateRecord): string {
-  const value = formatValue(record)
-  const previous =
-    record.previousValueText && record.previousAsOf
+  const claim = record.claim?.trim()
+    || `${record.entity} / ${record.attribute}: ${formatValue(record)}`
+  const previous = record.previousClaim
+    ? `  (was: ${record.previousClaim})`
+    : record.previousValueText && record.previousAsOf
       ? `  (was ${record.previousValueText}${record.unit ? ` ${record.unit}` : ''} on ${formatDate(record.previousAsOf)})`
       : ''
 
-  return `- ${record.entity} / ${record.attribute}: ${value} [${record.polarity}, as of ${formatDate(record.asOf)}]${previous}`
+  return `- ${claim} [${record.polarity}, as of ${formatDate(record.asOf)}]${previous}`
 }
 
 /**
@@ -85,6 +87,9 @@ export async function formatWorldStateForPrompt(options?: {
     .sort((left, right) => new Date(right.asOf).getTime() - new Date(left.asOf).getTime())
     .slice(0, maxRecentChanges)
     .map((row) => {
+      if (row.previousClaim && row.claim) {
+        return `- ${formatDate(row.asOf)} · ${row.previousClaim} → ${row.claim}`
+      }
       const unit = row.unit ? ` ${row.unit}` : ''
       return `- ${formatDate(row.asOf)} · ${row.entity} / ${row.attribute}: ${row.previousValueText}${unit} → ${row.valueText}${unit}`
     })

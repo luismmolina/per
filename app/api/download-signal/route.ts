@@ -42,12 +42,14 @@ export async function GET() {
             return a.attribute.localeCompare(b.attribute)
           })
           .map((row) => {
-            const unit = row.unit ? ` ${row.unit}` : ''
-            const previous =
-              row.previousValueText && row.previousAsOf
-                ? `  (was ${row.previousValueText}${unit} on ${formatDay(row.previousAsOf)})`
+            const claim = row.claim?.trim()
+              || `${row.entity} / ${row.attribute}: ${row.valueText}${row.unit ? ` ${row.unit}` : ''}`
+            const previous = row.previousClaim
+              ? `  (was: ${row.previousClaim})`
+              : row.previousValueText && row.previousAsOf
+                ? `  (was ${row.previousValueText} on ${formatDay(row.previousAsOf)})`
                 : ''
-            return `- ${row.entity} / ${row.attribute}: ${row.valueText}${unit} [${row.polarity}, as of ${formatDay(row.asOf)}]${previous}`
+            return `- ${claim} [${row.polarity}, as of ${formatDay(row.asOf)}]${previous}`
           })
           .join('\n')
       : '(No current state yet — run Signal extract until notes are processed.)'
@@ -59,11 +61,12 @@ export async function GET() {
     const eventsBlock = chronological.length
       ? chronological
           .map((event) => {
-            const unit = event.unit ? ` ${event.unit}` : ''
+            const claim = event.claim?.trim()
+              || `${event.entity} / ${event.attribute}: ${event.valueText}`
             const raw = event.rawSpan
-              ? ` | raw: "${event.rawSpan.replace(/\s+/g, ' ').trim()}"`
+              ? `\n    raw: "${event.rawSpan.replace(/\s+/g, ' ').trim()}"`
               : ''
-            return `[${formatDate(event.asOf)}] ${event.entity} / ${event.attribute}: ${event.valueText}${unit} [${event.polarity}, conf ${event.confidence.toFixed(2)}] note:${event.sourceNoteId.slice(0, 12)}${raw}`
+            return `[${formatDate(event.asOf)}] ${claim}\n    keys: ${event.entity} / ${event.attribute} = ${event.valueText}${event.unit ? ` ${event.unit}` : ''} [${event.polarity}, conf ${event.confidence.toFixed(2)}] note:${event.sourceNoteId.slice(0, 12)}${raw}`
           })
           .join('\n')
       : '(No fact events yet.)'
@@ -72,6 +75,9 @@ export async function GET() {
       .filter((row) => row.previousValueText && row.previousAsOf)
       .sort((a, b) => new Date(b.asOf).getTime() - new Date(a.asOf).getTime())
       .map((row) => {
+        if (row.previousClaim && row.claim) {
+          return `- ${formatDay(row.asOf)} · ${row.previousClaim} → ${row.claim}`
+        }
         const unit = row.unit ? ` ${row.unit}` : ''
         return `- ${formatDay(row.asOf)} · ${row.entity} / ${row.attribute}: ${row.previousValueText}${unit} → ${row.valueText}${unit}`
       })

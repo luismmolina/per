@@ -56,16 +56,27 @@ function mapIndexDoc(noteId: string, data: DocumentData): NoteFactIndexRecord {
 }
 
 function mapFactEvent(factId: string, data: DocumentData): FactEvent {
+  const entity = asString(data.entity)
+  const attribute = asString(data.attribute)
+  const valueText = asString(data.value_text)
+  const unit = typeof data.unit === 'string' ? data.unit : null
+  const claimFromDb = asString(data.claim)
+  // Back-compat for facts-v1 rows without claim
+  const claim =
+    claimFromDb ||
+    [entity, attribute, valueText, unit].filter(Boolean).join(' · ')
+
   return {
     factId,
     sourceNoteId: asString(data.source_note_id),
     sourceContentHash: asString(data.source_content_hash),
-    entity: asString(data.entity),
-    attribute: asString(data.attribute),
+    entity,
+    attribute,
     stateKey: asString(data.state_key),
-    valueText: asString(data.value_text),
+    claim,
+    valueText,
     valueNum: asNumberOrNull(data.value_num),
-    unit: typeof data.unit === 'string' ? data.unit : null,
+    unit,
     polarity: asPolarity(data.polarity),
     asOf: asString(data.as_of, new Date(0).toISOString()),
     confidence: typeof data.confidence === 'number' ? data.confidence : 0.5,
@@ -76,19 +87,30 @@ function mapFactEvent(factId: string, data: DocumentData): FactEvent {
 }
 
 function mapCurrentState(stateKey: string, data: DocumentData): CurrentStateRecord {
+  const entity = asString(data.entity)
+  const attribute = asString(data.attribute)
+  const valueText = asString(data.value_text)
+  const unit = typeof data.unit === 'string' ? data.unit : null
+  const claimFromDb = asString(data.claim)
+  const claim =
+    claimFromDb ||
+    [entity, attribute, valueText, unit].filter(Boolean).join(' · ')
+
   return {
     stateKey,
-    entity: asString(data.entity),
-    attribute: asString(data.attribute),
-    valueText: asString(data.value_text),
+    entity,
+    attribute,
+    claim,
+    valueText,
     valueNum: asNumberOrNull(data.value_num),
-    unit: typeof data.unit === 'string' ? data.unit : null,
+    unit,
     polarity: asPolarity(data.polarity),
     asOf: asString(data.as_of, new Date(0).toISOString()),
     confidence: typeof data.confidence === 'number' ? data.confidence : 0.5,
     sourceNoteId: asString(data.source_note_id),
     sourceFactId: asString(data.source_fact_id),
     previousValueText: typeof data.previous_value_text === 'string' ? data.previous_value_text : null,
+    previousClaim: typeof data.previous_claim === 'string' ? data.previous_claim : null,
     previousAsOf: typeof data.previous_as_of === 'string' ? data.previous_as_of : null,
     previousSourceNoteId:
       typeof data.previous_source_note_id === 'string' ? data.previous_source_note_id : null,
@@ -205,6 +227,7 @@ export async function writeFactEvents(events: FactEvent[]): Promise<number> {
         entity: event.entity,
         attribute: event.attribute,
         state_key: event.stateKey,
+        claim: event.claim,
         value_text: event.valueText,
         value_num: event.valueNum,
         unit: event.unit,
@@ -249,6 +272,7 @@ export async function upsertCurrentState(record: CurrentStateRecord): Promise<vo
     state_key: record.stateKey,
     entity: record.entity,
     attribute: record.attribute,
+    claim: record.claim,
     value_text: record.valueText,
     value_num: record.valueNum,
     unit: record.unit,
@@ -258,6 +282,7 @@ export async function upsertCurrentState(record: CurrentStateRecord): Promise<vo
     source_note_id: record.sourceNoteId,
     source_fact_id: record.sourceFactId,
     previous_value_text: record.previousValueText ?? null,
+    previous_claim: record.previousClaim ?? null,
     previous_as_of: record.previousAsOf ?? null,
     previous_source_note_id: record.previousSourceNoteId ?? null,
     updated_at: record.updatedAt,

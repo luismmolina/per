@@ -23,11 +23,12 @@ export interface FactLedgerStatusPayload {
   sampleState: Array<{
     entity: string
     attribute: string
+    claim?: string
     value: string
     unit: string | null
     polarity: string
     asOf: string
-    previous: { value: string; asOf: string | null } | null
+    previous: { value: string; claim?: string | null; asOf: string | null } | null
   }>
   error?: string
 }
@@ -280,22 +281,21 @@ export function FactsStatusPanel() {
                       <div className="mb-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-text-muted">
                         Sample CURRENT STATE
                       </div>
-                      <ul className="max-h-40 space-y-1 overflow-y-auto custom-scrollbar font-mono text-[10px] text-text-secondary">
+                      <ul className="max-h-48 space-y-2 overflow-y-auto custom-scrollbar font-mono text-[10px] text-text-secondary">
                         {status.sampleState.slice(0, 12).map((row) => (
                           <li key={`${row.entity}|${row.attribute}|${row.asOf}`}>
-                            <span className="text-text-primary">{row.entity}</span>
-                            <span className="text-text-muted"> / {row.attribute}: </span>
-                            <span>
-                              {row.value}
-                              {row.unit ? ` ${row.unit}` : ''}
-                            </span>
-                            {row.previous && (
-                              <span className="text-text-muted">
-                                {' '}
-                                (was {row.previous.value})
-                              </span>
-                            )}
-                            <span className="text-text-muted"> · {formatAsOf(row.asOf)}</span>
+                            <div className="text-text-primary leading-snug">
+                              {row.claim?.trim()
+                                || `${row.entity} / ${row.attribute}: ${row.value}${row.unit ? ` ${row.unit}` : ''}`}
+                            </div>
+                            <div className="text-text-muted">
+                              {formatAsOf(row.asOf)} · {row.polarity}
+                              {row.previous?.claim
+                                ? ` · was: ${row.previous.claim}`
+                                : row.previous
+                                  ? ` · was ${row.previous.value}`
+                                  : ''}
+                            </div>
                           </li>
                         ))}
                       </ul>
