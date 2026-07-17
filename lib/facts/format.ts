@@ -66,13 +66,14 @@ export async function formatWorldStateForPrompt(options?: {
     return ''
   }
 
-  // Prefer measurements/decisions first, then estimates, then identity/constraints
+  // Prefer hard truth first; keep active plans visible after estimates
   const polarityRank: Record<string, number> = {
     measurement: 0,
     decision: 1,
     constraint: 2,
     estimate: 3,
-    identity: 4,
+    plan: 4,
+    identity: 5,
   }
 
   const sorted = [...stateRows].sort((left, right) => {
@@ -108,6 +109,7 @@ export async function formatWorldStateForPrompt(options?: {
   const parts = [
     '═══════════════════════════════════════════════════════════════',
     'CURRENT STATE (authoritative for numbers & policies — prefer over prose notes)',
+    'Polarity plan = under consideration, not live truth. Prefer measurement/decision over plan when both exist.',
     'When a note conflicts with this block, prefer the later as-of fact and cite both.',
     '═══════════════════════════════════════════════════════════════',
     stateLines.join('\n'),

@@ -1,5 +1,5 @@
 /** Extractor version — bump to reprocess all notes with a new prompt/schema. */
-export const FACT_EXTRACTOR_VERSION = 'facts-v2'
+export const FACT_EXTRACTOR_VERSION = 'facts-v3'
 
 export type FactPolarity =
   | 'measurement'
@@ -91,11 +91,17 @@ export interface FactSyncResult {
   dirtyTotal: number
 }
 
-/** Polarities that may set current_state (plans/hypotheses never win). */
+/**
+ * Polarities that may set current_state.
+ * Plans are eligible at lowest rank so active menu/ops plans still compress into
+ * memory when no stronger measurement/decision exists for that key.
+ * Hypotheses never write current_state.
+ */
 export const STATE_ELIGIBLE_POLARITIES: ReadonlySet<FactPolarity> = new Set([
   'measurement',
   'decision',
   'estimate',
+  'plan',
   'constraint',
   'identity',
 ])

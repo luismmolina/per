@@ -85,10 +85,12 @@ function pickWinningFact(events: FactEvent[]): { current: FactEvent; previous?: 
       const timeDiff = new Date(right.asOf).getTime() - new Date(left.asOf).getTime()
       if (timeDiff !== 0) return timeDiff
 
-      // Prefer measurement/decision over estimate when same day
+      // Prefer hard truth over soft plans when same day / competing events
       const rank = (polarity: string) => {
-        if (polarity === 'measurement' || polarity === 'decision') return 2
-        if (polarity === 'constraint' || polarity === 'identity') return 1
+        if (polarity === 'measurement' || polarity === 'decision') return 4
+        if (polarity === 'constraint' || polarity === 'identity') return 3
+        if (polarity === 'estimate') return 2
+        if (polarity === 'plan') return 1
         return 0
       }
       const rankDiff = rank(right.polarity) - rank(left.polarity)

@@ -31,17 +31,17 @@ const EXTRACT_SCHEMA = {
           claim: {
             type: 'string',
             description:
-              'ONE full sentence that stands alone: who/what product, what the number means, the value, and unit. A stranger reading only this sentence must understand the fact.',
+              'ONE full sentence that stands alone: product/dish, what the value is (size grade, unit cost, qty, price…), the value, and unit. Stranger-readable.',
           },
           entity: {
             type: 'string',
             description:
-              'Specific subject people would search for, e.g. Costa Coral, Buffet Básico, TikTok ads Costa Coral, Health worker system product — never a vague label alone',
+              'Specific subject, e.g. taco gobernador, Costa Coral, Buffet Básico, Health worker system — never a vague label alone',
           },
           attribute: {
             type: 'string',
             description:
-              'Specific metric/policy name that includes role of the value, e.g. subscription_price_monthly, buffet.basico_price, tiktok.ROAS — never bare "price"',
+              'Specific role of the value, e.g. shrimp_size_grade, shrimp_unit_cost_mxn, shrimp_quantity_per_taco, subscription_price_monthly — never bare "price" or "cost"',
           },
           valueText: {
             type: 'string',
@@ -163,48 +163,76 @@ SPECIAL: This text looks like a pasted AI analysis / economic model of older dat
 `
     : ''
 
-  return `You extract MEANINGFUL atomic FACTS from a personal business/life journal. Compress fluff, never strip meaning.
+  return `You extract atomic FACTS from a personal business/life journal.
+Goal: compress fluff but KEEP ALL operational signal (prices, sizes, costs, quantities, recipes, ROAS, policies, plans).
 
 NOTE TIMESTAMP (default asOf if no date in text): ${input.noteTimestampIso}
 CHUNK: ${input.chunkIndex + 1}/${input.chunkTotal}
 ${derivedBlock}
 
-PRIMARY RULE — claim is the product:
-- Every fact MUST include "claim": one full sentence a stranger can understand WITHOUT reading the note.
-- Bad claim: "Price is 1999" / "monthly is 1999 pesos"
-- Good claim: "The Health worker system product is priced at 1,999 MXN per month (subscription)."
+═══════════════════════════════════════════════════════════════
+COMPLETENESS (most common failure — avoid it)
+═══════════════════════════════════════════════════════════════
+- If a note has N independent concrete signals, emit about N facts. Do NOT collapse to one.
+- Independent signals include: product sizes/grades, unit costs, recipe quantities, prices,
+  sales, ROAS, staff counts, hours, policies, planned changes.
+- Example of UNDER-extraction (WRONG): note mentions shrimp size 16/20, cost 4.4 MXN each,
+  and 2 per taco → only one fact "2 shrimp" is emitted. That drops the substance.
+- Example of CORRECT: three separate facts (size, unit cost, qty) for the same product.
+
+PRIMARY RULE — claim carries meaning:
+- Every fact MUST include "claim": one full sentence a stranger understands WITHOUT the note.
+- Bad claim: "Price is 1999" / "2 shrimp"
+- Good claim: "Considering 2 shrimp per taco gobernador (recipe plan)."
 - Bad rawSpan: "a monthly of 1999 pesos"
-- Good rawSpan: include the product/topic + the number + what kind of price (monthly fee, buffet ticket, ad spend, etc.)
+- Good rawSpan: product/topic + number + what the number is (fee, size grade, unit cost, qty…)
 
 RULES:
-1. Extract ONLY concrete claims: numbers, prices, metrics, policies, decisions, stable identity, hard constraints.
-2. Skip emotions, motivation, vague worry, pure brainstorming without numbers, and pure process chatter.
-3. If a number appears but you cannot say WHAT it is for (product, channel, metric role), DO NOT extract it — omit rather than emit a hollow triple.
+1. Extract concrete claims: numbers, sizes/grades (e.g. 16/20 shrimp), prices, unit costs,
+   recipe qty, metrics, policies, decisions, identity, hard constraints, and ACTIVE PLANS
+   with numbers ("thinking of changing…", "plan to put…", "it will cost…").
+2. Skip pure emotion/motivation with no number or policy, and empty process chatter.
+3. If a number appears but you cannot say WHAT it is for, omit it — no hollow triples.
 4. polarity:
    - measurement: observed / sold / measured / POS / "today we…"
-   - decision: "I decided", "we will", "we no longer allow", implemented policy
-   - estimate: "around", "I think", "suspect", approximate
-   - plan: considering / idea / maybe / other idea (NOT current truth)
+   - decision: "I decided", "we will" as committed, "we no longer allow", live policy
+   - estimate: "around", "I think ~", approximate current belief
+   - plan: considering / thinking of / maybe / plan to / "it will cost" under a proposal (NOT live truth yet)
    - hypothesis: possible explanation
    - constraint: hard limit (no alcohol license, closed Tuesdays, etc.)
    - identity: stable person/business identity (name, location, role)
-5. entity: specific (Costa Coral, Buffet Básico, TikTok ads for Costa Coral, "Health worker system" product). Include enough to disambiguate.
-6. attribute: specific role of the value (subscription_price_monthly, buffet.basico_price, daily_sales, tiktok.ROAS) — NEVER bare "price" or "amount" alone.
-7. valueText/valueNum/unit hold the quantity; claim holds the meaning.
+5. entity: specific dish/product/business (taco gobernador, Costa Coral, Buffet Básico…).
+6. attribute: specific role — NEVER bare "price"/"cost"/"amount":
+   good: shrimp_size_grade, shrimp_unit_cost_mxn, shrimp_quantity_per_taco,
+   subscription_price_monthly, buffet.basico_price, daily_sales, tiktok.ROAS
+7. valueText/valueNum/unit hold the quantity; claim holds the full meaning.
+   Size grades like "16/20" → valueText "16/20", valueNum omit if not a single number.
 8. If a note says "was X now Y", emit TWO facts (old + new), each with a full claim.
 9. Currency is usually MXN. ROAS as multiplier (10x → valueNum 10, unit "x").
-10. Max 12 facts per chunk. Prefer fewer high-meaning facts over many hollow numbers.
+10. Max 15 facts per chunk. Prefer COMPLETE coverage of concrete signals over under-extraction.
+    Do not invent facts. Do not drop a clear number/size/cost/qty to "keep it short".
 11. If nothing extractable with clear meaning, return facts: [].
 
 EXAMPLES:
-Note fragment: "I decided the health worker system will be a monthly of 1999 pesos"
-→ claim: "Decided the Health worker system product subscription price is 1,999 MXN per month."
-→ entity: "Health worker system", attribute: "subscription_price_monthly", valueText: "1999", unit: "MXN", polarity: decision
-→ rawSpan: full clause naming the product and that it is a monthly price of 1999 pesos
 
-Note fragment: "today we sold $8737"
+Note: "I decided the health worker system will be a monthly of 1999 pesos"
+→ ONE fact:
+  claim: "Decided the Health worker system product subscription price is 1,999 MXN per month."
+  entity: "Health worker system", attribute: "subscription_price_monthly",
+  valueText: "1999", unit: "MXN", polarity: decision
+
+Note: "today we sold $8737"
 → claim: "Costa Coral sold 8,737 MXN today."
-→ entity: "Costa Coral", attribute: "daily_sales", ...
+  entity: "Costa Coral", attribute: "daily_sales", valueText: "8737", unit: "MXN", polarity: measurement
+
+Note: "currently thinking on changing the shrimp size of taco gobernador, to a size called 16/20. it will cost 4.4 mxn per shrimp and we plan to put 2 shrimp in each taco"
+→ THREE facts (all polarity plan):
+  1) claim: "Considering changing taco gobernador shrimp size grade to 16/20."
+     entity: "taco gobernador", attribute: "shrimp_size_grade", valueText: "16/20", unit: null
+  2) claim: "Planned unit cost for taco gobernador shrimp is 4.4 MXN per shrimp (under size 16/20 proposal)."
+     entity: "taco gobernador", attribute: "shrimp_unit_cost_mxn", valueText: "4.4", valueNum: 4.4, unit: "MXN"
+  3) claim: "Planned recipe for taco gobernador uses 2 shrimp per taco."
+     entity: "taco gobernador", attribute: "shrimp_quantity_per_taco", valueText: "2", valueNum: 2, unit: "shrimp"
 
 NOTE TEXT:
 """
@@ -236,6 +264,9 @@ const HOLLOW_ATTRIBUTES = new Set([
   'monthly',
   'price.monthly',
   'price_monthly',
+  'size',
+  'quantity',
+  'qty',
 ])
 
 function isHollowAttribute(attribute: string): boolean {
@@ -244,17 +275,18 @@ function isHollowAttribute(attribute: string): boolean {
 }
 
 function claimLooksMeaningful(claim: string, valueText: string, entity: string): boolean {
-  if (claim.length < 28) return false
-  // Must not be just "X is Y"
+  if (claim.length < 24) return false
   const lower = claim.toLowerCase()
-  if (/^(price|amount|value|cost|it|this)\s+(is|=)\s+/i.test(claim)) return false
-  // Prefer that claim mentions the entity or a substantial word from it
+  if (/^(price|amount|value|cost|it|this|size|quantity)\s+(is|=)\s+/i.test(claim)) return false
   const entityToken = entity.split(/\s+/).find((t) => t.length >= 4)?.toLowerCase()
   const mentionsEntity = entityToken ? lower.includes(entityToken) : true
-  const mentionsValue = valueText ? lower.includes(valueText.toLowerCase().replace(/,/g, '')) : true
-  // Need either entity mention or a clear "what for" pattern (per month, buffet, ROAS, sold…)
+  const normalizedValue = valueText.toLowerCase().replace(/,/g, '')
+  const mentionsValue = valueText
+    ? lower.includes(normalizedValue) || lower.includes(valueText.toLowerCase())
+    : true
+  // Role words that make a short operational claim usable without the full note
   const hasRole =
-    /(per month|monthly|buffet|roas|sold|sales|subscription|price of|fee|spend|cogs|taco|guest|staff|rent|ads?)\b/i.test(
+    /(per month|monthly|buffet|roas|sold|sales|subscription|price of|fee|spend|cogs|taco|guest|staff|rent|ads?|shrimp|size|grade|unit cost|per shrimp|recipe|plan|considering|thinking)\b/i.test(
       claim,
     )
   return (mentionsEntity || hasRole) && (mentionsValue || hasRole)
@@ -270,16 +302,23 @@ function normalizeDraft(raw: ExtractedFactDraft): ExtractedFactDraft | null {
   if (!entity || !attribute || !valueText) return null
   if (valueText.length > 240) return null
 
-  // Upgrade hollow attributes when claim has enough meaning
+  // Upgrade hollow attributes when claim/span has enough meaning
   if (isHollowAttribute(attribute)) {
-    if (/month|mensual|subscription|suscrip/i.test(claim + ' ' + rawSpan)) {
+    const blob = `${claim} ${rawSpan} ${entity}`
+    if (/month|mensual|subscription|suscrip/i.test(blob)) {
       attribute = 'subscription_price_monthly'
-    } else if (/buffet|b[aá]sico|premium/i.test(claim + ' ' + rawSpan + ' ' + entity)) {
+    } else if (/unit cost|per shrimp|por camar[oó]n|each shrimp/i.test(blob)) {
+      attribute = 'unit_cost'
+    } else if (/\bsize\b|grade|16\/20|21\/25|u\/?\d/i.test(blob)) {
+      attribute = 'size_grade'
+    } else if (/per taco|quantity|qty|pieces? per|piezas/i.test(blob)) {
+      attribute = 'quantity_per_unit'
+    } else if (/buffet|b[aá]sico|premium/i.test(blob)) {
       attribute = 'menu_price'
     } else {
       // Still hollow and no upgrade path — reject rather than store garbage
       if (!claimLooksMeaningful(claim, valueText, entity)) return null
-      attribute = 'price_unspecified'
+      attribute = 'value_unspecified'
     }
   }
 
@@ -361,7 +400,7 @@ async function extractChunkWithModel(prompt: string): Promise<ExtractResponse> {
   const text = await createOpencodeText({
     max_tokens: 3500,
     system:
-      'You extract meaningful facts. Every fact needs a full standalone claim sentence. Reply with a single JSON object only. No markdown, no commentary.',
+      'You extract complete operational facts. If a note has multiple numbers/sizes/costs/quantities, emit multiple facts — never drop signal to stay short. Every fact needs a full standalone claim. Reply with one JSON object only.',
     messages: [{ role: 'user', content: prompt }],
   })
 
