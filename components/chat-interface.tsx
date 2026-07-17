@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react'
 import { MessageBubble } from './ui/message-bubble'
 import { InputArea } from './ui/input-area'
+import { FactsStatusPanel } from './facts-status-panel'
 import { ArrowDown, ChevronUp, Download, FileText } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -158,6 +159,7 @@ export const ChatInterface = ({
                         </span>
                     </div>
                     <div className="flex items-center gap-1.5 shrink-0">
+                        <FactsStatusPanel />
                         {onSwitchToWrite && (
                             <button
                                 onClick={onSwitchToWrite}

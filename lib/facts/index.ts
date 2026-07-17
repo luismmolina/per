@@ -8,7 +8,13 @@ export type {
   NoteFactIndexRecord,
 } from './types'
 
-export { isNoteFactsEnabled, syncConversationNoteFacts, recomputeCurrentStateForKeys } from './sync'
+export {
+  isNoteFactsEnabled,
+  syncConversationNoteFacts,
+  recomputeCurrentStateForKeys,
+  getFactLedgerStatus,
+} from './sync'
+export type { FactLedgerStatus } from './sync'
 export { formatWorldStateForPrompt, prependWorldStateToNotes } from './format'
 export { listCurrentState, listFactIndexRecords, listAllFactEvents } from './store'
 export { buildStateKey } from './extract'

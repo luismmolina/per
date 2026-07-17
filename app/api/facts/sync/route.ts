@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 
 import {
   FACT_EXTRACTOR_VERSION,
+  getFactLedgerStatus,
   isNoteFactsEnabled,
-  listCurrentState,
-  listFactIndexRecords,
   syncConversationNoteFacts,
 } from '../../../../lib/facts'
 import { loadConversations } from '../../../../lib/storage'
@@ -44,11 +43,13 @@ export async function POST(req: NextRequest) {
   try {
     const conversations = await loadConversations()
     const result = await syncConversationNoteFacts(conversations, { maxNotes: limit })
+    const status = await getFactLedgerStatus(conversations)
 
     return NextResponse.json({
       success: true,
       extractorVersion: FACT_EXTRACTOR_VERSION,
       ...result,
+      status,
       hint:
         result.remainingDirty > 0
           ? `Call again to process remaining ${result.remainingDirty} dirty notes.`
@@ -63,48 +64,12 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/facts/sync
- * Status of fact index + sample of current state.
+ * Status of fact index + sample of current state (for UI).
  */
 export async function GET() {
   try {
-    const [index, state] = await Promise.all([
-      listFactIndexRecords(),
-      listCurrentState(),
-    ])
-
-    const byStatus = {
-      done: 0,
-      skipped: 0,
-      failed: 0,
-      pending: 0,
-    }
-    for (const row of index) {
-      byStatus[row.status] = (byStatus[row.status] ?? 0) + 1
-    }
-
-    const staleVersion = index.filter(
-      (row) => row.extractorVersion !== FACT_EXTRACTOR_VERSION,
-    ).length
-
-    return NextResponse.json({
-      enabled: isNoteFactsEnabled(),
-      extractorVersion: FACT_EXTRACTOR_VERSION,
-      indexCount: index.length,
-      byStatus,
-      staleVersion,
-      currentStateCount: state.length,
-      sampleState: state.slice(0, 40).map((row) => ({
-        entity: row.entity,
-        attribute: row.attribute,
-        value: row.valueText,
-        unit: row.unit,
-        polarity: row.polarity,
-        asOf: row.asOf,
-        previous: row.previousValueText
-          ? { value: row.previousValueText, asOf: row.previousAsOf }
-          : null,
-      })),
-    })
+    const status = await getFactLedgerStatus()
+    return NextResponse.json(status)
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     return NextResponse.json({ success: false, error: message }, { status: 500 })

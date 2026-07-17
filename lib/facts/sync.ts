@@ -13,7 +13,9 @@ import {
   deleteFactEventsByNoteId,
   deleteFactIndex,
   getFactIndexMap,
+  listCurrentState,
   listFactEventsByStateKey,
+  listFactIndexRecords,
   upsertCurrentState,
   upsertFactIndex,
   writeFactEvents,
@@ -213,6 +215,98 @@ async function processOneNote(
 
     return { factsWritten: 0, failed: true, skipped: false }
   }
+}
+
+export interface FactLedgerStatus {
+  enabled: boolean
+  extractorVersion: string
+  totalNotes: number
+  indexCount: number
+  processedCount: number
+  remainingDirty: number
+  percentComplete: number
+  byStatus: {
+    done: number
+    skipped: number
+    failed: number
+    pending: number
+  }
+  staleVersion: number
+  currentStateCount: number
+  sampleState: Array<{
+    entity: string
+    attribute: string
+    value: string
+    unit: string | null
+    polarity: string
+    asOf: string
+    previous: { value: string; asOf: string | null } | null
+  }>
+}
+
+/** Full ledger status for UI / GET /api/facts/sync */
+export async function getFactLedgerStatus(
+  conversations?: ConversationData,
+): Promise<FactLedgerStatus> {
+  const enabled = isNoteFactsEnabled()
+  const [index, state, conv] = await Promise.all([
+    listFactIndexRecords(),
+    listCurrentState(),
+    conversations ? Promise.resolve(conversations) : loadConversationsLazy(),
+  ])
+
+  const notes = collectNoteSources(conv)
+  const existingById = new Map(index.map((row) => [row.noteId, row]))
+  const dirty = notes.filter((note) => isDirty(note, existingById.get(note.noteId)))
+
+  const byStatus = {
+    done: 0,
+    skipped: 0,
+    failed: 0,
+    pending: 0,
+  }
+  for (const row of index) {
+    byStatus[row.status] = (byStatus[row.status] ?? 0) + 1
+  }
+
+  const processedCount = byStatus.done + byStatus.skipped
+  const totalNotes = notes.length
+  const remainingDirty = dirty.length
+  const percentComplete =
+    totalNotes > 0 ? Math.round((Math.min(processedCount, totalNotes) / totalNotes) * 100) : 0
+
+  const staleVersion = index.filter(
+    (row) => row.extractorVersion !== FACT_EXTRACTOR_VERSION,
+  ).length
+
+  return {
+    enabled,
+    extractorVersion: FACT_EXTRACTOR_VERSION,
+    totalNotes,
+    indexCount: index.length,
+    processedCount,
+    remainingDirty,
+    percentComplete,
+    byStatus,
+    staleVersion,
+    currentStateCount: state.length,
+    sampleState: state.slice(0, 40).map((row) => ({
+      entity: row.entity,
+      attribute: row.attribute,
+      value: row.valueText,
+      unit: row.unit,
+      polarity: row.polarity,
+      asOf: row.asOf,
+      previous: row.previousValueText
+        ? { value: row.previousValueText, asOf: row.previousAsOf ?? null }
+        : null,
+    })),
+  }
+}
+
+async function loadConversationsLazy(): Promise<ConversationData> {
+  const { loadConversations } = await import('../storage')
+  return loadConversations()
 }
 
 /**
