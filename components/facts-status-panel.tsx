@@ -39,6 +39,10 @@ function formatAsOf(iso: string): string {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
 }
 
+const BATCH_LIMIT = 12
+/** Cap client-side catch-up loops so a tab left open cannot run forever. */
+const MAX_CATCH_UP_ROUNDS = 60
+
 export function FactsStatusPanel() {
   const [status, setStatus] = useState<FactLedgerStatusPayload | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
@@ -71,28 +75,71 @@ export function FactsStatusPanel() {
     return () => window.clearInterval(id)
   }, [refresh])
 
+  const postSyncBatch = async (limit: number) => {
+    const res = await fetch('/api/facts/sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ limit }),
+    })
+    const data = await res.json()
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || `HTTP ${res.status}`)
+    }
+    if (data.status) {
+      setStatus(data.status as FactLedgerStatusPayload)
+    }
+    return data as {
+      processed?: number
+      factsWritten?: number
+      remainingDirty?: number
+      failed?: number
+      status?: FactLedgerStatusPayload
+    }
+  }
+
+  /** One batch of dirty notes (newest first). Same as the old single Extract click. */
   const runSyncBatch = async () => {
     setSyncing(true)
     setLastSyncMessage(null)
     try {
-      const res = await fetch('/api/facts/sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit: 12 }),
-      })
-      const data = await res.json()
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || `HTTP ${res.status}`)
-      }
-      if (data.status) {
-        setStatus(data.status as FactLedgerStatusPayload)
-      } else {
-        await refresh()
-      }
+      const data = await postSyncBatch(BATCH_LIMIT)
+      if (!data.status) await refresh()
       setLastSyncMessage(
         `Batch: +${data.processed ?? 0} notes, ${data.factsWritten ?? 0} facts` +
           (data.remainingDirty > 0 ? ` · ${data.remainingDirty} left` : ' · complete'),
       )
+    } catch (error) {
+      setLastSyncMessage(error instanceof Error ? error.message : String(error))
+    } finally {
+      setSyncing(false)
+    }
+  }
+
+  /**
+   * Loop batches until remaining is 0 (or max rounds). This is what people expect after a
+   * version bump — not a single 12-note pass, and not only the 3 notes on save.
+   */
+  const runCatchUp = async () => {
+    setSyncing(true)
+    setLastSyncMessage(null)
+    let totalProcessed = 0
+    let totalFacts = 0
+    let round = 0
+    try {
+      while (round < MAX_CATCH_UP_ROUNDS) {
+        round += 1
+        setLastSyncMessage(`Catch-up round ${round}…`)
+        const data = await postSyncBatch(BATCH_LIMIT)
+        totalProcessed += data.processed ?? 0
+        totalFacts += data.factsWritten ?? 0
+        const remaining = data.remainingDirty ?? 0
+        setLastSyncMessage(
+          `Catch-up r${round}: +${data.processed ?? 0} notes (${totalProcessed} total), ${totalFacts} facts` +
+            (remaining > 0 ? ` · ${remaining} left` : ' · complete'),
+        )
+        if (!remaining || !(data.processed ?? 0)) break
+      }
+      await refresh()
     } catch (error) {
       setLastSyncMessage(error instanceof Error ? error.message : String(error))
     } finally {
@@ -210,13 +257,21 @@ export function FactsStatusPanel() {
 
                   <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 font-mono text-[11px]">
                     <div className="flex justify-between gap-2 col-span-2">
-                      <dt className="text-text-muted">Notes processed</dt>
+                      <dt className="text-text-muted">Current extractor</dt>
                       <dd className="tabular-nums text-text-primary">
-                        {processed} / {total}
+                        {processed} / {total} ({percent}%)
                       </dd>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">With facts</dt>
+                      <dt className="text-text-muted">Remaining</dt>
+                      <dd className="tabular-nums text-accent-amber">{remaining}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-text-muted">Stale version</dt>
+                      <dd className="tabular-nums text-text-secondary">{status.staleVersion}</dd>
+                    </div>
+                    <div className="flex justify-between gap-2">
+                      <dt className="text-text-muted">Index done*</dt>
                       <dd className="tabular-nums text-text-primary">{status.byStatus.done}</dd>
                     </div>
                     <div className="flex justify-between gap-2">
@@ -228,10 +283,6 @@ export function FactsStatusPanel() {
                       <dd className="tabular-nums text-accent-red">{status.byStatus.failed}</dd>
                     </div>
                     <div className="flex justify-between gap-2">
-                      <dt className="text-text-muted">Remaining</dt>
-                      <dd className="tabular-nums text-accent-amber">{remaining}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2 col-span-2">
                       <dt className="text-text-muted">State keys</dt>
                       <dd className="tabular-nums text-text-primary">{status.currentStateCount}</dd>
                     </div>
@@ -240,6 +291,9 @@ export function FactsStatusPanel() {
                       <dd className="text-text-secondary">{status.extractorVersion}</dd>
                     </div>
                   </dl>
+                  <p className="mt-1 font-mono text-[9px] text-text-muted">
+                    *Index done can include older extractor versions until Catch up rewrites them.
+                  </p>
 
                   <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     <button
@@ -264,13 +318,22 @@ export function FactsStatusPanel() {
                     </button>
                     <button
                       type="button"
-                      className="t-btn t-btn-primary flex-1 min-w-[7rem]"
+                      className="t-btn t-btn-ghost flex-1 min-w-[5.5rem]"
                       onClick={() => void runSyncBatch()}
+                      disabled={!status.enabled || syncing || remaining === 0}
+                      title="Process next 12 dirty notes only (newest first)"
+                    >
+                      <span>{syncing ? '…' : '1 batch'}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="t-btn t-btn-primary flex-1 min-w-[7rem]"
+                      onClick={() => void runCatchUp()}
                       disabled={!status.enabled || syncing || remaining === 0}
                       title={
                         remaining === 0
                           ? 'All notes processed for this extractor version'
-                          : 'Extract facts from next batch of unprocessed notes (newest first)'
+                          : 'Loop batches until all dirty notes are re-extracted (version bumps, new notes)'
                       }
                     >
                       {syncing ? (
@@ -278,7 +341,9 @@ export function FactsStatusPanel() {
                       ) : (
                         <Database className="h-3.5 w-3.5" />
                       )}
-                      <span>{syncing ? 'Extracting…' : remaining === 0 ? 'Caught up' : 'Extract batch'}</span>
+                      <span>
+                        {syncing ? 'Extracting…' : remaining === 0 ? 'Caught up' : 'Catch up all'}
+                      </span>
                     </button>
                   </div>
 
@@ -288,8 +353,10 @@ export function FactsStatusPanel() {
 
                   {remaining > 0 && status.enabled && (
                     <p className="mt-2 font-mono text-[10px] leading-relaxed text-text-muted">
-                      First runs process newest notes first. Click Extract batch repeatedly (or leave
-                      the app saving notes) until Remaining is 0.
+                      Saving a note only extracts up to 3 dirty notes (newest first) — not a full
+                      reprocess. After an extractor upgrade (e.g. facts-v3), use{' '}
+                      <span className="text-text-secondary">Catch up all</span> so every note is
+                      rewritten. Newest notes run first.
                     </p>
                   )}
 

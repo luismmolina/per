@@ -274,11 +274,14 @@ export async function getFactLedgerStatus(
     byStatus[row.status] = (byStatus[row.status] ?? 0) + 1
   }
 
-  const processedCount = byStatus.done + byStatus.skipped
+  // "Processed for current extractor" = notes that are not dirty (hash + version + status).
+  // Do NOT use index done/skipped counts alone — after a version bump those rows are stale
+  // and still need re-extract even though status is still "done".
   const totalNotes = notes.length
   const remainingDirty = dirty.length
+  const processedCount = Math.max(0, totalNotes - remainingDirty)
   const percentComplete =
-    totalNotes > 0 ? Math.round((Math.min(processedCount, totalNotes) / totalNotes) * 100) : 0
+    totalNotes > 0 ? Math.round((processedCount / totalNotes) * 100) : 0
 
   const staleVersion = index.filter(
     (row) => row.extractorVersion !== FACT_EXTRACTOR_VERSION,
