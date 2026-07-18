@@ -27,6 +27,7 @@ function formatDay(iso: string): string {
  */
 export async function GET() {
   try {
+    // Export is intentionally heavy (full dumps). Do not use this pattern on batch/sync.
     const [status, events, fullState] = await Promise.all([
       getFactLedgerStatus(),
       listAllFactEvents(),

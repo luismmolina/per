@@ -42,7 +42,12 @@ export async function POST(req: NextRequest) {
 
   try {
     const conversations = await loadConversations()
-    const result = await syncConversationNoteFacts(conversations, { maxNotes: limit })
+    // Cheap path: no full index scan, no full status dump after each batch.
+    const result = await syncConversationNoteFacts(conversations, {
+      maxNotes: limit,
+      pruneDeleted: false,
+    })
+    // Status from 1 meta doc + small sample — not a full collection read.
     const status = await getFactLedgerStatus(conversations)
 
     return NextResponse.json({
@@ -52,7 +57,7 @@ export async function POST(req: NextRequest) {
       status,
       hint:
         result.remainingDirty > 0
-          ? `Call again to process remaining ${result.remainingDirty} dirty notes.`
+          ? `Call again to process remaining ~${result.remainingDirty} dirty notes.`
           : 'All notes are up to date for this extractor version.',
     })
   } catch (error) {

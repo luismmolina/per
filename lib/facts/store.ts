@@ -13,6 +13,26 @@ import type {
 const NOTE_FACT_INDEX = 'note_fact_index'
 const FACT_EVENTS = 'fact_events'
 const CURRENT_STATE = 'current_state'
+const FACT_LEDGER_META = 'fact_ledger_meta'
+const LEDGER_META_DOC_ID = 'default'
+
+export interface FactLedgerMetaRecord {
+  extractorVersion: string
+  totalNotes: number
+  processedForVersion: number
+  remainingDirty: number
+  indexCount: number
+  currentStateCount: number
+  byStatus: {
+    done: number
+    skipped: number
+    failed: number
+    pending: number
+  }
+  staleVersion: number
+  lastSyncAt: string
+  updatedAt: string
+}
 
 function asString(value: unknown, fallback = ''): string {
   return typeof value === 'string' ? value : fallback
@@ -118,15 +138,78 @@ function mapCurrentState(stateKey: string, data: DocumentData): CurrentStateReco
   }
 }
 
+/**
+ * Full index scan — AVOID on batch/save hot paths. Prefer getFactIndex(noteId).
+ * Kept for rare admin/export tooling only.
+ */
 export async function listFactIndexRecords(): Promise<NoteFactIndexRecord[]> {
   const db = getFirestoreDb()
   const snapshot = await db.collection(NOTE_FACT_INDEX).get()
+  logDbTransfer('listFactIndexRecords', {
+    indexRowsLoaded: snapshot.size,
+  })
   return snapshot.docs.map((doc) => mapIndexDoc(doc.id, doc.data()))
 }
 
+/** Single index doc — 1 read. Use this on sync hot path. */
+export async function getFactIndex(noteId: string): Promise<NoteFactIndexRecord | null> {
+  const db = getFirestoreDb()
+  const snap = await db.collection(NOTE_FACT_INDEX).doc(noteId).get()
+  if (!snap.exists) return null
+  return mapIndexDoc(snap.id, snap.data() ?? {})
+}
+
+/**
+ * @deprecated Full collection scan. Do not use in sync/batch — use getFactIndex.
+ */
 export async function getFactIndexMap(): Promise<Map<string, NoteFactIndexRecord>> {
   const records = await listFactIndexRecords()
   return new Map(records.map((record) => [record.noteId, record]))
+}
+
+export async function getFactLedgerMeta(): Promise<FactLedgerMetaRecord | null> {
+  const db = getFirestoreDb()
+  const snap = await db.collection(FACT_LEDGER_META).doc(LEDGER_META_DOC_ID).get()
+  if (!snap.exists) return null
+  const data = snap.data() ?? {}
+  const by = (data.by_status && typeof data.by_status === 'object')
+    ? data.by_status as Record<string, unknown>
+    : {}
+  return {
+    extractorVersion: asString(data.extractor_version),
+    totalNotes: typeof data.total_notes === 'number' ? data.total_notes : 0,
+    processedForVersion:
+      typeof data.processed_for_version === 'number' ? data.processed_for_version : 0,
+    remainingDirty: typeof data.remaining_dirty === 'number' ? data.remaining_dirty : 0,
+    indexCount: typeof data.index_count === 'number' ? data.index_count : 0,
+    currentStateCount:
+      typeof data.current_state_count === 'number' ? data.current_state_count : 0,
+    byStatus: {
+      done: typeof by.done === 'number' ? by.done : 0,
+      skipped: typeof by.skipped === 'number' ? by.skipped : 0,
+      failed: typeof by.failed === 'number' ? by.failed : 0,
+      pending: typeof by.pending === 'number' ? by.pending : 0,
+    },
+    staleVersion: typeof data.stale_version === 'number' ? data.stale_version : 0,
+    lastSyncAt: asString(data.last_sync_at, new Date(0).toISOString()),
+    updatedAt: asString(data.updated_at, new Date(0).toISOString()),
+  }
+}
+
+export async function upsertFactLedgerMeta(meta: FactLedgerMetaRecord): Promise<void> {
+  const db = getFirestoreDb()
+  await db.collection(FACT_LEDGER_META).doc(LEDGER_META_DOC_ID).set({
+    extractor_version: meta.extractorVersion,
+    total_notes: meta.totalNotes,
+    processed_for_version: meta.processedForVersion,
+    remaining_dirty: meta.remainingDirty,
+    index_count: meta.indexCount,
+    current_state_count: meta.currentStateCount,
+    by_status: meta.byStatus,
+    stale_version: meta.staleVersion,
+    last_sync_at: meta.lastSyncAt,
+    updated_at: meta.updatedAt,
+  })
 }
 
 export async function upsertFactIndex(record: NoteFactIndexRecord): Promise<void> {
@@ -247,6 +330,41 @@ export async function writeFactEvents(events: FactEvent[]): Promise<number> {
   return written
 }
 
+/** Point-get one CURRENT STATE row — 1 read. Prefer this on recompute. */
+export async function getCurrentState(stateKey: string): Promise<CurrentStateRecord | null> {
+  const db = getFirestoreDb()
+  const snap = await db.collection(CURRENT_STATE).doc(encodeStateKeyDocId(stateKey)).get()
+  if (!snap.exists) return null
+  const data = snap.data() ?? {}
+  const key =
+    typeof data.state_key === 'string' && data.state_key ? data.state_key : stateKey
+  return mapCurrentState(key, data)
+}
+
+/**
+ * Sample of CURRENT STATE for UI — limited reads, not full collection.
+ */
+export async function listCurrentStateSample(limit = 40): Promise<CurrentStateRecord[]> {
+  const db = getFirestoreDb()
+  const safeLimit = Math.max(1, Math.min(100, Math.floor(limit)))
+  const snapshot = await db.collection(CURRENT_STATE).limit(safeLimit).get()
+  const rows = snapshot.docs.map((doc) => {
+    const data = doc.data()
+    const stateKey =
+      typeof data.state_key === 'string' && data.state_key ? data.state_key : doc.id
+    return mapCurrentState(stateKey, data)
+  })
+  logDbTransfer('listCurrentStateSample', {
+    stateRowsLoaded: rows.length,
+    stateBytesLoaded: estimateJsonBytes(rows),
+  })
+  return rows
+}
+
+/**
+ * Full CURRENT STATE scan. Prefer listCurrentStateSample for UI.
+ * Still used for AI prompt formatting and full export.
+ */
 export async function listCurrentState(): Promise<CurrentStateRecord[]> {
   const db = getFirestoreDb()
   const snapshot = await db.collection(CURRENT_STATE).get()

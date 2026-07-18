@@ -22,5 +22,13 @@ export {
   prependWorldStateToNotes,
 } from './format'
 export type { WorldStateBudget } from './format'
-export { listCurrentState, listFactIndexRecords, listAllFactEvents } from './store'
+export {
+  listCurrentState,
+  listCurrentStateSample,
+  listFactIndexRecords,
+  listAllFactEvents,
+  getFactIndex,
+  getCurrentState,
+  getFactLedgerMeta,
+} from './store'
 export { buildStateKey } from './extract'
